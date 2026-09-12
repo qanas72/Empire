@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Empire — Admin Dashboard</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#090909;color:#f7f4ed;font-family:Arial,sans-serif}
+.wrap{max-width:1100px;margin:auto;padding:24px}header{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #292929;padding:12px 0 22px;margin-bottom:28px}
+.brand{font-size:28px;font-weight:900;letter-spacing:2px}.badge{font-size:12px;color:#f0c75e;border:1px solid #6b5625;padding:7px 10px;border-radius:999px}
+h1{font-size:38px;margin:0 0 8px}p{color:#aaa}.grid{display:grid;grid-template-columns:1fr 1.2fr;gap:22px}
+.card{background:#111;border:1px solid #292929;border-radius:18px;padding:22px}
+label{display:block;margin:15px 0 7px;font-weight:700}input,textarea{width:100%;padding:13px;border-radius:10px;border:1px solid #333;background:#0b0b0b;color:#fff;font-size:15px}
+textarea{min-height:90px}.primary{background:#e8b94f;color:#111;border:0;border-radius:10px;padding:13px 18px;font-weight:800;width:100%;margin-top:18px}
+.danger{background:#351616;color:#ffb5b5;border:0;border-radius:8px;padding:8px 12px}.notice{margin-top:15px;padding:12px;border-radius:10px;background:#17150e;color:#e9cb79;font-size:13px}
+.item{display:flex;align-items:center;gap:15px;padding:16px 0;border-bottom:1px solid #272727}.item:last-child{border-bottom:0}
+.thumb{width:100px;height:65px;border-radius:10px;background:#3b2c10;display:grid;place-items:center;font-size:24px}.meta{flex:1}.meta strong{display:block;margin-bottom:5px}.price{color:#f0c75e;font-weight:800}.empty{color:#888;text-align:center;padding:35px}
+@media(max-width:760px){.grid{grid-template-columns:1fr}.wrap{padding:16px}h1{font-size:30px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header><div class="brand">♛ EMPIRE</div><div class="badge">ADMIN DASHBOARD</div></header>
+<h1>Video Management</h1>
+<p>Add videos, set prices, and manage the catalog.</p>
+<div class="grid">
+<section class="card">
+<h2>Add a video</h2>
+<form id="form">
+<label>Video title</label><input id="title" required placeholder="The Last Horizon">
+<label>Description</label><textarea id="desc" placeholder="Short description"></textarea>
+<label>Price (USD)</label><input id="price" type="number" min="0.50" step="0.01" required placeholder="4.99">
+<label>Video file</label><input id="video" type="file" accept="video/*" required>
+<label>Cover image (optional)</label><input id="cover" type="file" accept="image/*">
+<button class="primary">Add Video to Catalog</button>
+</form>
+<div class="notice">Demo mode: the selected video is not uploaded to a server. Entries are saved only in this browser.</div>
+</section>
+<section class="card"><h2>Catalog</h2><div id="catalog"></div></section>
+</div>
+</div>
+<script>
+const KEY="empire_demo_videos";let videos=JSON.parse(localStorage.getItem(KEY)||"[]");
+const esc=s=>String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
+function render(){let e=document.getElementById("catalog");if(!videos.length){e.innerHTML='<div class="empty">No videos yet.</div>';return}
+e.innerHTML=videos.map((v,i)=>'<div class="item"><div class="thumb">▶</div><div class="meta"><strong>'+esc(v.title)+'</strong><span>'+esc(v.desc||"No description")+'</span><br><span class="price">$'+Number(v.price).toFixed(2)+'</span></div><button class="danger" onclick="del('+i+')">Delete</button></div>').join("")}
+function del(i){videos.splice(i,1);localStorage.setItem(KEY,JSON.stringify(videos));render()}
+document.getElementById("form").onsubmit=e=>{e.preventDefault();let f=document.getElementById("video").files[0];if(!f)return;
+videos.unshift({title:document.getElementById("title").value.trim(),desc:document.getElementById("desc").value.trim(),price:document.getElementById("price").value,file:f.name});
+localStorage.setItem(KEY,JSON.stringify(videos));e.target.reset();render();alert("Added to demo catalog.")};render();
+</script>
+</body></html>
