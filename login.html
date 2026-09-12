@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Empire — Login</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background:
+        radial-gradient(circle at top, #1a1408 0%, #080808 45%, #050505 100%);
+      color: #f7f7f7;
+      font-family: Arial, Helvetica, sans-serif;
+      padding: 20px;
+    }
+
+    .box {
+      width: min(440px, 100%);
+      background: rgba(17, 17, 17, 0.96);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 20px;
+      padding: 34px;
+      box-shadow: 0 20px 70px rgba(0, 0, 0, 0.6);
+    }
+
+    .brand {
+      text-align: center;
+      font-size: 30px;
+      font-weight: 900;
+      letter-spacing: 3px;
+      margin-bottom: 8px;
+    }
+
+    .crown {
+      color: #e8b94f;
+      margin-right: 5px;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: #888;
+      margin: 0 0 25px;
+      font-size: 14px;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 22px;
+      background: #0b0b0b;
+      padding: 5px;
+      border-radius: 12px;
+    }
+
+    .tab {
+      flex: 1;
+      border: 0;
+      background: transparent;
+      color: #777;
+      padding: 11px;
+      border-radius: 9px;
+      cursor: pointer;
+      font-weight: 700;
+      margin: 0;
+    }
+
+    .tab.active {
+      background: #1c1c1c;
+      color: #f1c75a;
+    }
+
+    .form-section {
+      display: none;
+    }
+
+    .form-section.active {
+      display: block;
+    }
+
+    label {
+      display: block;
+      margin: 15px 0 7px;
+      font-size: 14px;
+      font-weight: 700;
+      color: #ddd;
+    }
+
+    input {
+      width: 100%;
+      padding: 14px;
+      border-radius: 10px;
+      border: 1px solid #333;
+      background: #0b0b0b;
+      color: #fff;
+      font-size: 15px;
+      outline: none;
+    }
+
+    input:focus {
+      border-color: #c99a35;
+      box-shadow: 0 0 0 2px rgba(201, 154, 53, 0.12);
+    }
+
+    .main-button {
+      width: 100%;
+      margin-top: 24px;
+      padding: 14px;
+      border: 0;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #f1c75a, #a86e16);
+      color: #111;
+      font-weight: 800;
+      font-size: 15px;
+      cursor: pointer;
+    }
+
+    .main-button:hover {
+      opacity: 0.92;
+    }
+
+    .main-button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    #message {
+      margin-top: 16px;
+      text-align: center;
+      color: #ff9b9b;
+      font-size: 14px;
+      line-height: 1.6;
+      min-height: 24px;
+      word-break: break-word;
+    }
+
+    .hint {
+      color: #666;
+      font-size: 12px;
+      margin-top: 7px;
+      line-height: 1.5;
+    }
+
+    .footer {
+      text-align: center;
+      margin-top: 22px;
+      color: #555;
+      font-size: 12px;
+    }
+
+    @media (max-width: 480px) {
+      .box {
+        padding: 25px 20px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="box">
+
+    <div class="brand">
+      <span class="crown">♛</span> EMPIRE
+    </div>
+
+    <p class="subtitle">
+      Your private video platform
+    </p>
+
+    <div class="tabs">
+      <button
+        id="loginTab"
+        class="tab active"
+        type="button"
+      >
+        Sign In
+      </button>
+
+      <button
+        id="signupTab"
+        class="tab"
+        type="button"
+      >
+        Create Account
+      </button>
+    </div>
+
+
+    <!-- ========================= -->
+    <!-- LOGIN -->
+    <!-- ========================= -->
+
+    <div
+      id="loginSection"
+      class="form-section active"
+    >
+
+      <form id="loginForm">
+
+        <label for="loginEmail">
+          Email
+        </label>
+
+        <input
+          id="loginEmail"
+          type="email"
+          required
+          autocomplete="email"
+          placeholder="Enter your email"
+        >
+
+        <label for="loginPassword">
+          Password
+        </label>
+
+        <input
+          id="loginPassword"
+          type="password"
+          required
+          autocomplete="current-password"
+          placeholder="Enter your password"
+        >
+
+        <button
+          id="loginButton"
+          class="main-button"
+          type="submit"
+        >
+          Sign In
+        </button>
+
+      </form>
+
+    </div>
+
+
+    <!-- ========================= -->
+    <!-- SIGN UP -->
+    <!-- ========================= -->
+
+    <div
+      id="signupSection"
+      class="form-section"
+    >
+
+      <form id="signupForm">
+
+        <label for="signupUsername">
+          Username
+        </label>
+
+        <input
+          id="signupUsername"
+          type="text"
+          required
+          minlength="3"
+          maxlength="30"
+          autocomplete="username"
+          placeholder="Choose a username"
+        >
+
+        <div class="hint">
+          3–30 characters. Letters, numbers, underscore and dot are recommended.
+        </div>
+
+
+        <label for="signupDisplayName">
+          Display Name
+        </label>
+
+        <input
+          id="signupDisplayName"
+          type="text"
+          required
+          maxlength="60"
+          placeholder="Your display name"
+        >
+
+
+        <label for="signupEmail">
+          Email
+        </label>
+
+        <input
+          id="signupEmail"
+          type="email"
+          required
+          autocomplete="email"
+          placeholder="Enter your email"
+        >
+
+
+        <label for="signupPassword">
+          Password
+        </label>
+
+        <input
+          id="signupPassword"
+          type="password"
+          required
+          minlength="6"
+          autocomplete="new-password"
+          placeholder="Create a password"
+        >
+
+
+        <label for="signupConfirmPassword">
+          Confirm Password
+        </label>
+
+        <input
+          id="signupConfirmPassword"
+          type="password"
+          required
+          minlength="6"
+          autocomplete="new-password"
+          placeholder="Confirm your password"
+        >
+
+
+        <button
+          id="signupButton"
+          class="main-button"
+          type="submit"
+        >
+          Create Account
+        </button>
+
+      </form>
+
+    </div>
+
+
+    <div id="message"></div>
+
+    <div class="footer">
+      Private Empire Video Platform
+    </div>
+
+  </div>
+
+
+  <script type="module">
+
+    import { createClient }
+      from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+
+
+    // ==========================================
+    // SUPABASE CONFIG
+    // ==========================================
+
+    const SUPABASE_URL =
+      "https://vubjkwbkuwndkjqfnyom.supabase.co";
+
+    /*
+      IMPORTANT:
+      Keep the SAME publishable key that is
+      already in your current login.html.
+
+      Do NOT use the service_role key here.
+    */
+
+    const SUPABASE_KEY =
+      "sb_publishable_Ig1R3dpAKyBfjIGSUhhlKw_uC-QF0QQ";
+
+
+    const supabase =
+      createClient(
+        SUPABASE_URL,
+        SUPABASE_KEY
+      );
+
+
+    // ==========================================
+    // ELEMENTS
+    // ==========================================
+
+    const loginTab =
+      document.getElementById("loginTab");
+
+    const signupTab =
+      document.getElementById("signupTab");
+
+    const loginSection =
+      document.getElementById("loginSection");
+
+    const signupSection =
+      document.getElementById("signupSection");
+
+    const loginForm =
+      document.getElementById("loginForm");
+
+    const signupForm =
+      document.getElementById("signupForm");
+
+    const loginButton =
+      document.getElementById("loginButton");
+
+    const signupButton =
+      document.getElementById("signupButton");
+
+    const message =
+      document.getElementById("message");
+
+
+    // ==========================================
+    // MESSAGE
+    // ==========================================
+
+    function showMessage(
+      text,
+      success = false
+    ) {
+
+      message.textContent = text;
+
+      message.style.color =
+        success
+          ? "#9cffb0"
+          : "#ff9b9b";
+    }
+
+
+    // ==========================================
+    // SWITCH LOGIN / SIGNUP
+    // ==========================================
+
+    loginTab.addEventListener(
+      "click",
+      function() {
+
+        loginTab.classList.add("active");
+        signupTab.classList.remove("active");
+
+        loginSection.classList.add("active");
+        signupSection.classList.remove("active");
+
+        showMessage("");
+
+      }
+    );
+
+
+    signupTab.addEventListener(
+      "click",
+      function() {
+
+        signupTab.classList.add("active");
+        loginTab.classList.remove("active");
+
+        signupSection.classList.add("active");
+        loginSection.classList.remove("active");
+
+        showMessage("");
+
+      }
+    );
+
+
+    // ==========================================
+    // LOGIN
+    // ==========================================
+
+    loginForm.addEventListener(
+      "submit",
+      async function(event) {
+
+        event.preventDefault();
+
+        loginButton.disabled = true;
+        loginButton.textContent = "Signing in...";
+
+        showMessage(
+          "Checking your account..."
+        );
+
+
+        const email =
+          document
+            .getElementById("loginEmail")
+            .value
+            .trim();
+
+        const password =
+          document
+            .getElementById("loginPassword")
+            .value;
+
+
+        try {
+
+          const {
+            data,
+            error
+          } =
+            await supabase.auth.signInWithPassword({
+              email,
+              password
+            });
+
+
+          if (error) {
+            throw new Error(
+              error.message
+            );
+          }
+
+
+          if (!data || !data.user) {
+            throw new Error(
+              "User session was not created."
+            );
+          }
+
+
+          showMessage(
+            "Checking your profile..."
+          );
+
+
+          /*
+            IMPORTANT:
+            Do NOT use .single().
+            We use limit(1) because this previously
+            caused a profile error in your project.
+          */
+
+          const {
+            data: profileRows,
+            error: profileError
+          } =
+            await supabase
+              .from("profiles")
+              .select(
+                "id, username, display_name, is_active"
+              )
+              .eq(
+                "id",
+                data.user.id
+              )
+              .limit(1);
+
+
+          if (profileError) {
+
+            await supabase.auth.signOut();
+
+            throw new Error(
+              "PROFILE ERROR: " +
+              profileError.message
+            );
+
+          }
+
+
+          const profile =
+            profileRows &&
+            profileRows.length > 0
+              ? profileRows[0]
+              : null;
+
+
+          if (!profile) {
+
+            await supabase.auth.signOut();
+
+            throw new Error(
+              "No profile was found for this account."
+            );
+
+          }
+
+
+          if (profile.is_active !== true) {
+
+            await supabase.auth.signOut();
+
+            throw new Error(
+              "Your account is currently disabled."
+            );
+
+          }
+
+
+          showMessage(
+            "Login successful! Opening Empire...",
+            true
+          );
+
+
+          loginButton.textContent =
+            "Success";
+
+
+          setTimeout(
+            function() {
+
+              window.location.href =
+                "index.html";
+
+            },
+            700
+          );
+
+
+        } catch (error) {
+
+          console.error(
+            "LOGIN ERROR:",
+            error
+          );
+
+
+          showMessage(
+            error.message ||
+            "Something went wrong."
+          );
+
+
+          loginButton.disabled = false;
+          loginButton.textContent =
+            "Sign In";
+
+        }
+
+      }
+    );
+
+
+    // ==========================================
+    // SIGN UP
+    // ==========================================
+
+    signupForm.addEventListener(
+      "submit",
+      async function(event) {
+
+        event.preventDefault();
+
+
+        signupButton.disabled = true;
+        signupButton.textContent =
+          "Creating account...";
+
+
+        const username =
+          document
+            .getElementById("signupUsername")
+            .value
+            .trim();
+
+        const displayName =
+          document
+            .getElementById("signupDisplayName")
+            .value
+            .trim();
+
+        const email =
+          document
+            .getElementById("signupEmail")
+            .value
+            .trim();
+
+        const password =
+          document
+            .getElementById("signupPassword")
+            .value;
+
+        const confirmPassword =
+          document
+            .getElementById("signupConfirmPassword")
+            .value;
+
+
+        try {
+
+          // ======================================
+          // VALIDATION
+          // ======================================
+
+          if (username.length < 3) {
+            throw new Error(
+              "Username must be at least 3 characters."
+            );
+          }
+
+
+          if (password.length < 6) {
+            throw new Error(
+              "Password must be at least 6 characters."
+            );
+          }
+
+
+          if (password !== confirmPassword) {
+            throw new Error(
+              "Passwords do not match."
+            );
+          }
+
+
+          /*
+            Keep username simple and safe.
+          */
+
+          if (
+            !/^[a-zA-Z0-9_.]+$/.test(username)
+          ) {
+
+            throw new Error(
+              "Username can contain only letters, numbers, underscore and dot."
+            );
+
+          }
+
+
+          showMessage(
+            "Creating your account..."
+          );
+
+
+          // ======================================
+          // CREATE AUTH USER
+          // ======================================
+
+          const {
+            data,
+            error
+          } =
+            await supabase.auth.signUp({
+
+              email,
+
+              password,
+
+              options: {
+                data: {
+                  username,
+                  display_name: displayName
+                }
+              }
+
+            });
+
+
+          if (error) {
+
+            console.error(
+              "SIGNUP ERROR:",
+              error
+            );
+
+            throw new Error(
+              error.message
+            );
+
+          }
+
+
+          if (!data || !data.user) {
+
+            throw new Error(
+              "Account could not be created."
+            );
+
+          }
+
+
+          /*
+            The database trigger created earlier
+            automatically creates the profile.
+          */
+
+
+          // ======================================
+          // EMAIL CONFIRMATION CHECK
+          // ======================================
+
+          if (!data.session) {
+
+            showMessage(
+              "Account created! Please check your email to confirm your account.",
+              true
+            );
+
+            signupButton.disabled = false;
+            signupButton.textContent =
+              "Create Account";
+
+            return;
+
+          }
+
+
+          // ======================================
+          // ACCOUNT READY
+          // ======================================
+
+          showMessage(
+            "Account created successfully! Opening Empire...",
+            true
+          );
+
+
+          signupButton.textContent =
+            "Success";
+
+
+          setTimeout(
+            function() {
+
+              window.location.href =
+                "index.html";
+
+            },
+            1000
+          );
+
+
+        } catch (error) {
+
+          console.error(
+            "SIGNUP PROCESS ERROR:",
+            error
+          );
+
+
+          showMessage(
+            error.message ||
+            "Something went wrong."
+          );
+
+
+          signupButton.disabled = false;
+
+          signupButton.textContent =
+            "Create Account";
+
+        }
+
+      }
+    );
+
+
+  </script>
+
+</body>
+</html>
