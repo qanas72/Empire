@@ -1753,52 +1753,33 @@ async function watchVideo(videoId){
 /* =========================================================
    BUY NOW
    ========================================================= */
-  async function openBuy(videoId){
+async function openBuy(videoId){
 
   const video =
-    videos.find(
-      item =>
-        item.id === videoId
-    );
+    videos.find(item => item.id === videoId);
 
   if(!video){
-
-    alert(
-      "Video not found."
-    );
-
+    alert("Video not found.");
     return;
   }
 
   const price =
-    Number(
-      video.price || 0
-    );
+    Number(video.price || 0);
 
   if(price <= 0){
-
-    alert(
-      "Invalid video price."
-    );
-
+    alert("Invalid video price.");
     return;
   }
 
   try {
 
     const {
-      data: {
-        session
-      }
+      data: { session }
     } =
       await supabaseClient.auth.getSession();
 
     if(!session){
-
-      alert(
-        "Please login first."
-      );
-
+      alert("Please login first.");
       return;
     }
 
@@ -1823,8 +1804,7 @@ async function watchVideo(videoId){
 
           body:
             JSON.stringify({
-              video_id:
-                videoId
+              video_id: videoId
             })
         }
       );
@@ -1833,12 +1813,10 @@ async function watchVideo(videoId){
       await response.json();
 
     if(!response.ok){
-
       alert(
         result.error ||
         "Could not create purchase."
       );
-
       return;
     }
 
@@ -1851,10 +1829,7 @@ async function watchVideo(videoId){
       return;
     }
 
-      const paymentAddress =
-      result.payment_address;
-
-    if(!paymentAddress){
+    if(!result.payment_address){
 
       alert(
         "Payment address is not configured."
@@ -1863,28 +1838,72 @@ async function watchVideo(videoId){
       return;
     }
 
-    const paymentInfo =
-      "Video: " +
-      video.title +
-      "\n\n" +
+    const txid =
+      prompt(
+        "Send exactly " +
+        Number(result.amount).toFixed(2) +
+        " USDT on TRON (TRC20) to:\n\n" +
+        result.payment_address +
+        "\n\nAfter sending the payment, enter the TXID here:"
+      );
 
-      "Amount: " +
-      Number(result.amount).toFixed(2) +
-      " USDT\n\n" +
+    if(!txid){
+      return;
+    }
 
-      "Network: TRON (TRC20)\n\n" +
+    const verifyResponse =
+      await fetch(
+        SUPABASE_URL +
+        "/functions/v1/verify-payment",
+        {
+          method: "POST",
 
-      "Payment Address:\n" +
-      paymentAddress +
-      "\n\n" +
+          headers: {
+            "Authorization":
+              "Bearer " +
+              session.access_token,
 
-      "Purchase ID:\n" +
-      result.purchase_id +
-      "\n\n" +
+            "apikey":
+              SUPABASE_KEY,
 
-      "After sending the exact amount, copy your TXID and send it for verification.";
+            "Content-Type":
+              "application/json"
+          },
 
-    alert(paymentInfo);
+          body:
+            JSON.stringify({
+              purchase_id:
+                result.purchase_id,
+
+              txid:
+                txid.trim()
+            })
+        }
+      );
+
+    const verifyResult =
+      await verifyResponse.json();
+
+    if(
+      verifyResponse.ok &&
+      verifyResult.success &&
+      verifyResult.status === "paid"
+    ){
+
+      alert(
+        "Payment verified successfully!"
+      );
+
+      await watchVideo(videoId);
+
+      return;
+    }
+
+    alert(
+      verifyResult.message ||
+      verifyResult.error ||
+      "Payment could not be verified yet."
+    );
 
   } catch(error){
 
@@ -1896,9 +1915,7 @@ async function watchVideo(videoId){
     alert(
       "Could not connect to payment system."
     );
-
   }
-
 }
 /* =========================================================
    FEATURED VIDEO
