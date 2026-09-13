@@ -1851,10 +1851,19 @@ async function watchVideo(videoId){
       return;
     }
 
-    alert(
+      const paymentAddress =
+      result.payment_address;
 
-      "Order created successfully.\n\n" +
+    if(!paymentAddress){
 
+      alert(
+        "Payment address is not configured."
+      );
+
+      return;
+    }
+
+    const paymentInfo =
       "Video: " +
       video.title +
       "\n\n" +
@@ -1865,10 +1874,17 @@ async function watchVideo(videoId){
 
       "Network: TRON (TRC20)\n\n" +
 
-      "Purchase ID:\n" +
-      result.purchase_id
+      "Payment Address:\n" +
+      paymentAddress +
+      "\n\n" +
 
-    );
+      "Purchase ID:\n" +
+      result.purchase_id +
+      "\n\n" +
+
+      "After sending the exact amount, copy your TXID and send it for verification.";
+
+    alert(paymentInfo);
 
   } catch(error){
 
