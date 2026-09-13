@@ -1042,7 +1042,6 @@ footer{
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-
 <script>
 
 /* =========================================================
@@ -1054,7 +1053,6 @@ const SUPABASE_URL =
 
 const SUPABASE_KEY =
   "sb_publishable_Ig1R3dpAKyBfjIGSUhhlKw_uC-QF0QQ";
-
 
 const supabaseClient =
   window.supabase.createClient(
@@ -1068,7 +1066,6 @@ const supabaseClient =
    ========================================================= */
 
 let videos = [];
-
 let featuredVideo = null;
 
 
@@ -1081,18 +1078,17 @@ async function checkAuth(){
   try{
 
     const {
-      data:{
-        session
-      },
+      data,
       error
     } =
       await supabaseClient.auth.getSession();
-
 
     if(error){
       throw error;
     }
 
+    const session =
+      data?.session;
 
     if(!session){
 
@@ -1103,28 +1099,23 @@ async function checkAuth(){
 
     }
 
-
     const user =
       session.user;
 
 
     const {
-      data:profileRows,
+      data:profiles,
       error:profileError
     } =
       await supabaseClient
-
         .from("profiles")
-
         .select(
           "id, username, display_name, is_active"
         )
-
         .eq(
           "id",
           user.id
         )
-
         .limit(1);
 
 
@@ -1134,8 +1125,8 @@ async function checkAuth(){
 
 
     if(
-      !profileRows ||
-      profileRows.length === 0
+      !profiles ||
+      profiles.length === 0
     ){
 
       await supabaseClient.auth.signOut();
@@ -1153,7 +1144,7 @@ async function checkAuth(){
 
 
     const profile =
-      profileRows[0];
+      profiles[0];
 
 
     if(!profile.is_active){
@@ -1172,13 +1163,19 @@ async function checkAuth(){
     }
 
 
-    document.getElementById(
-      "userName"
-    ).textContent =
+    const userName =
+      document.getElementById(
+        "userName"
+      );
 
-      profile.display_name ||
-      profile.username ||
-      "User";
+    if(userName){
+
+      userName.textContent =
+        profile.display_name ||
+        profile.username ||
+        "User";
+
+    }
 
 
     return true;
@@ -1217,18 +1214,16 @@ async function loadVideos(){
     );
 
 
+  if(!grid){
+    return;
+  }
+
+
   grid.innerHTML = `
-
     <div class="status">
-
-      <strong>
-        Loading videos...
-      </strong>
-
+      <strong>Loading videos...</strong>
       Please wait.
-
     </div>
-
   `;
 
 
@@ -1238,13 +1233,9 @@ async function loadVideos(){
       data,
       error
     } =
-
       await supabaseClient
-
         .from("videos")
-
-        .select(
-          `
+        .select(`
           id,
           title,
           description,
@@ -1253,9 +1244,7 @@ async function loadVideos(){
           access_type,
           price,
           created_at
-          `
-        )
-
+        `)
         .order(
           "created_at",
           {
@@ -1273,29 +1262,32 @@ async function loadVideos(){
       data || [];
 
 
-    document.getElementById(
-      "videoCount"
-    ).textContent =
-      videos.length;
+    const videoCount =
+      document.getElementById(
+        "videoCount"
+      );
+
+    if(videoCount){
+
+      videoCount.textContent =
+        videos.length;
+
+    }
 
 
     if(videos.length === 0){
 
       grid.innerHTML = `
-
         <div
           class="status"
           style="grid-column:1/-1">
 
-          <strong>
-            No videos yet
-          </strong>
+          <strong>No videos yet</strong>
 
           Your Empire video library
           is currently empty.
 
         </div>
-
       `;
 
       resetFeatured();
@@ -1307,14 +1299,6 @@ async function loadVideos(){
 
     renderVideos();
 
-
-    /*
-      Featured video:
-      Prefer a free video.
-      This prevents a paid video from
-      being directly opened in the featured
-      section before payment is implemented.
-    */
 
     featuredVideo =
       videos.find(
@@ -1345,7 +1329,6 @@ async function loadVideos(){
 
 
     grid.innerHTML = `
-
       <div
         class="status error"
         style="grid-column:1/-1">
@@ -1360,7 +1343,6 @@ async function loadVideos(){
         )}
 
       </div>
-
     `;
 
   }
@@ -1380,30 +1362,26 @@ function renderVideos(){
     );
 
 
-  grid.innerHTML =
+  if(!grid){
+    return;
+  }
 
+
+  grid.innerHTML =
     videos.map(
       (video,index) => {
 
         const thumbClass =
-
           index % 3 === 1
-
             ? "two"
-
             : index % 3 === 2
-
               ? "three"
-
               : "";
 
 
         const thumbnail =
-
           video.thumbnail_url
-
             ? `
-
               <img
                 src="${escapeAttribute(
                   video.thumbnail_url
@@ -1412,9 +1390,7 @@ function renderVideos(){
                   video.title
                 )}"
                 loading="lazy">
-
             `
-
             : "";
 
 
@@ -1423,50 +1399,39 @@ function renderVideos(){
 
 
         const price =
-          Number(video.price || 0);
+          Number(
+            video.price || 0
+          );
 
 
         const badge =
-
           isPaid
 
             ? `
-
               <span class="price-badge">
-
                 💰
                 ${price.toFixed(2)}
                 USDT
-
               </span>
-
             `
 
             : `
-
               <span class="free-badge">
-
                 🆓 Free
-
               </span>
-
             `;
 
 
         const mediaIcon =
-
           isPaid
 
             ? `
-
               <span class="lock-icon">
                 🔒
               </span>
-
             `
 
             : `
-
               <span
                 class="play"
                 onclick="watchVideo('${video.id}')">
@@ -1474,16 +1439,13 @@ function renderVideos(){
                 ▶
 
               </span>
-
             `;
 
 
         const actionButton =
-
           isPaid
 
             ? `
-
               <button
                 class="btn btn-gold"
                 onclick="openBuy('${video.id}')">
@@ -1491,11 +1453,9 @@ function renderVideos(){
                 Buy Now
 
               </button>
-
             `
 
             : `
-
               <button
                 class="btn btn-gold"
                 onclick="watchVideo('${video.id}')">
@@ -1503,12 +1463,10 @@ function renderVideos(){
                 Watch
 
               </button>
-
             `;
 
 
         return `
-
           <article class="card">
 
             <div
@@ -1532,36 +1490,29 @@ function renderVideos(){
             <div class="card-body">
 
               <h3>
-
                 ${escapeHtml(
                   video.title
                 )}
-
               </h3>
 
 
               <p>
-
                 ${escapeHtml(
                   video.description ||
                   "Private Empire video."
                 )}
-
               </p>
 
 
               <div class="card-foot">
 
                 <span class="tag">
-
                   ${
                     isPaid
-                      ? "PREMIUM"
-                      : "FREE"
+                      ? "Premium"
+                      : "Free"
                   }
-
                 </span>
-
 
                 ${actionButton}
 
@@ -1570,18 +1521,18 @@ function renderVideos(){
             </div>
 
           </article>
-
         `;
 
       }
-
-    ).join("");
+    )
+    .join("");
 
 }
 
 
 /* =========================================================
    WATCH VIDEO
+   SECURE EDGE FUNCTION
    ========================================================= */
 
 async function watchVideo(videoId){
@@ -1604,40 +1555,20 @@ async function watchVideo(videoId){
   }
 
 
-  /*
-    IMPORTANT:
-    Paid videos are intentionally blocked here.
-
-    Payment and purchase verification
-    will be connected in the next stage.
-  */
-
-  if(video.access_type === "paid"){
-
-    openBuy(video.id);
-
-    return;
-
-  }
-
-
   const modal =
     document.getElementById(
       "videoModal"
     );
-
 
   const player =
     document.getElementById(
       "videoPlayer"
     );
 
-
   const title =
     document.getElementById(
       "modalTitle"
     );
-
 
   const description =
     document.getElementById(
@@ -1645,13 +1576,32 @@ async function watchVideo(videoId){
     );
 
 
-  title.textContent =
-    video.title;
+  if(!modal || !player){
+
+    alert(
+      "Video player is not available."
+    );
+
+    return;
+
+  }
 
 
-  description.textContent =
-    video.description ||
-    "Private Empire video.";
+  if(title){
+
+    title.textContent =
+      video.title;
+
+  }
+
+
+  if(description){
+
+    description.textContent =
+      video.description ||
+      "Private Empire video.";
+
+  }
 
 
   player.removeAttribute(
@@ -1672,17 +1622,7 @@ async function watchVideo(videoId){
       data,
       error
     } =
-
-      await supabaseClient
-
-        .storage
-
-        .from("videos")
-
-        .createSignedUrl(
-          video.video_path,
-          3600
-        );
+      await supabaseClient.auth.getSession();
 
 
     if(error){
@@ -1690,20 +1630,94 @@ async function watchVideo(videoId){
     }
 
 
+    const session =
+      data?.session;
+
+
+    if(!session){
+
+      throw new Error(
+        "Your session has expired. Please log in again."
+      );
+
+    }
+
+
+    const response =
+      await fetch(
+
+        SUPABASE_URL +
+        "/functions/v1/get-video-url",
+
+        {
+          method:"POST",
+
+          headers:{
+            "Authorization":
+              "Bearer " +
+              session.access_token,
+
+            "apikey":
+              SUPABASE_KEY,
+
+            "Content-Type":
+              "application/json"
+          },
+
+          body:JSON.stringify({
+            video_id:
+              video.id
+          })
+
+        }
+
+      );
+
+
+    const result =
+      await response.json();
+
+
+    if(!response.ok){
+
+      if(
+        result?.code ===
+        "PURCHASE_REQUIRED"
+      ){
+
+        closeVideo();
+
+        openBuy(
+          video.id
+        );
+
+        return;
+
+      }
+
+
+      throw new Error(
+        result?.error ||
+        "Could not get secure video URL."
+      );
+
+    }
+
+
     if(
-      !data ||
-      !data.signedUrl
+      !result ||
+      !result.signed_url
     ){
 
       throw new Error(
-        "Could not create video URL."
+        "Secure video URL was not created."
       );
 
     }
 
 
     player.src =
-      data.signedUrl;
+      result.signed_url;
 
 
     player.load();
@@ -1723,12 +1737,13 @@ async function watchVideo(videoId){
     );
 
 
-    description.textContent =
-      "Could not load this video. " +
-      (
+    if(description){
+
+      description.textContent =
         error.message ||
-        ""
-      );
+        "Could not load this video.";
+
+    }
 
   }
 
@@ -1777,8 +1792,7 @@ function openBuy(videoId){
     price.toFixed(2) +
     " USDT\n\n" +
 
-    "The next step will connect " +
-    "TRON (TRC20) payment."
+    "TRON (TRC20) payment will be connected next."
 
   );
 
@@ -1800,44 +1814,20 @@ function renderFeatured(video){
   }
 
 
-  document.getElementById(
-    "featuredTitle"
-  ).textContent =
-    video.title;
+  const featuredTitle =
+    document.getElementById(
+      "featuredTitle"
+    );
 
-
-  document.getElementById(
-    "featuredDescription"
-  ).textContent =
-
-    video.description ||
-
-    "Featured free Empire video.";
-
+  const featuredDescription =
+    document.getElementById(
+      "featuredDescription"
+    );
 
   const button =
     document.getElementById(
       "featuredButton"
     );
-
-
-  button.style.display =
-    "inline-flex";
-
-
-  button.textContent =
-    "Watch Video";
-
-
-  button.onclick =
-    function(){
-
-      watchVideo(
-        video.id
-      );
-
-    };
-
 
   const area =
     document.getElementById(
@@ -1845,40 +1835,83 @@ function renderFeatured(video){
     );
 
 
-  if(video.thumbnail_url){
+  if(featuredTitle){
 
-    area.innerHTML = `
+    featuredTitle.textContent =
+      video.title;
 
-      <img
-        src="${escapeAttribute(
-          video.thumbnail_url
-        )}"
-        alt="${escapeAttribute(
-          video.title
-        )}"
-        style="
-          width:100%;
-          height:330px;
-          object-fit:cover;
-          border-radius:18px;
-        ">
+  }
 
-    `;
 
-  }else{
+  if(featuredDescription){
 
-    area.innerHTML = `
+    featuredDescription.textContent =
+      video.description ||
+      "Featured free Empire video.";
 
-      <div
-        class="play"
-        onclick="watchVideo('${video.id}')"
-        style="cursor:pointer">
+  }
 
-        ▶
 
-      </div>
+  if(button){
 
-    `;
+    button.style.display =
+      "inline-flex";
+
+
+    button.textContent =
+      "Watch Video";
+
+
+    button.onclick =
+      function(){
+
+        watchVideo(
+          video.id
+        );
+
+      };
+
+  }
+
+
+  if(area){
+
+    if(video.thumbnail_url){
+
+      area.innerHTML = `
+
+        <img
+          src="${escapeAttribute(
+            video.thumbnail_url
+          )}"
+          alt="${escapeAttribute(
+            video.title
+          )}"
+          style="
+            width:100%;
+            height:330px;
+            object-fit:cover;
+            border-radius:18px;
+          ">
+
+      `;
+
+    }else{
+
+      area.innerHTML = `
+
+        <div
+          class="play"
+          onclick="watchVideo('${video.id}')"
+          style="cursor:pointer">
+
+          ▶
+
+        </div>
+
+      `;
+
+    }
 
   }
 
@@ -1891,33 +1924,62 @@ function resetFeatured(){
     null;
 
 
-  document.getElementById(
-    "featuredTitle"
-  ).textContent =
-    "Your Empire Library";
+  const title =
+    document.getElementById(
+      "featuredTitle"
+    );
+
+  const description =
+    document.getElementById(
+      "featuredDescription"
+    );
+
+  const button =
+    document.getElementById(
+      "featuredButton"
+    );
+
+  const area =
+    document.getElementById(
+      "featuredVideoArea"
+    );
 
 
-  document.getElementById(
-    "featuredDescription"
-  ).textContent =
-    "Your latest free video can appear here.";
+  if(title){
+
+    title.textContent =
+      "Your Empire Library";
+
+  }
 
 
-  document.getElementById(
-    "featuredButton"
-  ).style.display =
-    "none";
+  if(description){
+
+    description.textContent =
+      "Your latest free video can appear here.";
+
+  }
 
 
-  document.getElementById(
-    "featuredVideoArea"
-  ).innerHTML = `
+  if(button){
 
-    <div class="play">
-      ▶
-    </div>
+    button.style.display =
+      "none";
 
-  `;
+  }
+
+
+  if(area){
+
+    area.innerHTML = `
+
+      <div class="play">
+        ▶
+      </div>
+
+    `;
+
+  }
 
 }
 
@@ -1946,27 +2008,34 @@ function closeVideo(){
       "videoModal"
     );
 
-
   const player =
     document.getElementById(
       "videoPlayer"
     );
 
 
-  player.pause();
+  if(player){
+
+    player.pause();
 
 
-  player.removeAttribute(
-    "src"
-  );
+    player.removeAttribute(
+      "src"
+    );
 
 
-  player.load();
+    player.load();
+
+  }
 
 
-  modal.classList.remove(
-    "open"
-  );
+  if(modal){
+
+    modal.classList.remove(
+      "open"
+    );
+
+  }
 
 }
 
@@ -2036,6 +2105,11 @@ function toggleMenu(){
     document.querySelector(
       ".links"
     );
+
+
+  if(!links){
+    return;
+  }
 
 
   if(
