@@ -1753,15 +1753,13 @@ async function watchVideo(videoId){
 /* =========================================================
    BUY NOW
    ========================================================= */
-
-function openBuy(videoId){
+  async function openBuy(videoId){
 
   const video =
     videos.find(
       item =>
         item.id === videoId
     );
-
 
   if(!video){
 
@@ -1770,35 +1768,122 @@ function openBuy(videoId){
     );
 
     return;
-
   }
-
 
   const price =
     Number(
       video.price || 0
     );
 
+  if(price <= 0){
 
-  alert(
+    alert(
+      "Invalid video price."
+    );
 
-    "Payment system is not connected yet.\n\n" +
+    return;
+  }
 
-    "Video: " +
-    video.title +
-    "\n" +
+  try {
 
-    "Price: " +
-    price.toFixed(2) +
-    " USDT\n\n" +
+    const {
+      data: {
+        session
+      }
+    } =
+      await supabase.auth.getSession();
 
-    "TRON (TRC20) payment will be connected next."
+    if(!session){
 
-  );
+      alert(
+        "Please login first."
+      );
+
+      return;
+    }
+
+    const response =
+      await fetch(
+        SUPABASE_URL +
+        "/functions/v1/create-purchase",
+        {
+          method: "POST",
+
+          headers: {
+            "Authorization":
+              "Bearer " +
+              session.access_token,
+
+            "apikey":
+              SUPABASE_ANON_KEY,
+
+            "Content-Type":
+              "application/json"
+          },
+
+          body:
+            JSON.stringify({
+              video_id:
+                videoId
+            })
+        }
+      );
+
+    const result =
+      await response.json();
+
+    if(!response.ok){
+
+      alert(
+        result.error ||
+        "Could not create purchase."
+      );
+
+      return;
+    }
+
+    if(result.already_paid){
+
+      alert(
+        "You already purchased this video."
+      );
+
+      return;
+    }
+
+    alert(
+
+      "Order created successfully.\n\n" +
+
+      "Video: " +
+      video.title +
+      "\n\n" +
+
+      "Amount: " +
+      Number(result.amount).toFixed(2) +
+      " USDT\n\n" +
+
+      "Network: TRON (TRC20)\n\n" +
+
+      "Purchase ID:\n" +
+      result.purchase_id
+
+    );
+
+  } catch(error){
+
+    console.error(
+      "BUY ERROR:",
+      error
+    );
+
+    alert(
+      "Could not connect to payment system."
+    );
+
+  }
 
 }
-
-
 /* =========================================================
    FEATURED VIDEO
    ========================================================= */
