@@ -1,0 +1,1931 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Empire — Admin</title>
+
+<style>
+*{
+  box-sizing:border-box;
+  margin:0;
+  padding:0;
+}
+
+body{
+  font-family:Arial,Helvetica,sans-serif;
+  background:#080808;
+  color:#f5f5f5;
+  line-height:1.5;
+}
+
+button,
+input,
+textarea,
+select{
+  font:inherit;
+}
+
+.container{
+  width:min(1150px,92%);
+  margin:auto;
+}
+
+/* HEADER */
+
+header{
+  border-bottom:1px solid #ffffff12;
+  background:#0a0a0a;
+}
+
+.nav{
+  min-height:72px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:20px;
+}
+
+.brand{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  color:#fff;
+  text-decoration:none;
+  font-weight:900;
+  font-size:22px;
+}
+
+.crown{
+  width:39px;
+  height:39px;
+  border-radius:11px;
+  display:grid;
+  place-items:center;
+  background:linear-gradient(135deg,#f6c453,#9a6414);
+  color:#111;
+  font-size:21px;
+}
+
+.nav-right{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+
+.user{
+  color:#999;
+  font-size:13px;
+}
+
+.btn{
+  border:0;
+  border-radius:9px;
+  padding:11px 17px;
+  cursor:pointer;
+  font-weight:800;
+}
+
+.btn-gold{
+  background:linear-gradient(135deg,#f1c75a,#a86e16);
+  color:#111;
+}
+
+.btn-dark{
+  background:#ffffff08;
+  border:1px solid #ffffff18;
+  color:#ddd;
+}
+
+.btn-danger{
+  background:#501919;
+  border:1px solid #7b2929;
+  color:#ffb5b5;
+}
+
+.btn:disabled{
+  opacity:.5;
+  cursor:not-allowed;
+}
+
+/* MAIN */
+
+main{
+  padding:45px 0 80px;
+}
+
+.page-title{
+  margin-bottom:30px;
+}
+
+.eyebrow{
+  color:#dcb044;
+  font-size:12px;
+  letter-spacing:2px;
+  font-weight:800;
+  text-transform:uppercase;
+  margin-bottom:8px;
+}
+
+h1{
+  font-size:38px;
+}
+
+.page-title p{
+  color:#888;
+  margin-top:8px;
+}
+
+/* PANELS */
+
+.panel{
+  background:#101010;
+  border:1px solid #ffffff12;
+  border-radius:16px;
+  padding:25px;
+  margin-bottom:25px;
+}
+
+.panel h2{
+  font-size:21px;
+  margin-bottom:18px;
+}
+
+.form-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:18px;
+}
+
+.field{
+  display:flex;
+  flex-direction:column;
+  gap:7px;
+}
+
+.field.full{
+  grid-column:1/-1;
+}
+
+label{
+  color:#aaa;
+  font-size:13px;
+  font-weight:700;
+}
+
+input,
+textarea,
+select{
+  width:100%;
+  background:#080808;
+  border:1px solid #ffffff18;
+  color:#fff;
+  border-radius:9px;
+  padding:13px;
+  outline:none;
+}
+
+select{
+  cursor:pointer;
+}
+
+select option{
+  background:#111;
+  color:#fff;
+}
+
+input:focus,
+textarea:focus,
+select:focus{
+  border-color:#c99a38;
+}
+
+textarea{
+  min-height:110px;
+  resize:vertical;
+}
+
+input[type=file]{
+  padding:10px;
+}
+
+.file-info{
+  color:#777;
+  font-size:12px;
+}
+
+/* ACCESS TYPE */
+
+.access-box{
+  background:#080808;
+  border:1px solid #ffffff12;
+  border-radius:12px;
+  padding:15px;
+}
+
+.access-options{
+  display:flex;
+  gap:10px;
+  margin-top:10px;
+}
+
+.access-option{
+  flex:1;
+  position:relative;
+}
+
+.access-option input{
+  position:absolute;
+  opacity:0;
+  pointer-events:none;
+}
+
+.access-label{
+  display:block;
+  padding:13px;
+  text-align:center;
+  border:1px solid #ffffff18;
+  border-radius:9px;
+  cursor:pointer;
+  color:#aaa;
+  font-weight:800;
+  transition:.2s;
+}
+
+.access-option input:checked + .access-label{
+  border-color:#c99a38;
+  background:#c99a3812;
+  color:#f1c75a;
+}
+
+.price-wrap{
+  display:none;
+  margin-top:14px;
+}
+
+.price-wrap.show{
+  display:block;
+}
+
+.price-input{
+  position:relative;
+}
+
+.price-input input{
+  padding-right:65px;
+}
+
+.currency{
+  position:absolute;
+  right:14px;
+  top:50%;
+  transform:translateY(-50%);
+  color:#dcb044;
+  font-size:13px;
+  font-weight:800;
+}
+
+/* ACTIONS */
+
+.actions{
+  display:flex;
+  gap:10px;
+  margin-top:20px;
+  flex-wrap:wrap;
+}
+
+/* PROGRESS */
+
+.progress-wrap{
+  display:none;
+  margin-top:20px;
+}
+
+.progress-wrap.show{
+  display:block;
+}
+
+.progress{
+  width:100%;
+  height:8px;
+  background:#242424;
+  border-radius:20px;
+  overflow:hidden;
+}
+
+.progress-bar{
+  width:0%;
+  height:100%;
+  background:linear-gradient(90deg,#e4bb4c,#9b6819);
+  transition:.2s;
+}
+
+.progress-text{
+  margin-top:7px;
+  color:#888;
+  font-size:12px;
+}
+
+/* STATUS */
+
+.status{
+  padding:14px;
+  border-radius:9px;
+  margin-top:15px;
+  display:none;
+  font-size:13px;
+}
+
+.status.show{
+  display:block;
+}
+
+.status.success{
+  background:#102418;
+  border:1px solid #214f2d;
+  color:#a8e5b4;
+}
+
+.status.error{
+  background:#281212;
+  border:1px solid #5a2424;
+  color:#ffaaaa;
+}
+
+/* VIDEOS */
+
+.video-list{
+  display:grid;
+  gap:12px;
+}
+
+.video-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:15px;
+  padding:16px;
+  border:1px solid #ffffff10;
+  border-radius:12px;
+  background:#0b0b0b;
+}
+
+.video-info{
+  min-width:0;
+}
+
+.video-title{
+  font-weight:800;
+  margin-bottom:4px;
+}
+
+.video-description{
+  color:#777;
+  font-size:12px;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+.video-path{
+  color:#555;
+  font-size:11px;
+  margin-top:5px;
+  word-break:break-all;
+}
+
+.video-meta{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  flex-wrap:wrap;
+  margin-top:9px;
+}
+
+.badge{
+  display:inline-flex;
+  align-items:center;
+  padding:5px 9px;
+  border-radius:999px;
+  font-size:11px;
+  font-weight:800;
+}
+
+.badge-free{
+  background:#102418;
+  color:#a8e5b4;
+  border:1px solid #214f2d;
+}
+
+.badge-paid{
+  background:#2a2110;
+  color:#f1c75a;
+  border:1px solid #76591c;
+}
+
+.video-actions{
+  display:flex;
+  gap:7px;
+  flex-shrink:0;
+}
+
+.empty{
+  text-align:center;
+  padding:35px;
+  color:#777;
+  border:1px dashed #ffffff15;
+  border-radius:12px;
+}
+
+/* FOOTER */
+
+footer{
+  border-top:1px solid #ffffff10;
+  padding:30px 0;
+  color:#666;
+  font-size:12px;
+}
+
+@media(max-width:700px){
+
+  .form-grid{
+    grid-template-columns:1fr;
+  }
+
+  .field.full{
+    grid-column:auto;
+  }
+
+  .video-row{
+    flex-direction:column;
+    align-items:flex-start;
+  }
+
+  .video-actions{
+    width:100%;
+  }
+
+  .video-actions button{
+    flex:1;
+  }
+
+  .user{
+    display:none;
+  }
+
+  h1{
+    font-size:31px;
+  }
+
+  .access-options{
+    flex-direction:column;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+
+  <div class="container nav">
+
+    <a href="index.html" class="brand">
+      <span class="crown">♛</span>
+      EMPIRE
+    </a>
+
+    <div class="nav-right">
+
+      <span class="user" id="adminName">
+        Checking...
+      </span>
+
+      <button
+        class="btn btn-dark"
+        onclick="goHome()">
+        Website
+      </button>
+
+      <button
+        class="btn btn-danger"
+        onclick="logout()">
+        Logout
+      </button>
+
+    </div>
+
+  </div>
+
+</header>
+
+
+<main>
+
+<div class="container">
+
+  <div class="page-title">
+
+    <div class="eyebrow">
+      Empire Control Center
+    </div>
+
+    <h1>Admin Panel</h1>
+
+    <p>
+      Upload and manage your private video library.
+    </p>
+
+  </div>
+
+
+  <!-- UPLOAD -->
+
+  <section class="panel">
+
+    <h2>Upload New Video</h2>
+
+    <div class="form-grid">
+
+      <div class="field">
+
+        <label for="title">
+          Video Title
+        </label>
+
+        <input
+          id="title"
+          type="text"
+          placeholder="Enter video title">
+
+      </div>
+
+
+      <div class="field">
+
+        <label for="thumbnail">
+          Thumbnail URL
+        </label>
+
+        <input
+          id="thumbnail"
+          type="url"
+          placeholder="Optional image URL">
+
+      </div>
+
+
+      <div class="field full">
+
+        <label for="description">
+          Description
+        </label>
+
+        <textarea
+          id="description"
+          placeholder="Write a description for this video"></textarea>
+
+      </div>
+
+
+      <!-- ACCESS -->
+
+      <div class="field full">
+
+        <label>
+          Video Access
+        </label>
+
+        <div class="access-box">
+
+          <div class="access-options">
+
+            <div class="access-option">
+
+              <input
+                type="radio"
+                name="accessType"
+                id="freeAccess"
+                value="free"
+                checked
+                onchange="updatePriceVisibility()">
+
+              <label
+                class="access-label"
+                for="freeAccess">
+
+                🆓 Free
+
+              </label>
+
+            </div>
+
+
+            <div class="access-option">
+
+              <input
+                type="radio"
+                name="accessType"
+                id="paidAccess"
+                value="paid"
+                onchange="updatePriceVisibility()">
+
+              <label
+                class="access-label"
+                for="paidAccess">
+
+                💰 Paid
+
+              </label>
+
+            </div>
+
+          </div>
+
+
+          <div
+            class="price-wrap"
+            id="priceWrap">
+
+            <label for="price">
+              Price
+            </label>
+
+            <div class="price-input">
+
+              <input
+                id="price"
+                type="number"
+                min="0.01"
+                step="0.01"
+                placeholder="4.99">
+
+              <span class="currency">
+                USDT
+              </span>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <!-- VIDEO FILE -->
+
+      <div class="field full">
+
+        <label for="videoFile">
+          Video File
+        </label>
+
+        <input
+          id="videoFile"
+          type="file"
+          accept="video/*">
+
+        <div
+          class="file-info"
+          id="fileInfo">
+
+          Select a video file.
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <div class="actions">
+
+      <button
+        class="btn btn-gold"
+        id="uploadBtn"
+        onclick="uploadVideo()">
+
+        Upload Video
+
+      </button>
+
+
+      <button
+        class="btn btn-dark"
+        onclick="clearForm()">
+
+        Clear
+
+      </button>
+
+    </div>
+
+
+    <div
+      class="progress-wrap"
+      id="progressWrap">
+
+      <div class="progress">
+
+        <div
+          class="progress-bar"
+          id="progressBar">
+        </div>
+
+      </div>
+
+      <div
+        class="progress-text"
+        id="progressText">
+
+        Uploading...
+
+      </div>
+
+    </div>
+
+
+    <div
+      class="status"
+      id="status">
+    </div>
+
+  </section>
+
+
+  <!-- VIDEO LIST -->
+
+  <section class="panel">
+
+    <div style="
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:15px;
+      margin-bottom:18px;
+    ">
+
+      <h2 style="margin:0">
+        Video Library
+      </h2>
+
+      <button
+        class="btn btn-dark"
+        onclick="loadVideos()">
+
+        Refresh
+
+      </button>
+
+    </div>
+
+
+    <div
+      class="video-list"
+      id="videoList">
+
+      <div class="empty">
+        Loading videos...
+      </div>
+
+    </div>
+
+  </section>
+
+</div>
+
+</main>
+
+
+<footer>
+
+  <div class="container">
+    Empire Admin Panel © 2026
+  </div>
+
+</footer>
+
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+
+/* =========================================================
+   SUPABASE
+   ========================================================= */
+
+const SUPABASE_URL =
+  "https://vubjkwbkuwndkjqfnyom.supabase.co";
+
+const SUPABASE_KEY =
+  "sb_publishable_Ig1R3dpAKyBfjIGSUhhlKw_uC-QF0QQ";
+
+const supabaseClient =
+  window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+  );
+
+
+/* =========================================================
+   STATE
+   ========================================================= */
+
+let currentUser = null;
+let videos = [];
+
+
+/* =========================================================
+   AUTH + ADMIN CHECK
+   ========================================================= */
+
+async function checkAdmin(){
+
+  try{
+
+    const {
+      data:{
+        session
+      },
+      error
+    } =
+      await supabaseClient.auth.getSession();
+
+
+    if(error){
+      throw error;
+    }
+
+
+    if(!session){
+
+      window.location.href =
+        "login.html";
+
+      return false;
+    }
+
+
+    currentUser =
+      session.user;
+
+
+    const {
+      data:profiles,
+      error:profileError
+    } =
+      await supabaseClient
+        .from("profiles")
+        .select(
+          "id, username, display_name, is_active"
+        )
+        .eq(
+          "id",
+          currentUser.id
+        )
+        .limit(1);
+
+
+    if(profileError){
+      throw profileError;
+    }
+
+
+    if(
+      !profiles ||
+      profiles.length === 0
+    ){
+
+      await supabaseClient.auth.signOut();
+
+      alert(
+        "Profile not found."
+      );
+
+      window.location.href =
+        "login.html";
+
+      return false;
+    }
+
+
+    const profile =
+      profiles[0];
+
+
+    if(!profile.is_active){
+
+      await supabaseClient.auth.signOut();
+
+      alert(
+        "Your account is inactive."
+      );
+
+      window.location.href =
+        "login.html";
+
+      return false;
+    }
+
+
+    if(
+      profile.username !== "qanas"
+    ){
+
+      alert(
+        "Admin access denied."
+      );
+
+      window.location.href =
+        "index.html";
+
+      return false;
+    }
+
+
+    document.getElementById(
+      "adminName"
+    ).textContent =
+      profile.display_name ||
+      profile.username;
+
+
+    return true;
+
+
+  }catch(error){
+
+    console.error(
+      "ADMIN AUTH ERROR:",
+      error
+    );
+
+    alert(
+      "Could not verify admin access."
+    );
+
+    window.location.href =
+      "login.html";
+
+    return false;
+  }
+
+}
+
+
+/* =========================================================
+   FREE / PAID UI
+   ========================================================= */
+
+function updatePriceVisibility(){
+
+  const paid =
+    document.getElementById(
+      "paidAccess"
+    ).checked;
+
+  const priceWrap =
+    document.getElementById(
+      "priceWrap"
+    );
+
+  if(paid){
+
+    priceWrap.classList.add(
+      "show"
+    );
+
+  }else{
+
+    priceWrap.classList.remove(
+      "show"
+    );
+
+    document.getElementById(
+      "price"
+    ).value = "";
+
+  }
+
+}
+
+
+/* =========================================================
+   FILE INFO
+   ========================================================= */
+
+document
+  .getElementById("videoFile")
+  .addEventListener(
+    "change",
+    function(){
+
+      const file =
+        this.files[0];
+
+      const info =
+        document.getElementById(
+          "fileInfo"
+        );
+
+
+      if(!file){
+
+        info.textContent =
+          "Select a video file.";
+
+        return;
+      }
+
+
+      const sizeMB =
+        (
+          file.size /
+          1024 /
+          1024
+        ).toFixed(2);
+
+
+      info.textContent =
+        `${file.name} • ${sizeMB} MB • ${file.type || "video"}`;
+
+    }
+  );
+
+
+/* =========================================================
+   UPLOAD
+   ========================================================= */
+
+async function uploadVideo(){
+
+  const title =
+    document
+      .getElementById("title")
+      .value
+      .trim();
+
+
+  const description =
+    document
+      .getElementById("description")
+      .value
+      .trim();
+
+
+  const thumbnail =
+    document
+      .getElementById("thumbnail")
+      .value
+      .trim();
+
+
+  const file =
+    document
+      .getElementById("videoFile")
+      .files[0];
+
+
+  const accessType =
+    document.querySelector(
+      'input[name="accessType"]:checked'
+    ).value;
+
+
+  const priceInput =
+    document
+      .getElementById("price")
+      .value
+      .trim();
+
+
+  if(!title){
+
+    showStatus(
+      "Please enter a video title.",
+      "error"
+    );
+
+    return;
+  }
+
+
+  if(accessType === "paid"){
+
+    if(!priceInput){
+
+      showStatus(
+        "Please enter a price for the paid video.",
+        "error"
+      );
+
+      return;
+    }
+
+
+    const price =
+      Number(priceInput);
+
+
+    if(
+      !Number.isFinite(price) ||
+      price <= 0
+    ){
+
+      showStatus(
+        "Please enter a valid price greater than 0.",
+        "error"
+      );
+
+      return;
+    }
+
+  }
+
+
+  if(!file){
+
+    showStatus(
+      "Please select a video file.",
+      "error"
+    );
+
+    return;
+  }
+
+
+  const uploadBtn =
+    document.getElementById(
+      "uploadBtn"
+    );
+
+
+  uploadBtn.disabled =
+    true;
+
+  uploadBtn.textContent =
+    "Uploading...";
+
+
+  showProgress(
+    true,
+    5,
+    "Preparing upload..."
+  );
+
+
+  try{
+
+    /*
+      Unique storage path.
+
+      Example:
+
+      user-id/
+        1726200000-my-video.mp4
+    */
+
+    const safeName =
+      file.name
+        .replace(
+          /[^a-zA-Z0-9._-]/g,
+          "_"
+        );
+
+
+    const filePath =
+      currentUser.id +
+      "/" +
+      Date.now() +
+      "-" +
+      safeName;
+
+
+    showProgress(
+      true,
+      20,
+      "Uploading video to secure storage..."
+    );
+
+
+    const {
+      error:uploadError
+    } =
+      await supabaseClient
+        .storage
+        .from("videos")
+        .upload(
+          filePath,
+          file,
+          {
+            cacheControl:"3600",
+            upsert:false,
+            contentType:
+              file.type ||
+              "video/mp4"
+          }
+        );
+
+
+    if(uploadError){
+      throw uploadError;
+    }
+
+
+    showProgress(
+      true,
+      80,
+      "Saving video information..."
+    );
+
+
+    const videoData = {
+
+      title:title,
+
+      description:
+        description ||
+        null,
+
+      thumbnail_url:
+        thumbnail ||
+        null,
+
+      video_path:
+        filePath,
+
+      access_type:
+        accessType,
+
+      price:
+        accessType === "paid"
+          ? Number(priceInput)
+          : null
+
+    };
+
+
+    const {
+      error:insertError
+    } =
+      await supabaseClient
+        .from("videos")
+        .insert(
+          videoData
+        );
+
+
+    if(insertError){
+
+      /*
+        If DB insert fails after
+        successful upload,
+        remove the uploaded file.
+      */
+
+      await supabaseClient
+        .storage
+        .from("videos")
+        .remove([
+          filePath
+        ]);
+
+
+      throw insertError;
+    }
+
+
+    showProgress(
+      true,
+      100,
+      "Upload complete!"
+    );
+
+
+    showStatus(
+      accessType === "paid"
+        ? `Paid video uploaded successfully — ${Number(priceInput).toFixed(2)} USDT`
+        : "Free video uploaded successfully.",
+      "success"
+    );
+
+
+    clearForm();
+
+
+    await loadVideos();
+
+
+    setTimeout(
+      function(){
+
+        showProgress(
+          false
+        );
+
+      },
+      1200
+    );
+
+
+  }catch(error){
+
+    console.error(
+      "UPLOAD ERROR:",
+      error
+    );
+
+
+    showProgress(
+      false
+    );
+
+
+    showStatus(
+      "Upload failed: " +
+      (
+        error.message ||
+        "Unknown error"
+      ),
+      "error"
+    );
+
+
+  }finally{
+
+    uploadBtn.disabled =
+      false;
+
+    uploadBtn.textContent =
+      "Upload Video";
+
+  }
+
+}
+
+
+/* =========================================================
+   LOAD VIDEOS
+   ========================================================= */
+
+async function loadVideos(){
+
+  const list =
+    document.getElementById(
+      "videoList"
+    );
+
+
+  list.innerHTML =
+    `<div class="empty">
+      Loading...
+    </div>`;
+
+
+  try{
+
+    const {
+      data,
+      error
+    } =
+      await supabaseClient
+        .from("videos")
+        .select(
+          "id,title,description,thumbnail_url,video_path,access_type,price,created_at"
+        )
+        .order(
+          "created_at",
+          {
+            ascending:false
+          }
+        );
+
+
+    if(error){
+      throw error;
+    }
+
+
+    videos =
+      data || [];
+
+
+    if(
+      videos.length === 0
+    ){
+
+      list.innerHTML =
+        `<div class="empty">
+          No videos uploaded yet.
+        </div>`;
+
+      return;
+    }
+
+
+    list.innerHTML =
+      videos
+        .map(
+          video => {
+
+            const isPaid =
+              video.access_type === "paid";
+
+
+            const badge =
+              isPaid
+
+                ? `
+                  <span class="badge badge-paid">
+                    💰 Paid
+                    ${
+                      Number(video.price || 0)
+                        .toFixed(2)
+                    }
+                    USDT
+                  </span>
+                `
+
+                : `
+                  <span class="badge badge-free">
+                    🆓 Free
+                  </span>
+                `;
+
+
+            return `
+
+              <div class="video-row">
+
+                <div class="video-info">
+
+                  <div class="video-title">
+                    ${escapeHtml(video.title)}
+                  </div>
+
+                  <div class="video-description">
+                    ${
+                      escapeHtml(
+                        video.description ||
+                        "No description"
+                      )
+                    }
+                  </div>
+
+                  <div class="video-meta">
+
+                    ${badge}
+
+                  </div>
+
+                  <div class="video-path">
+                    ${escapeHtml(video.video_path)}
+                  </div>
+
+                </div>
+
+
+                <div class="video-actions">
+
+                  <button
+                    class="btn btn-dark"
+                    onclick="previewVideo('${video.id}')">
+
+                    Preview
+
+                  </button>
+
+
+                  <button
+                    class="btn btn-danger"
+                    onclick="deleteVideo('${video.id}')">
+
+                    Delete
+
+                  </button>
+
+                </div>
+
+              </div>
+
+            `;
+
+          }
+        )
+        .join("");
+
+
+  }catch(error){
+
+    console.error(
+      "LOAD ERROR:",
+      error
+    );
+
+
+    list.innerHTML =
+      `<div class="empty">
+        Could not load videos:
+        ${escapeHtml(error.message)}
+      </div>`;
+
+  }
+
+}
+
+
+/* =========================================================
+   PREVIEW
+   ========================================================= */
+
+async function previewVideo(
+  videoId
+){
+
+  try{
+
+    const video =
+      videos.find(
+        item =>
+          item.id === videoId
+      );
+
+
+    if(!video){
+
+      alert(
+        "Video not found."
+      );
+
+      return;
+    }
+
+
+    const {
+      data,
+      error
+    } =
+      await supabaseClient
+        .storage
+        .from("videos")
+        .createSignedUrl(
+          video.video_path,
+          3600
+        );
+
+
+    if(error){
+      throw error;
+    }
+
+
+    if(!data || !data.signedUrl){
+
+      throw new Error(
+        "Could not create video URL."
+      );
+
+    }
+
+
+    window.open(
+      data.signedUrl,
+      "_blank"
+    );
+
+
+  }catch(error){
+
+    console.error(
+      "PREVIEW ERROR:",
+      error
+    );
+
+
+    alert(
+      "Could not preview video:\n" +
+      error.message
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   DELETE VIDEO
+   ========================================================= */
+
+async function deleteVideo(
+  videoId
+){
+
+  const video =
+    videos.find(
+      item =>
+        item.id === videoId
+    );
+
+
+  if(!video){
+
+    alert(
+      "Video not found."
+    );
+
+    return;
+  }
+
+
+  const confirmed =
+    confirm(
+      `Delete "${video.title}"?\n\nThis will remove the video from storage and the database.`
+    );
+
+
+  if(!confirmed){
+    return;
+  }
+
+
+  try{
+
+    /*
+      Remove physical file first.
+    */
+
+    const {
+      error:storageError
+    } =
+      await supabaseClient
+        .storage
+        .from("videos")
+        .remove([
+          video.video_path
+        ]);
+
+
+    if(storageError){
+      throw storageError;
+    }
+
+
+    /*
+      Remove database record.
+    */
+
+    const {
+      error:dbError
+    } =
+      await supabaseClient
+        .from("videos")
+        .delete()
+        .eq(
+          "id",
+          videoId
+        );
+
+
+    if(dbError){
+      throw dbError;
+    }
+
+
+    showStatus(
+      "Video deleted successfully.",
+      "success"
+    );
+
+
+    await loadVideos();
+
+
+  }catch(error){
+
+    console.error(
+      "DELETE ERROR:",
+      error
+    );
+
+
+    showStatus(
+      "Delete failed: " +
+      (
+        error.message ||
+        "Unknown error"
+      ),
+      "error"
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   CLEAR FORM
+   ========================================================= */
+
+function clearForm(){
+
+  document.getElementById(
+    "title"
+  ).value = "";
+
+
+  document.getElementById(
+    "description"
+  ).value = "";
+
+
+  document.getElementById(
+    "thumbnail"
+  ).value = "";
+
+
+  document.getElementById(
+    "videoFile"
+  ).value = "";
+
+
+  document.getElementById(
+    "freeAccess"
+  ).checked = true;
+
+
+  document.getElementById(
+    "price"
+  ).value = "";
+
+
+  document.getElementById(
+    "fileInfo"
+  ).textContent =
+    "Select a video file.";
+
+
+  updatePriceVisibility();
+
+}
+
+
+/* =========================================================
+   STATUS
+   ========================================================= */
+
+function showStatus(
+  message,
+  type
+){
+
+  const status =
+    document.getElementById(
+      "status"
+    );
+
+
+  status.textContent =
+    message;
+
+
+  status.className =
+    "status show " +
+    type;
+
+}
+
+
+/* =========================================================
+   PROGRESS
+   ========================================================= */
+
+function showProgress(
+  show,
+  percent = 0,
+  text = ""
+){
+
+  const wrap =
+    document.getElementById(
+      "progressWrap"
+    );
+
+  const bar =
+    document.getElementById(
+      "progressBar"
+    );
+
+  const progressText =
+    document.getElementById(
+      "progressText"
+    );
+
+
+  if(!show){
+
+    wrap.classList.remove(
+      "show"
+    );
+
+    return;
+  }
+
+
+  wrap.classList.add(
+    "show"
+  );
+
+
+  bar.style.width =
+    percent + "%";
+
+
+  progressText.textContent =
+    text;
+
+}
+
+
+/* =========================================================
+   HELPERS
+   ========================================================= */
+
+function escapeHtml(
+  value
+){
+
+  return String(
+    value ?? ""
+  )
+  .replace(
+    /&/g,
+    "&amp;"
+  )
+  .replace(
+    /</g,
+    "&lt;"
+  )
+  .replace(
+    />/g,
+    "&gt;"
+  )
+  .replace(
+    /"/g,
+    "&quot;"
+  )
+  .replace(
+    /'/g,
+    "&#039;"
+  );
+
+}
+
+
+/* =========================================================
+   NAVIGATION
+   ========================================================= */
+
+function goHome(){
+
+  window.location.href =
+    "index.html";
+
+}
+
+
+async function logout(){
+
+  await supabaseClient.auth.signOut();
+
+  window.location.href =
+    "login.html";
+
+}
+
+
+/* =========================================================
+   START
+   ========================================================= */
+
+(async function(){
+
+  const isAdmin =
+    await checkAdmin();
+
+
+  if(isAdmin){
+
+    updatePriceVisibility();
+
+    await loadVideos();
+
+  }
+
+})();
+
+</script>
+
+</body>
+</html>
