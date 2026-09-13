@@ -1791,7 +1791,7 @@ async function watchVideo(videoId){
         session
       }
     } =
-      await supabase.auth.getSession();
+      await supabaseClient.auth.getSession();
 
     if(!session){
 
@@ -1815,7 +1815,7 @@ async function watchVideo(videoId){
               session.access_token,
 
             "apikey":
-              SUPABASE_ANON_KEY,
+              SUPABASE_KEY,
 
             "Content-Type":
               "application/json"
