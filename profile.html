@@ -1,1 +1,590 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Empire — Profile</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #080808;
+      color: #fff;
+    }
+
+    header {
+      height: 70px;
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #242424;
+      background: #0d0d0d;
+    }
+
+    .logo {
+      color: #d4af37;
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: 2px;
+      text-decoration: none;
+    }
+
+    .nav {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .nav a,
+    .logout {
+      color: #ddd;
+      text-decoration: none;
+      padding: 9px 13px;
+      border-radius: 8px;
+      border: 1px solid #333;
+      background: #151515;
+      cursor: pointer;
+    }
+
+    .nav a:hover,
+    .logout:hover {
+      border-color: #d4af37;
+      color: #d4af37;
+    }
+
+    .container {
+      width: min(900px, 92%);
+      margin: 40px auto;
+    }
+
+    .profile-card {
+      background: #111;
+      border: 1px solid #292929;
+      border-radius: 18px;
+      padding: 30px;
+    }
+
+    .avatar {
+      width: 90px;
+      height: 90px;
+      border-radius: 50%;
+      background: #d4af37;
+      color: #111;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 34px;
+      font-weight: bold;
+      margin-bottom: 20px;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 30px;
+    }
+
+    .username {
+      color: #d4af37;
+      margin-bottom: 25px;
+    }
+
+    .info {
+      display: grid;
+      gap: 12px;
+    }
+
+    .info-box {
+      background: #181818;
+      border-radius: 10px;
+      padding: 15px;
+    }
+
+    .label {
+      color: #888;
+      font-size: 12px;
+      margin-bottom: 5px;
+    }
+
+    .value {
+      color: #fff;
+      font-size: 15px;
+    }
+
+    .section {
+      margin-top: 30px;
+    }
+
+    .section h2 {
+      color: #d4af37;
+      margin-bottom: 15px;
+    }
+
+    .purchase {
+      background: #181818;
+      border-radius: 10px;
+      padding: 15px;
+      margin-bottom: 10px;
+    }
+
+    .purchase-title {
+      font-weight: bold;
+      margin-bottom: 6px;
+    }
+
+    .purchase-meta {
+      color: #888;
+      font-size: 13px;
+    }
+
+    .empty {
+      color: #777;
+      padding: 20px;
+      text-align: center;
+      background: #111;
+      border-radius: 10px;
+    }
+
+    .status {
+      margin-top: 20px;
+      color: #aaa;
+      text-align: center;
+    }
+
+    .error {
+      color: #ff6b6b;
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+
+  <a
+    href="/Empire/"
+    class="logo">
+    EMPIRE
+  </a>
+
+  <div class="nav">
+
+    <a href="/Empire/">
+      Home
+    </a>
+
+    <button
+      class="logout"
+      id="logoutBtn">
+      Logout
+    </button>
+
+  </div>
+
+</header>
+
+<main class="container">
+
+  <div
+    class="profile-card"
+    id="profileCard">
+
+    <div class="avatar" id="avatar">
+      ?
+    </div>
+
+    <h1 id="displayName">
+      Loading...
+    </h1>
+
+    <div
+      class="username"
+      id="username">
+    </div>
+
+    <div class="info">
+
+      <div class="info-box">
+
+        <div class="label">
+          Account Status
+        </div>
+
+        <div
+          class="value"
+          id="accountStatus">
+          Loading...
+        </div>
+
+      </div>
+
+    </div>
+
+    <div class="section">
+
+      <h2>
+        My Purchases
+      </h2>
+
+      <div id="purchasesList">
+
+        <div class="empty">
+          Loading purchases...
+        </div>
+
+      </div>
+
+    </div>
+
+    <div
+      class="status"
+      id="statusMessage">
+    </div>
+
+  </div>
+
+</main>
+
+<script>
+
+const SUPABASE_URL =
+  "https://vubjkwbkuwndkjqfnyom.supabase.co";
+
+const SUPABASE_KEY =
+  "sb_publishable_Ig1R3dpAKyBfjIGSUhhlKw_uC-QF0QQ";
+
+const supabaseClient =
+  window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+  );
+
+const displayNameEl =
+  document.getElementById(
+    "displayName"
+  );
+
+const usernameEl =
+  document.getElementById(
+    "username"
+  );
+
+const accountStatusEl =
+  document.getElementById(
+    "accountStatus"
+  );
+
+const avatarEl =
+  document.getElementById(
+    "avatar"
+  );
+
+const purchasesList =
+  document.getElementById(
+    "purchasesList"
+  );
+
+const statusMessage =
+  document.getElementById(
+    "statusMessage"
+  );
+
+async function loadProfile(){
+
+  try {
+
+    const {
+      data: {
+        session
+      }
+    } =
+      await supabaseClient.auth.getSession();
+
+    if(!session){
+
+      window.location.href =
+        "/Empire/login.html";
+
+      return;
+    }
+
+    const user =
+      session.user;
+
+    const {
+      data: profile,
+      error: profileError
+    } =
+      await supabaseClient
+        .from("profiles")
+        .select(
+          "id, username, display_name, is_active, created_at"
+        )
+        .eq(
+          "id",
+          user.id
+        )
+        .maybeSingle();
+
+    if(profileError){
+
+      console.error(
+        profileError
+      );
+
+      statusMessage.textContent =
+        "Could not load profile.";
+
+      statusMessage.className =
+        "status error";
+
+      return;
+    }
+
+    if(!profile){
+
+      statusMessage.textContent =
+        "Profile not found.";
+
+      statusMessage.className =
+        "status error";
+
+      return;
+    }
+
+    const name =
+      profile.display_name ||
+      profile.username ||
+      "User";
+
+    displayNameEl.textContent =
+      name;
+
+    usernameEl.textContent =
+      "@" +
+      profile.username;
+
+    accountStatusEl.textContent =
+      profile.is_active
+        ? "Active"
+        : "Inactive";
+
+    avatarEl.textContent =
+      name
+        .charAt(0)
+        .toUpperCase();
+
+    await loadPurchases(
+      user.id
+    );
+
+  } catch(error){
+
+    console.error(
+      error
+    );
+
+    statusMessage.textContent =
+      "Unexpected error.";
+
+    statusMessage.className =
+      "status error";
+  }
+}
+
+async function loadPurchases(
+  userId
+){
+
+  const {
+    data: purchases,
+    error
+  } =
+    await supabaseClient
+      .from("purchases")
+      .select(
+        "id, video_id, amount, currency, network, status, created_at, paid_at"
+      )
+      .eq(
+        "user_id",
+        userId
+      )
+      .eq(
+        "status",
+        "paid"
+      )
+      .order(
+        "created_at",
+        {
+          ascending: false
+        }
+      );
+
+  if(error){
+
+    console.error(
+      error
+    );
+
+    purchasesList.innerHTML =
+      `
+      <div class="empty error">
+        Could not load purchases.
+      </div>
+      `;
+
+    return;
+  }
+
+  if(
+    !purchases ||
+    purchases.length === 0
+  ){
+
+    purchasesList.innerHTML =
+      `
+      <div class="empty">
+        You have no purchases yet.
+      </div>
+      `;
+
+    return;
+  }
+
+  const videoIds =
+    purchases.map(
+      item => item.video_id
+    );
+
+  const {
+    data: videos
+  } =
+    await supabaseClient
+      .from("videos")
+      .select(
+        "id, title"
+      )
+      .in(
+        "id",
+        videoIds
+      );
+
+  const videoMap =
+    {};
+
+  (videos || []).forEach(
+    video => {
+      videoMap[
+        video.id
+      ] =
+        video.title;
+    }
+  );
+
+  purchasesList.innerHTML =
+    purchases.map(
+      purchase => {
+
+        const title =
+          videoMap[
+            purchase.video_id
+          ] ||
+          "Video";
+
+        const date =
+          purchase.paid_at
+            ? new Date(
+                purchase.paid_at
+              ).toLocaleString()
+            : new Date(
+                purchase.created_at
+              ).toLocaleString();
+
+        return `
+          <div class="purchase">
+
+            <div class="purchase-title">
+              ${escapeHtml(title)}
+            </div>
+
+            <div class="purchase-meta">
+              ${Number(
+                purchase.amount
+              ).toFixed(2)}
+              ${escapeHtml(
+                purchase.currency
+              )}
+              ·
+              ${escapeHtml(
+                purchase.network
+              )}
+              ·
+              ${escapeHtml(date)}
+            </div>
+
+          </div>
+        `;
+
+      }
+    ).join("");
+
+}
+
+function escapeHtml(
+  value
+){
+
+  return String(value)
+    .replace(
+      /&/g,
+      "&amp;"
+    )
+    .replace(
+      /</g,
+      "&lt;"
+    )
+    .replace(
+      />/g,
+      "&gt;"
+    )
+    .replace(
+      /"/g,
+      "&quot;"
+    )
+    .replace(
+      /'/g,
+      "&#039;"
+    );
+}
+
+document
+  .getElementById(
+    "logoutBtn"
+  )
+  .addEventListener(
+    "click",
+    async function(){
+
+      await supabaseClient.auth.signOut();
+
+      window.location.href =
+        "/Empire/login.html";
+
+    }
+  );
+
+loadProfile();
+
+</script>
+
+</body>
+</html>
