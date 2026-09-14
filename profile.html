@@ -858,6 +858,80 @@ saveProfileBtn.addEventListener(
 
   }
 );
+  const avatarInput =
+  document.getElementById("avatarInput");
+
+avatarInput.addEventListener(
+  "change",
+  async () => {
+
+    const file =
+      avatarInput.files[0];
+
+    if (!file) return;
+
+    const {
+      data: {
+        session
+      }
+    } =
+      await supabaseClient.auth.getSession();
+
+    if (!session) {
+      window.location.href =
+        "/Empire/login.html";
+      return;
+    }
+
+    const userId =
+      session.user.id;
+
+    const fileExt =
+      file.name.split(".").pop().toLowerCase();
+
+    const filePath =
+      `${userId}/avatar.${fileExt}`;
+
+    try {
+
+      avatarInput.disabled = true;
+
+      const {
+        error
+      } =
+        await supabaseClient.storage
+          .from("avatars")
+          .upload(
+            filePath,
+            file,
+            {
+              upsert: true,
+              contentType: file.type
+            }
+          );
+
+      if (error) {
+        console.error(error);
+        alert("Could not upload avatar.");
+        return;
+      }
+
+      alert("Avatar uploaded successfully.");
+
+    } catch (error) {
+
+      console.error(error);
+      alert("Unexpected error.");
+
+    } finally {
+
+      avatarInput.disabled = false;
+      avatarInput.value = "";
+
+    }
+
+  }
+);
 </script>
 
 </body>
