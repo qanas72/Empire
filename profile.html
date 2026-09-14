@@ -215,9 +215,20 @@
     class="profile-card"
     id="profileCard">
 
-    <div class="avatar" id="avatar">
-      ?
-    </div>
+    <div class="avatar-wrapper">
+  <div class="avatar" id="avatar">?</div>
+
+  <label for="avatarInput" class="avatar-upload">
+    Change Photo
+  </label>
+
+  <input
+    type="file"
+    id="avatarInput"
+    accept="image/png,image/jpeg,image/webp"
+    style="display:none;"
+  >
+</div>
 
     <h1 id="displayName">
       Loading...
