@@ -696,6 +696,133 @@ cancelEditBtn.addEventListener(
 
   }
 );
+  const saveProfileBtn =
+  document.getElementById("saveProfileBtn");
+
+const profileEditMessage =
+  document.getElementById("profileEditMessage");
+
+saveProfileBtn.addEventListener(
+  "click",
+  async () => {
+
+    const newDisplayName =
+      editDisplayName.value.trim();
+
+    const newUsername =
+      editUsername.value.trim();
+
+    if (!newDisplayName || !newUsername) {
+      profileEditMessage.textContent =
+        "Please fill in all fields.";
+
+      profileEditMessage.style.color =
+        "#ff6b6b";
+
+      return;
+    }
+
+    saveProfileBtn.disabled = true;
+
+    profileEditMessage.textContent =
+      "Saving...";
+
+    profileEditMessage.style.color =
+      "#d4af37";
+
+    try {
+
+      const {
+        data: {
+          session
+        }
+      } =
+        await supabaseClient.auth.getSession();
+
+      if (!session) {
+        window.location.href =
+          "/Empire/login.html";
+        return;
+      }
+
+      const {
+        error
+      } =
+        await supabaseClient
+          .from("profiles")
+          .update({
+            display_name: newDisplayName,
+            username: newUsername
+          })
+          .eq(
+            "id",
+            session.user.id
+          );
+
+      if (error) {
+        console.error(error);
+
+        if (
+          error.code === "23505"
+        ) {
+          profileEditMessage.textContent =
+            "This username is already taken.";
+
+        } else {
+          profileEditMessage.textContent =
+            "Could not save changes.";
+        }
+
+        profileEditMessage.style.color =
+          "#ff6b6b";
+
+        return;
+      }
+
+      displayNameEl.textContent =
+        newDisplayName;
+
+      usernameEl.textContent =
+        "@" + newUsername;
+
+      avatarEl.textContent =
+        newDisplayName
+          .charAt(0)
+          .toUpperCase();
+
+      profileEditMessage.textContent =
+        "Profile updated successfully.";
+
+      profileEditMessage.style.color =
+        "#7CFF8A";
+
+      setTimeout(() => {
+        editProfileForm.style.display =
+          "none";
+
+        profileEditMessage.textContent =
+          "";
+      }, 1200);
+
+    } catch (error) {
+
+      console.error(error);
+
+      profileEditMessage.textContent =
+        "Unexpected error.";
+
+      profileEditMessage.style.color =
+        "#ff6b6b";
+
+    } finally {
+
+      saveProfileBtn.disabled =
+        false;
+
+    }
+
+  }
+);
 </script>
 
 </body>
