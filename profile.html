@@ -235,6 +235,52 @@
   Edit Profile
 
 </button>
+    <div id="editProfileForm" style="display:none; margin-top:25px;">
+
+  <div class="form-group">
+    <label for="editDisplayName">Display Name</label>
+    <input
+      type="text"
+      id="editDisplayName"
+      placeholder="Your display name"
+      maxlength="50"
+    >
+  </div>
+
+  <div class="form-group">
+    <label for="editUsername">Username</label>
+    <input
+      type="text"
+      id="editUsername"
+      placeholder="Your username"
+      maxlength="30"
+    >
+  </div>
+
+  <div style="display:flex; gap:10px; margin-top:18px;">
+
+    <button
+      class="edit-profile-btn"
+      id="saveProfileBtn"
+      type="button">
+      Save Changes
+    </button>
+
+    <button
+      class="edit-profile-btn"
+      id="cancelEditBtn"
+      type="button">
+      Cancel
+    </button>
+
+  </div>
+
+  <div
+    id="profileEditMessage"
+    style="margin-top:15px;">
+  </div>
+
+    </div>
     <div class="info">
 
       <div class="info-box">
