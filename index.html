@@ -1826,6 +1826,8 @@ async function openBuy(videoId){
         "You already purchased this video."
       );
 
+      await watchVideo(videoId);
+
       return;
     }
 
@@ -1838,72 +1840,520 @@ async function openBuy(videoId){
       return;
     }
 
-    const txid =
-      prompt(
-        "Send exactly " +
-        Number(result.amount).toFixed(2) +
-        " USDT on TRON (TRC20) to:\n\n" +
-        result.payment_address +
-        "\n\nAfter sending the payment, enter the TXID here:"
+    const paymentAddress =
+      result.payment_address;
+
+    const amount =
+      Number(result.amount).toFixed(2);
+
+    const expiresAt =
+      result.expires_at
+        ? new Date(result.expires_at)
+        : null;
+
+    const oldModal =
+      document.getElementById(
+        "empirePaymentModal"
       );
 
-    if(!txid){
-      return;
+    if(oldModal){
+      oldModal.remove();
     }
 
-    const verifyResponse =
-      await fetch(
-        SUPABASE_URL +
-        "/functions/v1/verify-payment",
-        {
-          method: "POST",
+    const modal =
+      document.createElement("div");
 
-          headers: {
-            "Authorization":
-              "Bearer " +
-              session.access_token,
+    modal.id =
+      "empirePaymentModal";
 
-            "apikey":
-              SUPABASE_KEY,
+    modal.style.cssText = `
+      position:fixed;
+      inset:0;
+      z-index:99999;
+      background:rgba(0,0,0,.82);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:20px;
+    `;
 
-            "Content-Type":
-              "application/json"
-          },
+    modal.innerHTML = `
 
-          body:
-            JSON.stringify({
-              purchase_id:
-                result.purchase_id,
+      <div style="
+        width:100%;
+        max-width:520px;
+        background:#111;
+        border:1px solid rgba(212,175,55,.45);
+        border-radius:18px;
+        padding:24px;
+        box-sizing:border-box;
+        color:#fff;
+        box-shadow:0 20px 60px rgba(0,0,0,.6);
+      ">
 
-              txid:
-                txid.trim()
-            })
+        <div style="
+          display:flex;
+          justify-content:space-between;
+          align-items:center;
+          margin-bottom:18px;
+        ">
+
+          <h2 style="
+            margin:0;
+            color:#d4af37;
+            font-size:22px;
+          ">
+            Payment
+          </h2>
+
+          <button
+            id="empireClosePayment"
+            style="
+              border:0;
+              background:transparent;
+              color:#aaa;
+              font-size:28px;
+              cursor:pointer;
+            "
+          >
+            ×
+          </button>
+
+        </div>
+
+        <div style="
+          background:#191919;
+          border-radius:12px;
+          padding:15px;
+          margin-bottom:15px;
+        ">
+
+          <div style="
+            color:#aaa;
+            font-size:13px;
+            margin-bottom:6px;
+          ">
+            Amount
+          </div>
+
+          <div style="
+            font-size:24px;
+            font-weight:bold;
+            color:#d4af37;
+          ">
+            ${amount} USDT
+          </div>
+
+          <div style="
+            color:#aaa;
+            margin-top:5px;
+            font-size:13px;
+          ">
+            Network: TRON (TRC20)
+          </div>
+
+        </div>
+
+        <div style="
+          color:#aaa;
+          font-size:13px;
+          margin-bottom:7px;
+        ">
+          Payment Address
+        </div>
+
+        <div style="
+          display:flex;
+          gap:8px;
+          margin-bottom:10px;
+        ">
+
+          <input
+            id="empirePaymentAddress"
+            value="${paymentAddress}"
+            readonly
+            style="
+              flex:1;
+              min-width:0;
+              background:#191919;
+              color:#fff;
+              border:1px solid #333;
+              border-radius:9px;
+              padding:12px;
+              font-size:12px;
+              box-sizing:border-box;
+            "
+          >
+
+          <button
+            id="empireCopyAddress"
+            style="
+              background:#d4af37;
+              color:#111;
+              border:0;
+              border-radius:9px;
+              padding:0 14px;
+              font-weight:bold;
+              cursor:pointer;
+            "
+          >
+            Copy
+          </button>
+
+        </div>
+
+        <div style="
+          color:#aaa;
+          font-size:12px;
+          margin-bottom:18px;
+        ">
+          Send exactly ${amount} USDT on TRON (TRC20) to the address above.
+        </div>
+
+        <div style="
+          background:#191919;
+          border-radius:10px;
+          padding:12px;
+          margin-bottom:16px;
+          text-align:center;
+        ">
+
+          <div style="
+            color:#aaa;
+            font-size:12px;
+            margin-bottom:5px;
+          ">
+            Payment expires in
+          </div>
+
+          <div
+            id="empirePaymentTimer"
+            style="
+              color:#d4af37;
+              font-size:20px;
+              font-weight:bold;
+            "
+          >
+            30:00
+          </div>
+
+        </div>
+
+        <input
+          id="empireTxid"
+          type="text"
+          placeholder="Enter TRON transaction TXID"
+          autocomplete="off"
+          style="
+            width:100%;
+            background:#191919;
+            color:#fff;
+            border:1px solid #333;
+            border-radius:9px;
+            padding:13px;
+            box-sizing:border-box;
+            margin-bottom:12px;
+            outline:none;
+          "
+        >
+
+        <button
+          id="empireVerifyPayment"
+          style="
+            width:100%;
+            background:#d4af37;
+            color:#111;
+            border:0;
+            border-radius:10px;
+            padding:14px;
+            font-size:15px;
+            font-weight:bold;
+            cursor:pointer;
+          "
+        >
+          Verify Payment
+        </button>
+
+        <div
+          id="empirePaymentMessage"
+          style="
+            margin-top:12px;
+            text-align:center;
+            font-size:13px;
+            color:#aaa;
+            min-height:18px;
+          "
+        ></div>
+
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    const closeButton =
+      document.getElementById(
+        "empireClosePayment"
+      );
+
+    const copyButton =
+      document.getElementById(
+        "empireCopyAddress"
+      );
+
+    const addressInput =
+      document.getElementById(
+        "empirePaymentAddress"
+      );
+
+    const txidInput =
+      document.getElementById(
+        "empireTxid"
+      );
+
+    const verifyButton =
+      document.getElementById(
+        "empireVerifyPayment"
+      );
+
+    const timer =
+      document.getElementById(
+        "empirePaymentTimer"
+      );
+
+    const message =
+      document.getElementById(
+        "empirePaymentMessage"
+      );
+
+    let timerInterval = null;
+
+    function closeModal(){
+
+      if(timerInterval){
+        clearInterval(timerInterval);
+      }
+
+      modal.remove();
+    }
+
+    closeButton.onclick =
+      closeModal;
+
+    copyButton.onclick =
+      async function(){
+
+        try {
+
+          await navigator.clipboard.writeText(
+            paymentAddress
+          );
+
+          copyButton.textContent =
+            "Copied!";
+
+          setTimeout(() => {
+            copyButton.textContent =
+              "Copy";
+          }, 1800);
+
+        } catch(error){
+
+          addressInput.select();
+
+          document.execCommand(
+            "copy"
+          );
+
+          copyButton.textContent =
+            "Copied!";
+
+          setTimeout(() => {
+            copyButton.textContent =
+              "Copy";
+          }, 1800);
         }
-      );
+      };
 
-    const verifyResult =
-      await verifyResponse.json();
+    function updateTimer(){
 
-    if(
-      verifyResponse.ok &&
-      verifyResult.success &&
-      verifyResult.status === "paid"
-    ){
+      if(!expiresAt){
+        timer.textContent =
+          "30:00";
+        return;
+      }
 
-      alert(
-        "Payment verified successfully!"
-      );
+      const remaining =
+        expiresAt.getTime() -
+        Date.now();
 
-      await watchVideo(videoId);
+      if(remaining <= 0){
 
-      return;
+        timer.textContent =
+          "Expired";
+
+        verifyButton.disabled =
+          true;
+
+        verifyButton.style.opacity =
+          "0.5";
+
+        message.textContent =
+          "This payment request has expired. Please create a new purchase.";
+
+        if(timerInterval){
+          clearInterval(timerInterval);
+        }
+
+        return;
+      }
+
+      const totalSeconds =
+        Math.floor(
+          remaining / 1000
+        );
+
+      const minutes =
+        Math.floor(
+          totalSeconds / 60
+        );
+
+      const seconds =
+        totalSeconds % 60;
+
+      timer.textContent =
+        String(minutes).padStart(2,"0") +
+        ":" +
+        String(seconds).padStart(2,"0");
     }
 
-    alert(
-      verifyResult.message ||
-      verifyResult.error ||
-      "Payment could not be verified yet."
-    );
+    updateTimer();
+
+    if(expiresAt){
+
+      timerInterval =
+        setInterval(
+          updateTimer,
+          1000
+        );
+    }
+
+    verifyButton.onclick =
+      async function(){
+
+        const txid =
+          txidInput.value.trim();
+
+        if(!txid){
+
+          message.textContent =
+            "Please enter the TXID.";
+
+          return;
+        }
+
+        verifyButton.disabled =
+          true;
+
+        verifyButton.textContent =
+          "Verifying...";
+
+        message.textContent =
+          "Checking the transaction on TRON...";
+
+        try {
+
+          const verifyResponse =
+            await fetch(
+              SUPABASE_URL +
+              "/functions/v1/verify-payment",
+              {
+                method:"POST",
+
+                headers:{
+                  "Authorization":
+                    "Bearer " +
+                    session.access_token,
+
+                  "apikey":
+                    SUPABASE_KEY,
+
+                  "Content-Type":
+                    "application/json"
+                },
+
+                body:
+                  JSON.stringify({
+                    purchase_id:
+                      result.purchase_id,
+
+                    txid:
+                      txid
+                  })
+              }
+            );
+
+          const verifyResult =
+            await verifyResponse.json();
+
+          if(
+            verifyResponse.ok &&
+            verifyResult.success &&
+            verifyResult.status === "paid"
+          ){
+
+            message.textContent =
+              "Payment verified successfully!";
+
+            if(timerInterval){
+              clearInterval(
+                timerInterval
+              );
+            }
+
+            setTimeout(
+              async function(){
+
+                closeModal();
+
+                await watchVideo(
+                  videoId
+                );
+
+              },
+              700
+            );
+
+            return;
+          }
+
+          message.textContent =
+            verifyResult.message ||
+            verifyResult.error ||
+            "Payment could not be verified yet.";
+
+          verifyButton.disabled =
+            false;
+
+          verifyButton.textContent =
+            "Verify Payment";
+
+        } catch(error){
+
+          console.error(
+            "VERIFY ERROR:",
+            error
+          );
+
+          message.textContent =
+            "Could not connect to payment system.";
+
+          verifyButton.disabled =
+            false;
+
+          verifyButton.textContent =
+            "Verify Payment";
+        }
+      };
 
   } catch(error){
 
