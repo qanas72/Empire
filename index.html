@@ -1324,183 +1324,233 @@ async function loadVideos(){
 /* =========================================================
    RENDER VIDEO CARDS
    ========================================================= */
-
 function renderVideos(){
 
   const grid =
-    document.getElementById(
-      "videoGrid"
-    );
+    document.getElementById("videoGrid");
 
+  const premiumGrid =
+    document.getElementById("premiumVideoGrid");
 
   if(!grid){
     return;
   }
 
+  const latestVideos =
+    videos;
 
-  grid.innerHTML =
-    videos.map(
-      (video,index) => {
-
-        const thumbClass =
-          index % 3 === 1
-            ? "two"
-            : index % 3 === 2
-              ? "three"
-              : "";
+  const premiumVideos =
+    videos.filter(
+      video =>
+        video.access_type === "paid"
+    );
 
 
-        const thumbnail =
-          video.thumbnail_url
-            ? `
-              <img
-                src="${escapeAttribute(
-                  video.thumbnail_url
-                )}"
-                alt="${escapeAttribute(
-                  video.title
-                )}"
-                loading="lazy">
-            `
-            : "";
+  function createVideoCard(video,index){
+
+    const thumbClass =
+      index % 3 === 1
+        ? "two"
+        : index % 3 === 2
+          ? "three"
+          : "";
 
 
-        const isPaid =
-          video.access_type === "paid";
+    const thumbnail =
+      video.thumbnail_url
+        ? `
+          <img
+            src="${escapeAttribute(
+              video.thumbnail_url
+            )}"
+            alt="${escapeAttribute(
+              video.title
+            )}"
+            loading="lazy">
+        `
+        : "";
 
 
-        const price =
-          Number(
-            video.price || 0
-          );
+    const isPaid =
+      video.access_type === "paid";
 
 
-        const badge =
-          isPaid
-
-            ? `
-              <span class="price-badge">
-                💰
-                ${price.toFixed(2)}
-                USDT
-              </span>
-            `
-
-            : `
-              <span class="free-badge">
-                🆓 Free
-              </span>
-            `;
+    const price =
+      Number(video.price || 0);
 
 
-        const mediaIcon =
-          isPaid
+    const badge =
+      isPaid
 
-            ? `
-              <span class="lock-icon">
-                🔒
-              </span>
-            `
+        ? `
+          <span class="price-badge">
+            💰
+            ${price.toFixed(2)}
+            USDT
+          </span>
+        `
 
-            : `
-              <span
-                class="play"
-                onclick="watchVideo('${video.id}')">
-
-                ▶
-
-              </span>
-            `;
-
-
-        const actionButton =
-          isPaid
-
-            ? `
-              <button
-                class="btn btn-gold"
-                onclick="openBuy('${video.id}')">
-
-                Buy Now
-
-              </button>
-            `
-
-            : `
-              <button
-                class="btn btn-gold"
-                onclick="watchVideo('${video.id}')">
-
-                Watch
-
-              </button>
-            `;
-
-
-        return `
-          <article class="card">
-
-            <div
-              class="thumb ${thumbClass}">
-
-              ${thumbnail}
-
-              ${
-                thumbnail
-                  ? `<div class="thumb-overlay"></div>`
-                  : ""
-              }
-
-              ${badge}
-
-              ${mediaIcon}
-
-            </div>
-
-
-            <div class="card-body">
-
-              <h3>
-                ${escapeHtml(
-                  video.title
-                )}
-              </h3>
-
-
-              <p>
-                ${escapeHtml(
-                  video.description ||
-                  "Private Empire video."
-                )}
-              </p>
-
-
-              <div class="card-foot">
-
-                <span class="tag">
-                  ${
-                    isPaid
-                      ? "Premium"
-                      : "Free"
-                  }
-                </span>
-
-                ${actionButton}
-
-              </div>
-
-            </div>
-
-          </article>
+        : `
+          <span class="free-badge">
+            🆓 Free
+          </span>
         `;
 
-      }
-    )
-    .join("");
+
+    const mediaIcon =
+      isPaid
+
+        ? `
+          <span class="lock-icon">
+            🔒
+          </span>
+        `
+
+        : `
+          <span
+            class="play"
+            onclick="watchVideo('${video.id}')">
+
+            ▶
+
+          </span>
+        `;
+
+
+    const actionButton =
+      isPaid
+
+        ? `
+          <button
+            class="btn btn-gold"
+            onclick="openBuy('${video.id}')">
+
+            Buy Now
+
+          </button>
+        `
+
+        : `
+          <button
+            class="btn btn-gold"
+            onclick="watchVideo('${video.id}')">
+
+            Watch
+
+          </button>
+        `;
+
+
+    return `
+      <article class="card">
+
+        <div class="thumb ${thumbClass}">
+
+          ${thumbnail}
+
+          ${
+            thumbnail
+              ? `<div class="thumb-overlay"></div>`
+              : ""
+          }
+
+          ${badge}
+
+          ${mediaIcon}
+
+        </div>
+
+
+        <div class="card-body">
+
+          <h3>
+            ${escapeHtml(
+              video.title
+            )}
+          </h3>
+
+
+          <p>
+            ${escapeHtml(
+              video.description ||
+              "Private Empire video."
+            )}
+          </p>
+
+
+          <div class="card-foot">
+
+            <span class="tag">
+              ${
+                isPaid
+                  ? "Premium"
+                  : "Free"
+              }
+            </span>
+
+            ${actionButton}
+
+          </div>
+
+        </div>
+
+      </article>
+    `;
+  }
+
+
+  /* LATEST VIDEOS */
+
+  grid.innerHTML =
+    latestVideos.length
+
+      ? latestVideos
+          .map(createVideoCard)
+          .join("")
+
+      : `
+        <div
+          class="status"
+          style="grid-column:1/-1">
+
+          <strong>
+            No videos yet
+          </strong>
+
+          Your Empire video library
+          is currently empty.
+
+        </div>
+      `;
+
+
+  /* PREMIUM VIDEOS */
+
+  if(premiumGrid){
+
+    premiumGrid.innerHTML =
+      premiumVideos.length
+
+        ? premiumVideos
+            .map(createVideoCard)
+            .join("")
+
+        : `
+          <div
+            class="status"
+            style="grid-column:1/-1">
+
+            <strong>
+              No premium videos yet
+            </strong>
+
+            Premium content will appear here.
+
+          </div>
+        `;
+  }
 
 }
-
-
 /* =========================================================
    WATCH VIDEO
    SECURE EDGE FUNCTION
