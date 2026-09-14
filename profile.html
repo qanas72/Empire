@@ -653,7 +653,49 @@ document
   );
 
 loadProfile();
+const editProfileBtn =
+  document.getElementById("editProfileBtn");
 
+const editProfileForm =
+  document.getElementById("editProfileForm");
+
+const editDisplayName =
+  document.getElementById("editDisplayName");
+
+const editUsername =
+  document.getElementById("editUsername");
+
+const cancelEditBtn =
+  document.getElementById("cancelEditBtn");
+
+editProfileBtn.addEventListener(
+  "click",
+  () => {
+
+    editDisplayName.value =
+      displayNameEl.textContent.trim();
+
+    editUsername.value =
+      usernameEl.textContent
+        .replace("@", "")
+        .trim();
+
+    editProfileForm.style.display =
+      "block";
+
+    editDisplayName.focus();
+  }
+);
+
+cancelEditBtn.addEventListener(
+  "click",
+  () => {
+
+    editProfileForm.style.display =
+      "none";
+
+  }
+);
 </script>
 
 </body>
