@@ -1790,9 +1790,16 @@ async function openBuy(videoId){
       await supabaseClient.auth.getSession();
 
     if(!session){
-      alert("Please login first.");
-      return;
-    }
+
+  alert(
+    "Please sign in to continue with your purchase."
+  );
+
+  window.location.href =
+    "login.html";
+
+  return;
+}
 
     const response =
       await fetch(
