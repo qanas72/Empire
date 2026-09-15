@@ -241,6 +241,95 @@
   background: #dc3545;
   color: #fff;
 }
+    .delete-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.78);
+}
+
+.delete-modal-content {
+  width: 100%;
+  max-width: 430px;
+  padding: 30px;
+  border: 1px solid rgba(220, 53, 69, 0.4);
+  border-radius: 16px;
+  background: #111;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.delete-modal-content h2 {
+  margin-top: 0;
+  color: #dc3545;
+}
+
+.delete-modal-content p {
+  color: #aaa;
+  line-height: 1.7;
+}
+
+.delete-modal-content strong {
+  color: #fff;
+}
+
+#deleteConfirmInput {
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: 10px;
+  padding: 12px;
+  border: 1px solid #444;
+  border-radius: 9px;
+  outline: none;
+  background: #1a1a1a;
+  color: #fff;
+}
+
+#deleteConfirmInput:focus {
+  border-color: #dc3545;
+}
+
+.delete-modal-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.cancel-delete-btn,
+.confirm-delete-btn {
+  flex: 1;
+  padding: 11px 15px;
+  border-radius: 9px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.cancel-delete-btn {
+  border: 1px solid #444;
+  background: transparent;
+  color: #ddd;
+}
+
+.confirm-delete-btn {
+  border: 1px solid #dc3545;
+  background: #dc3545;
+  color: #fff;
+}
+
+.confirm-delete-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.delete-account-message {
+  margin-top: 15px;
+  color: #dc3545;
+  font-size: 14px;
+  text-align: center;
+}
   </style>
 </head>
 
