@@ -1035,22 +1035,31 @@ async function checkAuth(){
     const session =
       data?.session;
 
+    /* مهمان مجاز است Home را ببیند */
+
     if(!session){
 
-      window.location.href =
-        "login.html";
+      const userName =
+        document.getElementById(
+          "userName"
+        );
 
-      return false;
+      if(userName){
+        userName.textContent =
+          "Guest";
+      }
 
+      return true;
     }
+
 
     const user =
       session.user;
 
 
     const {
-      data:profiles,
-      error:profileError
+      data: profiles,
+      error: profileError
     } =
       await supabaseClient
         .from("profiles")
@@ -1076,15 +1085,17 @@ async function checkAuth(){
 
       await supabaseClient.auth.signOut();
 
-      alert(
-        "Your Empire profile was not found."
-      );
+      const userName =
+        document.getElementById(
+          "userName"
+        );
 
-      window.location.href =
-        "login.html";
+      if(userName){
+        userName.textContent =
+          "Guest";
+      }
 
-      return false;
-
+      return true;
     }
 
 
@@ -1100,11 +1111,7 @@ async function checkAuth(){
         "Your account is currently inactive."
       );
 
-      window.location.href =
-        "login.html";
-
       return false;
-
     }
 
 
@@ -1112,6 +1119,7 @@ async function checkAuth(){
       document.getElementById(
         "userName"
       );
+
 
     if(userName){
 
@@ -1133,19 +1141,20 @@ async function checkAuth(){
       error
     );
 
-    alert(
-      "Could not verify your account. Please log in again."
-    );
+    const userName =
+      document.getElementById(
+        "userName"
+      );
 
-    window.location.href =
-      "login.html";
+    if(userName){
+      userName.textContent =
+        "Guest";
+    }
 
-    return false;
-
+    return true;
   }
 
 }
-
 
 /* =========================================================
    LOAD VIDEOS
