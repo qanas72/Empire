@@ -1640,11 +1640,18 @@ async function watchVideo(videoId){
 
     if(!session){
 
-      throw new Error(
-        "Your session has expired. Please log in again."
-      );
+  closeVideo();
 
-    }
+  alert(
+    "Please sign in to watch this video."
+  );
+
+  window.location.href =
+    "login.html";
+
+  return;
+
+}
 
 
     const response =
