@@ -1150,6 +1150,165 @@ avatarInput.addEventListener(
 
   }
 );
+  const deleteAccountBtn =
+  document.getElementById("deleteAccountBtn");
+
+const deleteAccountModal =
+  document.getElementById("deleteAccountModal");
+
+const cancelDeleteBtn =
+  document.getElementById("cancelDeleteBtn");
+
+const confirmDeleteBtn =
+  document.getElementById("confirmDeleteBtn");
+
+const deleteConfirmInput =
+  document.getElementById("deleteConfirmInput");
+
+const deleteAccountMessage =
+  document.getElementById("deleteAccountMessage");
+
+
+deleteAccountBtn.addEventListener(
+  "click",
+  () => {
+
+    deleteConfirmInput.value = "";
+
+    confirmDeleteBtn.disabled = true;
+
+    deleteAccountMessage.textContent = "";
+
+    deleteAccountModal.style.display =
+      "flex";
+
+    deleteConfirmInput.focus();
+  }
+);
+
+
+cancelDeleteBtn.addEventListener(
+  "click",
+  () => {
+
+    deleteAccountModal.style.display =
+      "none";
+
+    deleteConfirmInput.value = "";
+
+    deleteAccountMessage.textContent = "";
+  }
+);
+
+
+deleteConfirmInput.addEventListener(
+  "input",
+  () => {
+
+    confirmDeleteBtn.disabled =
+      deleteConfirmInput.value.trim() !==
+      "DELETE";
+  }
+);
+
+
+confirmDeleteBtn.addEventListener(
+  "click",
+  async () => {
+
+    if (
+      deleteConfirmInput.value.trim() !==
+      "DELETE"
+    ) {
+      return;
+    }
+
+    confirmDeleteBtn.disabled = true;
+
+    deleteAccountMessage.textContent =
+      "Deleting your account...";
+
+    try {
+
+      const {
+        data: {
+          session
+        },
+        error: sessionError
+      } =
+        await supabaseClient.auth.getSession();
+
+      if (
+        sessionError ||
+        !session
+      ) {
+        throw new Error(
+          "Your session has expired. Please sign in again."
+        );
+      }
+
+      const {
+        data,
+        error
+      } =
+        await supabaseClient.functions.invoke(
+          "delete-account",
+          {
+            headers: {
+              Authorization:
+                `Bearer ${session.access_token}`
+            }
+          }
+        );
+
+      if (error) {
+        console.error(error);
+        throw new Error(
+          "Could not delete your account."
+        );
+      }
+
+      if (
+        !data ||
+        data.success !== true
+      ) {
+        throw new Error(
+          data?.error ||
+          "Could not delete your account."
+        );
+      }
+
+      deleteAccountMessage.style.color =
+        "#4ade80";
+
+      deleteAccountMessage.textContent =
+        "Account deleted successfully.";
+
+      await supabaseClient.auth.signOut();
+
+      setTimeout(() => {
+        window.location.href =
+          "/Empire/login.html";
+      }, 1200);
+
+    } catch (error) {
+
+      console.error(
+        "Delete account error:",
+        error
+      );
+
+      deleteAccountMessage.style.color =
+        "#dc3545";
+
+      deleteAccountMessage.textContent =
+        error.message ||
+        "Unexpected error.";
+
+      confirmDeleteBtn.disabled = false;
+    }
+  }
+);
 </script>
 
 </body>
