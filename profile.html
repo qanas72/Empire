@@ -411,6 +411,58 @@
     Delete Account
   </button>
 </div>
+  <div
+  id="deleteAccountModal"
+  class="delete-modal"
+  style="display:none;"
+>
+  <div class="delete-modal-content">
+
+    <h2>Delete Account?</h2>
+
+    <p>
+      This action is permanent and cannot be undone.
+    </p>
+
+    <p>
+      Type <strong>DELETE</strong> below to confirm.
+    </p>
+
+    <input
+      type="text"
+      id="deleteConfirmInput"
+      placeholder="Type DELETE"
+      autocomplete="off"
+    >
+
+    <div class="delete-modal-actions">
+
+      <button
+        type="button"
+        id="cancelDeleteBtn"
+        class="cancel-delete-btn"
+      >
+        Cancel
+      </button>
+
+      <button
+        type="button"
+        id="confirmDeleteBtn"
+        class="confirm-delete-btn"
+        disabled
+      >
+        Delete My Account
+      </button>
+
+    </div>
+
+    <div
+      id="deleteAccountMessage"
+      class="delete-account-message"
+    ></div>
+
+  </div>
+  </div>
 <script>
 
 const SUPABASE_URL =
