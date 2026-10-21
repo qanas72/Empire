@@ -3,95 +3,274 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Empire — Premium & VIP</title>
+<title>Empire | Premium & VIP</title>
 <meta name="description" content="Empire VIP memberships and premium videos.">
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
+:root{
+ --bg:#07080b;
+ --panel:#101218;
+ --gold:#e0b34c;
+ --gold2:#ffe7a0;
+ --blue:#83cfff;
+ --muted:#a0a3ad;
+ --border:#ffffff16;
+ --green:#65d391;
+ --red:#ff7777;
+}
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:Arial,Helvetica,sans-serif;background:#080808;color:#fff;min-height:100vh}
+body{
+ font-family:Arial,Helvetica,sans-serif;
+ background:
+  radial-gradient(ellipse at 15% 10%,#17233855,transparent 34%),
+  radial-gradient(ellipse at 90% 35%,#503c1320,transparent 32%),
+  var(--bg);
+ color:#fff;
+ min-height:100vh;
+}
 a{color:inherit;text-decoration:none}
 button,input{font:inherit}
-.container{width:min(1180px,92%);margin:auto}
-header{position:sticky;top:0;z-index:100;background:#080808ee;backdrop-filter:blur(14px);border-bottom:1px solid #ffffff12}
-.nav{min-height:76px;display:flex;align-items:center;justify-content:space-between;gap:20px}
-.brand{font-size:24px;font-weight:900;letter-spacing:2px}
-.crown,.gold{color:#d6a535}
+button{cursor:pointer}
+.container{width:min(1200px,92%);margin:auto}
+header{
+ position:sticky;top:0;z-index:100;
+ background:#08090bee;backdrop-filter:blur(16px);
+ border-bottom:1px solid var(--border)
+}
+.nav{
+ min-height:74px;display:flex;align-items:center;
+ justify-content:space-between;gap:20px
+}
+.brand{font-size:23px;font-weight:900;letter-spacing:2px}
+.brand-icon{
+ display:inline-grid;place-items:center;
+ width:38px;height:38px;margin-right:6px;
+ border:1px solid #e0b34c66;border-radius:12px;
+ background:linear-gradient(145deg,#382b0e,#121212);
+ color:var(--gold2);box-shadow:0 0 20px #e0b34c16
+}
 .links{display:flex;align-items:center;gap:22px}
-.links a{color:#aaa;font-size:14px}
-.links a:hover,.links a.active{color:#fff}
+.links>a{color:#a8a8b1;font-size:14px}
+.links>a:hover,.links>a.active{color:#fff}
 .user-area{display:flex;align-items:center;gap:12px}
-.user-name{color:#d6a535;font-size:13px}
-.logout-btn,.menu-btn{background:#111;color:#ddd;border:1px solid #ffffff18;border-radius:9px;padding:9px 12px;cursor:pointer}
-.menu-btn{display:none;font-size:23px}
-main{padding:45px 0 75px}
-.page-head{text-align:center;max-width:750px;margin:0 auto 38px}
-.eyebrow{color:#d6a535;font-size:12px;font-weight:800;letter-spacing:2px;text-transform:uppercase;margin-bottom:12px}
-h1{font-size:clamp(32px,5vw,52px);margin-bottom:14px}
-.page-head p{color:#999;line-height:1.7}
-.section-title{font-size:26px;margin:35px 0 20px}
-.vip-section{margin-bottom:55px}
-.vip-intro{text-align:center;color:#999;line-height:1.7;margin:-5px auto 25px;max-width:700px}
-.vip-grid,.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
-.vip-card,.card{background:#101010;border:1px solid #ffffff15;border-radius:16px;overflow:hidden}
-.vip-card{padding:22px 18px;position:relative;display:flex;flex-direction:column}
-.vip-card.featured{border-color:#d6a535}
-.plan-label{font-size:12px;color:#d6a535;font-weight:800;letter-spacing:1px}
-.vip-card h3{font-size:20px;margin:12px 0}
-.price{font-size:32px;font-weight:900;margin-bottom:5px}
-.price small{font-size:13px;color:#999;font-weight:400}
-.duration{font-size:13px;color:#999;margin-bottom:20px}
-.features{list-style:none;color:#bbb;font-size:13px;line-height:2.1;margin-bottom:20px;flex:1}
-.btn{border:0;border-radius:9px;padding:12px 15px;font-weight:800;cursor:pointer}
-.btn-gold{background:#d6a535;color:#090909}
-.btn-gold:hover{filter:brightness(1.1)}
-.btn-dark{background:#202020;color:#fff;border:1px solid #ffffff20}
-.btn:disabled{opacity:.55;cursor:not-allowed}
+.user-name{color:var(--gold);font-size:13px}
+.logout-btn,.menu-btn{
+ background:#111;color:#ddd;border:1px solid var(--border);
+ border-radius:9px;padding:9px 12px
+}
+.menu-btn{display:none;font-size:22px}
+main{padding:40px 0 75px}
+.page-head{text-align:center;max-width:760px;margin:0 auto 32px}
+.eyebrow{
+ color:var(--gold);font-size:11px;font-weight:900;
+ letter-spacing:2.5px;text-transform:uppercase;margin-bottom:12px
+}
+h1{font-size:clamp(34px,5vw,54px);margin-bottom:14px}
+.page-head p{color:var(--muted);line-height:1.8;font-size:14px}
+.gold{color:var(--gold)}
+.blue{color:var(--blue)}
+.premium-layout{
+ display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+ gap:25px;align-items:start
+}
+.panel{
+ min-width:0;padding:23px;
+ border:1px solid var(--border);border-radius:22px;
+ background:linear-gradient(145deg,#14161d,#0c0d11);
+ box-shadow:0 15px 45px #0003
+}
+.vip-hero{
+ position:relative;overflow:hidden;
+ padding:25px 20px;margin-bottom:24px;
+ border:1px solid #7dbfff30;border-radius:18px;
+ background:
+  radial-gradient(circle at 82% 25%,#3b9bd82c,transparent 27%),
+  linear-gradient(125deg,#101d2c,#101116 70%);
+}
+.vip-hero:after{
+ content:"";position:absolute;width:150px;height:150px;
+ right:-40px;top:-55px;border-radius:50%;
+ border:1px solid #80cfff25;
+ box-shadow:0 0 0 18px #80cfff08,0 0 0 36px #80cfff05;
+ pointer-events:none
+}
+.diamond-art{
+ float:right;width:85px;height:85px;
+ display:grid;place-items:center;
+ margin:0 4px 10px 14px;
+ font-size:59px;
+ color:var(--blue);
+ filter:drop-shadow(0 0 10px #58b9ff75);
+ transform:rotate(-7deg)
+}
+.vip-hero h2{font-size:24px;margin:8px 0}
+.vip-hero p{color:#b6c3d2;font-size:13px;line-height:1.8;max-width:390px}
+.section-title{font-size:21px;margin:5px 0 10px}
+.section-desc{color:var(--muted);font-size:13px;line-height:1.8;margin-bottom:20px}
+.vip-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}
+.vip-card{
+ min-width:0;padding:18px 15px;
+ display:flex;flex-direction:column;
+ border:1px solid var(--border);border-radius:16px;
+ background:linear-gradient(145deg,#171920,#0e0f13);
+ transition:transform .2s,border-color .2s,box-shadow .2s
+}
+.vip-card:hover{transform:translateY(-3px);border-color:#e0b34c70}
+.vip-card.featured{
+ border-color:#d6a535a0;
+ background:linear-gradient(145deg,#28200f,#111116 75%)
+}
+.plan-label{font-size:10px;color:var(--gold);font-weight:900;letter-spacing:1.5px}
+.vip-card h3{font-size:17px;margin:11px 0}
+.price{font-size:29px;font-weight:900;margin-bottom:4px}
+.price small{font-size:12px;color:#aaa;font-weight:500}
+.duration{font-size:11px;color:#999;margin-bottom:14px}
+.features{list-style:none;color:#c3c3ca;font-size:12px;line-height:2;margin-bottom:16px;flex:1}
+.btn{
+ border:0;border-radius:10px;padding:12px 14px;
+ font-size:13px;font-weight:800;transition:.2s
+}
+.btn-gold{background:linear-gradient(120deg,#e9c467,#c7972f);color:#111}
+.btn-gold:hover{filter:brightness(1.08);transform:translateY(-1px)}
+.btn-dark{background:#20222a;color:#fff;border:1px solid var(--border)}
+.btn:disabled{opacity:.55;cursor:not-allowed;transform:none}
 .full{width:100%}
-.notice{background:#111;border:1px solid #ffffff15;border-radius:12px;padding:15px;margin-top:20px;color:#aaa;font-size:13px;line-height:1.7}
-.notice strong{color:#d6a535}
-.divider{border:0;border-top:1px solid #ffffff15;margin:38px 0}
-.grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:22px}
-.card{transition:.2s}
-.card:hover{transform:translateY(-3px);border-color:#d6a53555}
-.thumb{height:210px;position:relative;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 70% 30%,#d6a53555,transparent 30%),linear-gradient(135deg,#262626,#0e0e0e);overflow:hidden}
+.notice{
+ background:#111319;border:1px solid var(--border);
+ border-radius:12px;padding:14px;margin-top:17px;
+ color:#a9abb5;font-size:12px;line-height:1.8
+}
+.notice strong{color:var(--gold)}
+.membership-status{
+ padding:16px;border:1px solid #80cfff35;
+ border-radius:14px;margin-bottom:20px;
+ background:linear-gradient(120deg,#13202c,#111319)
+}
+.membership-status h3{font-size:15px;margin-bottom:8px}
+.membership-status p{font-size:12px;color:#b5bdc8;line-height:1.8}
+.status-pill{
+ display:inline-block;padding:5px 9px;border-radius:999px;
+ font-size:11px;font-weight:800;margin-bottom:9px;
+ background:#252832;color:#ddd
+}
+.status-pill.pending{background:#5b441b55;color:#f3ce72}
+.status-pill.approved{background:#174a3455;color:#75e6a5}
+.status-pill.rejected{background:#57252555;color:#ff9191}
+.status-pill.active{background:#173c5555;color:#8fd7ff}
+.benefits{
+ display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:18px
+}
+.benefit{
+ padding:13px;border-radius:12px;background:#ffffff05;
+ border:1px solid var(--border)
+}
+.benefit b{display:block;font-size:12px;margin-bottom:5px}
+.benefit span{display:block;color:#999;font-size:11px;line-height:1.7}
+.video-head{margin-bottom:22px}
+.video-head .eyebrow{margin-bottom:9px}
+.video-head h2{font-size:26px;margin-bottom:10px}
+.video-head p{color:var(--muted);font-size:13px;line-height:1.8}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px}
+.card{
+ min-width:0;background:#0e1015;border:1px solid var(--border);
+ border-radius:15px;overflow:hidden;transition:.2s
+}
+.card:hover{transform:translateY(-3px);border-color:#d6a53566}
+.thumb{
+ height:155px;position:relative;display:flex;align-items:center;
+ justify-content:center;overflow:hidden;
+ background:radial-gradient(circle at 70% 30%,#d6a53545,transparent 35%),
+ linear-gradient(135deg,#242630,#0e0f13)
+}
 .thumb img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0}
-.lock-icon{width:58px;height:58px;border-radius:50%;display:grid;place-items:center;background:#111e;border:1px solid #ffffff25;color:#f1c75a;font-size:24px;position:relative;z-index:2}
-.price-badge{position:absolute;right:12px;top:12px;background:#0a0a0add;border:1px solid #ffffff18;border-radius:999px;padding:6px 10px;font-size:12px;color:#f1c75a;z-index:3}
-.card-body{padding:18px}
-.card-body h3{font-size:18px;margin-bottom:8px}
-.card-body p{color:#999;font-size:13px;line-height:1.6;min-height:42px}
-.card-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:17px}
-.tag{color:#d6a535;font-size:12px;border:1px solid #d6a53544;padding:6px 9px;border-radius:999px}
-.status{grid-column:1/-1;text-align:center;padding:35px 18px;border:1px solid #ffffff12;border-radius:14px;background:#101010;color:#999;line-height:1.8}
-.status strong{display:block;color:#fff;margin-bottom:7px}
-footer{border-top:1px solid #ffffff12;padding:28px 0;color:#666;text-align:center;font-size:13px}
-.modal-backdrop{position:fixed;inset:0;z-index:9999;background:#000c;display:flex;align-items:center;justify-content:center;padding:16px;overflow-y:auto}
-.modal-box{width:min(520px,100%);max-height:92vh;overflow:auto;background:#111;border:1px solid #ffffff20;border-radius:17px;padding:22px}
-.modal-head{display:flex;justify-content:space-between;align-items:center;gap:15px;margin-bottom:20px}
-.modal-head h2{font-size:22px}
-.close-btn{background:#222;color:#fff;border:1px solid #ffffff20;border-radius:50%;width:36px;height:36px;cursor:pointer;font-size:20px}
-.field-label{display:block;color:#bbb;font-size:13px;margin:17px 0 8px}
-.field{width:100%;padding:13px;background:#080808;color:#fff;border:1px solid #ffffff22;border-radius:9px;outline:none}
-.field:focus{border-color:#d6a535}
+.lock-icon{
+ width:48px;height:48px;border-radius:50%;display:grid;
+ place-items:center;background:#090b10dd;border:1px solid #ffffff30;
+ color:var(--gold2);font-size:21px;position:relative;z-index:2
+}
+.price-badge{
+ position:absolute;right:9px;top:9px;z-index:3;
+ background:#08090ce8;border:1px solid #ffffff20;
+ border-radius:999px;padding:6px 8px;font-size:10px;color:var(--gold2)
+}
+.card-body{padding:14px}
+.card-body h3{font-size:15px;margin-bottom:8px;overflow-wrap:anywhere}
+.card-body p{color:#999;font-size:12px;line-height:1.7;min-height:40px;overflow-wrap:anywhere}
+.card-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:14px;flex-wrap:wrap}
+.tag{color:var(--gold);font-size:10px;border:1px solid #d6a53544;padding:6px 8px;border-radius:999px}
+.status-box{
+ grid-column:1/-1;text-align:center;padding:25px 15px;
+ border:1px solid var(--border);border-radius:14px;
+ background:#0d0f14;color:#999;font-size:13px;line-height:1.8
+}
+.status-box strong{display:block;color:#fff;margin-bottom:7px}
+.divider{border:0;border-top:1px solid var(--border);margin:35px 0}
+footer{border-top:1px solid var(--border);padding:26px 0;color:#666;text-align:center;font-size:12px}
+.modal-backdrop{
+ position:fixed;inset:0;z-index:9999;background:#000d;
+ display:flex;align-items:center;justify-content:center;padding:16px;overflow-y:auto
+}
+.modal-box{
+ width:min(520px,100%);max-height:92vh;overflow:auto;
+ background:#111319;border:1px solid #ffffff22;
+ border-radius:19px;padding:22px;
+ box-shadow:0 20px 80px #0009
+}
+.modal-head{display:flex;justify-content:space-between;align-items:center;gap:15px;margin-bottom:19px}
+.modal-head h2{font-size:21px}
+.close-btn{
+ background:#22252c;color:#fff;border:1px solid var(--border);
+ border-radius:50%;width:36px;height:36px;font-size:20px;flex-shrink:0
+}
+.field-label{display:block;color:#bbb;font-size:12px;margin:17px 0 8px}
+.field{
+ width:100%;min-width:0;padding:13px;background:#08090d;color:#fff;
+ border:1px solid #ffffff24;border-radius:9px;outline:none
+}
+.field:focus{border-color:var(--gold)}
 .address-row{display:flex;gap:8px}
 .address-row .field{min-width:0}
-.small-note{font-size:12px;color:#888;line-height:1.7;margin-top:10px}
-.feedback{font-size:13px;line-height:1.7;margin-top:15px;overflow-wrap:anywhere}
-@media(max-width:850px){
- .menu-btn{display:block}
- .links{display:none;position:absolute;top:76px;left:0;right:0;background:#080808;padding:20px;flex-direction:column;align-items:stretch;border-bottom:1px solid #ffffff15}
- .links.show{display:flex}
- .links>a{padding:8px 0}
- .user-area{padding-top:14px;border-top:1px solid #ffffff15;justify-content:space-between;flex-wrap:wrap}
- .vip-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+.small-note{font-size:11px;color:#888;line-height:1.8;margin-top:10px}
+.feedback{font-size:12px;line-height:1.8;margin-top:14px;overflow-wrap:anywhere}
+.toast{
+ position:fixed;right:18px;bottom:18px;z-index:10001;
+ max-width:min(390px,calc(100% - 36px));
+ padding:15px 18px;background:#171a20;border:1px solid #ffffff25;
+ border-radius:13px;box-shadow:0 12px 40px #0008;
+ font-size:13px;line-height:1.7;display:none
+}
+.toast.show{display:block;animation:toastIn .25s ease}
+@keyframes toastIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.vip-section.plan-selected .vip-card:not(.selected-plan){display:none}
+.vip-section.plan-selected .vip-grid{grid-template-columns:minmax(0,1fr)}
+.vip-section.plan-selected .selected-plan{max-width:100%}
+@media(max-width:900px){
+ .premium-layout{grid-template-columns:1fr}
  .grid{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
-@media(max-width:560px){
+@media(max-width:760px){
+ .menu-btn{display:block}
+ .links{
+  display:none;position:absolute;top:74px;left:0;right:0;
+  background:#090a0e;padding:20px;flex-direction:column;
+  align-items:stretch;border-bottom:1px solid var(--border)
+ }
+ .links.show{display:flex}
+ .links>a{padding:8px 0}
+ .user-area{padding-top:14px;border-top:1px solid var(--border);justify-content:space-between;flex-wrap:wrap}
+}
+@media(max-width:520px){
+ .container{width:94%}
+ main{padding-top:27px}
+ .panel{padding:15px;border-radius:17px}
  .vip-grid,.grid{grid-template-columns:1fr}
- .vip-card{padding:22px}
- .thumb{height:220px}
+ .vip-card{padding:20px}
+ .thumb{height:210px}
+ .vip-hero{padding:21px 16px}
+ .diamond-art{width:65px;height:65px;font-size:47px}
+ .benefits{grid-template-columns:1fr 1fr}
 }
 </style>
 </head>
@@ -99,7 +278,7 @@ footer{border-top:1px solid #ffffff12;padding:28px 0;color:#666;text-align:cente
 <body>
 <header>
  <div class="container nav">
-  <a class="brand" href="index.html"><span class="crown">♛</span> EMPIRE</a>
+  <a class="brand" href="index.html"><span class="brand-icon">♛</span>EMPIRE</a>
   <button class="menu-btn" id="menuBtn" aria-label="Open menu">☰</button>
   <nav class="links" id="navLinks">
    <a href="index.html">Home</a>
@@ -116,90 +295,126 @@ footer{border-top:1px solid #ffffff12;padding:28px 0;color:#666;text-align:cente
 
 <main class="container">
  <section class="page-head">
-  <div class="eyebrow">Exclusive Empire Membership</div>
-  <h1>Empire <span class="gold">VIP</span></h1>
-  <p>Choose your membership plan, submit your TRC20 payment transaction, and wait for admin review.</p>
+  <div class="eyebrow">The Empire Membership Experience</div>
+  <h1>Enter the <span class="gold">Empire</span> <span class="blue">VIP</span></h1>
+  <p>Manage your membership, follow your payment request, and discover exclusive videos in one place.</p>
  </section>
 
- <section class="vip-section" id="vipMembership">
-  <h2 class="section-title">👑 Choose Your VIP Plan</h2>
-  <p class="vip-intro">VIP membership is activated only after your payment has been checked and approved by an Empire administrator.</p>
+ <div class="premium-layout">
 
-  <div class="vip-grid">
-   <article class="vip-card">
-    <div class="plan-label">STARTER</div>
-    <h3>1 Month VIP</h3>
-    <div class="price">9 <small>USDT</small></div>
-    <div class="duration">30-day membership</div>
-    <ul class="features">
-     <li>✓ VIP membership request</li>
-     <li>✓ VIP profile status after approval</li>
-     <li>✓ Subject to Empire rules</li>
-    </ul>
-    <button class="btn btn-gold full choose-plan" data-plan="vip-monthly">Choose Plan</button>
-   </article>
+  <!-- VIP MEMBERSHIP -->
+  <section class="panel vip-section" id="vipMembership">
+   <div class="vip-hero">
+    <div class="diamond-art" aria-label="Diamond symbol">💎</div>
+    <div class="eyebrow">Exclusive Membership</div>
+    <h2>Empire <span class="blue">VIP</span></h2>
+    <p>Your VIP membership is activated only after an administrator verifies and approves your payment.</p>
+   </div>
 
-   <article class="vip-card featured">
-    <div class="plan-label">POPULAR</div>
-    <h3>3 Months VIP</h3>
-    <div class="price">21 <small>USDT</small></div>
-    <div class="duration">90-day membership</div>
-    <ul class="features">
-     <li>✓ VIP membership request</li>
-     <li>✓ VIP profile status after approval</li>
-     <li>✓ Subject to Empire rules</li>
-    </ul>
-    <button class="btn btn-gold full choose-plan" data-plan="vip-quarterly">Choose Plan</button>
-   </article>
+   <div class="membership-status" id="membershipStatus" aria-live="polite">
+    <span class="status-pill">CHECKING</span>
+    <h3>Checking your membership...</h3>
+    <p>Please wait while we check your current VIP status.</p>
+   </div>
 
-   <article class="vip-card">
-    <div class="plan-label">EXTENDED</div>
-    <h3>6 Months VIP</h3>
-    <div class="price">49 <small>USDT</small></div>
-    <div class="duration">180-day membership</div>
-    <ul class="features">
-     <li>✓ VIP membership request</li>
-     <li>✓ VIP profile status after approval</li>
-     <li>✓ Subject to Empire rules</li>
-    </ul>
-    <button class="btn btn-gold full choose-plan" data-plan="vip-semiannual">Choose Plan</button>
-   </article>
+   <h2 class="section-title">Choose Your Plan</h2>
+   <p class="section-desc">Choose one plan to see its payment instructions. You can return and select a different plan before submitting.</p>
 
-   <article class="vip-card">
-    <div class="plan-label">ANNUAL</div>
-    <h3>1 Year VIP</h3>
-    <div class="price">89 <small>USDT</small></div>
-    <div class="duration">365-day membership</div>
-    <ul class="features">
-     <li>✓ VIP membership request</li>
-     <li>✓ VIP profile status after approval</li>
-     <li>✓ Subject to Empire rules</li>
-    </ul>
-    <button class="btn btn-gold full choose-plan" data-plan="vip-yearly">Choose Plan</button>
-   </article>
-  </div>
+   <div class="vip-grid" id="vipPlanGrid">
+    <article class="vip-card" data-plan-card="vip-monthly">
+     <div class="plan-label">STARTER</div>
+     <h3>1 Month VIP</h3>
+     <div class="price">9 <small>USDT</small></div>
+     <div class="duration">30-day membership</div>
+     <ul class="features">
+      <li>✓ VIP profile badge after activation</li>
+      <li>✓ Submit videos for admin review when creator uploads are enabled</li>
+      <li>✓ Membership subject to Empire rules</li>
+     </ul>
+     <button class="btn btn-gold full choose-plan" data-plan="vip-monthly">Choose Plan</button>
+    </article>
 
-  <div class="notice">
-   <strong>Payment safety:</strong> Submitting a transaction hash does not prove payment. Do not submit a payment request until you have sent the exact amount on the correct network. Your VIP status remains pending until an administrator verifies the transaction.
-  </div>
- </section>
+    <article class="vip-card featured" data-plan-card="vip-quarterly">
+     <div class="plan-label">POPULAR</div>
+     <h3>3 Months VIP</h3>
+     <div class="price">21 <small>USDT</small></div>
+     <div class="duration">90-day membership</div>
+     <ul class="features">
+      <li>✓ VIP profile badge after activation</li>
+      <li>✓ Submit videos for admin review when creator uploads are enabled</li>
+      <li>✓ Membership subject to Empire rules</li>
+     </ul>
+     <button class="btn btn-gold full choose-plan" data-plan="vip-quarterly">Choose Plan</button>
+    </article>
 
- <hr class="divider">
+    <article class="vip-card" data-plan-card="vip-semiannual">
+     <div class="plan-label">EXTENDED</div>
+     <h3>6 Months VIP</h3>
+     <div class="price">49 <small>USDT</small></div>
+     <div class="duration">180-day membership</div>
+     <ul class="features">
+      <li>✓ VIP profile badge after activation</li>
+      <li>✓ Submit videos for admin review when creator uploads are enabled</li>
+      <li>✓ Membership subject to Empire rules</li>
+     </ul>
+     <button class="btn btn-gold full choose-plan" data-plan="vip-semiannual">Choose Plan</button>
+    </article>
 
- <section id="paidVideos">
-  <div class="page-head">
-   <div class="eyebrow">Exclusive Content</div>
-   <h2 class="section-title">Premium <span class="gold">Videos</span></h2>
-   <p>Purchase individual videos separately from VIP membership.</p>
-  </div>
+    <article class="vip-card" data-plan-card="vip-yearly">
+     <div class="plan-label">ANNUAL</div>
+     <h3>1 Year VIP</h3>
+     <div class="price">89 <small>USDT</small></div>
+     <div class="duration">365-day membership</div>
+     <ul class="features">
+      <li>✓ VIP profile badge after activation</li>
+      <li>✓ Submit videos for admin review when creator uploads are enabled</li>
+      <li>✓ Membership subject to Empire rules</li>
+     </ul>
+     <button class="btn btn-gold full choose-plan" data-plan="vip-yearly">Choose Plan</button>
+    </article>
+   </div>
 
-  <div class="grid" id="premiumVideoGrid">
-   <div class="status"><strong>Loading premium videos...</strong>Please wait.</div>
-  </div>
- </section>
+   <div class="notice">
+    <strong>Payment safety:</strong> Submitting a transaction hash does not prove payment. Verify the exact amount, recipient address, and TRC20 network before submitting. Do not send money for testing.
+   </div>
+
+   <div class="benefits">
+    <div class="benefit">
+     <b>💎 VIP Profile</b>
+     <span>A distinct VIP identity when your membership is active.</span>
+    </div>
+    <div class="benefit">
+     <b>🎬 Creator Access</b>
+     <span>VIP video submissions will still require admin review.</span>
+    </div>
+    <div class="benefit">
+     <b>👑 Empire Community</b>
+     <span>Membership and activity must follow site rules.</span>
+    </div>
+    <div class="benefit">
+     <b>✨ Future Features</b>
+     <span>Additional VIP benefits may be introduced later.</span>
+    </div>
+   </div>
+  </section>
+
+  <!-- PAID VIDEOS -->
+  <section class="panel" id="paidVideos">
+   <div class="video-head">
+    <div class="eyebrow">Exclusive Content</div>
+    <h2>Premium <span class="gold">Videos</span></h2>
+    <p>Purchase individual videos separately from your VIP membership. VIP membership does not automatically unlock paid videos.</p>
+   </div>
+   <div class="grid" id="premiumVideoGrid">
+    <div class="status-box"><strong>Loading premium videos...</strong>Please wait.</div>
+   </div>
+  </section>
+
+ </div>
 </main>
 
 <footer>© 2026 Empire. All rights reserved.</footer>
+<div class="toast" id="notificationToast" role="status" aria-live="polite"></div>
 
 <script>
 const SUPABASE_URL = "https://vubjkwbkuwndkjqfnyom.supabase.co";
@@ -219,6 +434,12 @@ const VIP_PLANS = {
  "vip-yearly":{name:"1 Year VIP",amount:89}
 };
 
+let currentUserId = null;
+let latestRequestStatus = null;
+let firstStatusCheck = true;
+let statusTimer = null;
+let toastTimer = null;
+
 function escapeHtml(value){
  return String(value ?? "")
   .replace(/&/g,"&amp;")
@@ -230,7 +451,7 @@ function escapeHtml(value){
 
 async function getSession(){
  const {data,error}=await supabaseClient.auth.getSession();
- if(error) throw error;
+ if(error)throw error;
  return data.session;
 }
 
@@ -243,6 +464,14 @@ async function checkAuth(){
  return session;
 }
 
+function showToast(message){
+ const toast=document.getElementById("notificationToast");
+ toast.textContent=message;
+ toast.classList.add("show");
+ clearTimeout(toastTimer);
+ toastTimer=setTimeout(()=>toast.classList.remove("show"),8000);
+}
+
 async function loadUser(){
  const {data:{user}}=await supabaseClient.auth.getUser();
  if(!user)return;
@@ -251,11 +480,13 @@ async function loadUser(){
   .select("username,display_name")
   .eq("id",user.id)
   .maybeSingle();
+
  document.getElementById("userName").textContent =
   profile?.display_name || profile?.username || user.email || "User";
 }
 
 async function logout(){
+ if(statusTimer)clearInterval(statusTimer);
  await supabaseClient.auth.signOut();
  window.location.href="login.html";
 }
@@ -265,10 +496,113 @@ document.getElementById("menuBtn").addEventListener("click",()=>{
  document.getElementById("navLinks").classList.toggle("show");
 });
 
+function renderMembershipStatus(membership,request){
+ const box=document.getElementById("membershipStatus");
+ const now=Date.now();
+
+ if(membership && membership.status==="active" &&
+    membership.expires_at && new Date(membership.expires_at).getTime()>now){
+  const expiry=new Date(membership.expires_at);
+  box.innerHTML=`
+   <span class="status-pill active">💎 VIP ACTIVE</span>
+   <h3>Welcome to Empire VIP</h3>
+   <p>Your membership is active until <strong>${escapeHtml(expiry.toLocaleDateString())}</strong>.</p>`;
+  return;
+ }
+
+ if(request && request.status==="pending"){
+  box.innerHTML=`
+   <span class="status-pill pending">⏳ PENDING REVIEW</span>
+   <h3>Your payment request is being reviewed</h3>
+   <p>Plan: <strong>${escapeHtml(VIP_PLANS[request.plan]?.name||request.plan)}</strong>.
+   Your VIP membership is not active yet. We check for updates automatically while this page is open.</p>`;
+  return;
+ }
+
+ if(request && request.status==="rejected"){
+  box.innerHTML=`
+   <span class="status-pill rejected">✕ REQUEST REJECTED</span>
+   <h3>Your VIP request was rejected</h3>
+   <p>The administrator did not approve this request. Check your transaction details before submitting another request.</p>`;
+  return;
+ }
+
+ if(request && request.status==="approved"){
+  box.innerHTML=`
+   <span class="status-pill approved">✓ PAYMENT APPROVED</span>
+   <h3>Payment approved</h3>
+   <p>Your payment request was approved. If your membership is not showing as active, refresh the page or contact the administrator.</p>`;
+  return;
+ }
+
+ box.innerHTML=`
+  <span class="status-pill">NOT A VIP MEMBER</span>
+  <h3>Choose a VIP plan</h3>
+  <p>You do not currently have an active VIP membership. Choose a plan below to get started.</p>`;
+}
+
+async function refreshVipStatus(){
+ if(!currentUserId)return;
+
+ try{
+  const [requestResult,membershipResult]=await Promise.all([
+   supabaseClient
+    .from("vip_payment_requests")
+    .select("id,plan,amount,status,created_at,reviewed_at")
+    .eq("user_id",currentUserId)
+    .order("created_at",{ascending:false})
+    .limit(1),
+   supabaseClient
+    .from("vip_memberships")
+    .select("id,plan,status,starts_at,expires_at,created_at")
+    .eq("user_id",currentUserId)
+    .order("created_at",{ascending:false})
+    .limit(10)
+  ]);
+
+  if(requestResult.error)throw requestResult.error;
+  if(membershipResult.error)throw membershipResult.error;
+
+  const request=requestResult.data?.[0]||null;
+  const now=Date.now();
+
+  const membership=(membershipResult.data||[])
+   .filter(item=>item.status==="active" && item.expires_at &&
+     new Date(item.expires_at).getTime()>now)
+   .sort((a,b)=>new Date(b.expires_at)-new Date(a.expires_at))[0]||null;
+
+  const newStatus=request?.status||"none";
+  if(!firstStatusCheck && latestRequestStatus==="pending" &&
+     newStatus==="approved"){
+   showToast("💎 Your VIP payment request was approved. Your membership status has been updated.");
+  }else if(!firstStatusCheck && latestRequestStatus==="pending" &&
+     newStatus==="rejected"){
+   showToast("Your VIP request was rejected. Please check the request status on this page.");
+  }
+
+  if(newStatus!=="none")latestRequestStatus=newStatus;
+  firstStatusCheck=false;
+  renderMembershipStatus(membership,request);
+
+ }catch(error){
+  console.error("VIP STATUS ERROR:",error);
+  document.getElementById("membershipStatus").innerHTML=`
+   <span class="status-pill">STATUS UNAVAILABLE</span>
+   <h3>Could not check VIP status</h3>
+   <p>Please refresh the page. If this continues, check the VIP tables' SELECT permissions and RLS policies in Supabase.</p>`;
+ }
+}
+
 /* VIP PAYMENT REQUEST */
 function openVipPayment(planKey){
  const plan=VIP_PLANS[planKey];
  if(!plan)return;
+
+ const section=document.getElementById("vipMembership");
+ const selectedCard=document.querySelector(`[data-plan-card="${planKey}"]`);
+ section.classList.add("plan-selected");
+ document.querySelectorAll(".vip-card").forEach(card=>card.classList.remove("selected-plan"));
+ if(selectedCard)selectedCard.classList.add("selected-plan");
 
  const backdrop=document.createElement("div");
  backdrop.className="modal-backdrop";
@@ -294,20 +628,27 @@ function openVipPayment(planKey){
     <button class="btn btn-gold" id="copyVipWallet" type="button">Copy</button>
    </div>
 
-   <p class="small-note">Confirm the address and network in your wallet before sending. Crypto transfers are generally irreversible.</p>
+   <p class="small-note">Check the recipient address and network carefully. Crypto transfers are generally irreversible. Do not send a payment just to test this form.</p>
 
    <label class="field-label" for="vipTxHash">Transaction Hash (TXID)</label>
    <input class="field" id="vipTxHash" maxlength="150" autocomplete="off" placeholder="Paste your transaction hash">
 
    <button class="btn btn-gold full" id="submitVipRequest" style="margin-top:17px">Submit VIP Request</button>
+   <button class="btn btn-dark full" id="backToPlans" style="margin-top:9px">← Back to plans</button>
    <div class="feedback" id="vipFeedback" role="status" aria-live="polite"></div>
-   <p class="small-note">Your request will be marked pending. This form does not automatically verify blockchain payment or activate VIP.</p>
+   <p class="small-note">Submitting the TXID does not activate VIP. An administrator must verify the transaction and approve the request.</p>
   </div>`;
 
  document.body.appendChild(backdrop);
 
- const close=()=>backdrop.remove();
+ const close=()=>{
+  backdrop.remove();
+  section.classList.remove("plan-selected");
+  document.querySelectorAll(".vip-card").forEach(card=>card.classList.remove("selected-plan"));
+ };
+
  document.getElementById("closeVipModal").addEventListener("click",close);
+ document.getElementById("backToPlans").addEventListener("click",close);
  backdrop.addEventListener("click",e=>{if(e.target===backdrop)close();});
 
  document.getElementById("copyVipWallet").addEventListener("click",async()=>{
@@ -367,12 +708,15 @@ function openVipPayment(planKey){
    }
 
    feedback.style.color="#65d391";
-   feedback.textContent="Request submitted. Status: PENDING ADMIN REVIEW. Your VIP membership is not active yet.";
+   feedback.textContent="✓ Request submitted. Status: PENDING ADMIN REVIEW. Your VIP membership is not active yet.";
    button.textContent="Request Submitted";
    document.getElementById("vipTxHash").disabled=true;
+   latestRequestStatus="pending";
+   await refreshVipStatus();
+   showToast("Your VIP request was submitted and is waiting for admin review.");
 
   }catch(error){
-   feedback.style.color="#e06b6b";
+   feedback.style.color="#ff7777";
    feedback.textContent=error.message||"Unexpected error.";
    button.disabled=false;
    button.textContent="Submit VIP Request";
@@ -387,20 +731,21 @@ document.querySelectorAll(".choose-plan").forEach(button=>{
 /* LOAD PAID VIDEOS */
 async function loadPremiumVideos(){
  const grid=document.getElementById("premiumVideoGrid");
- grid.innerHTML='<div class="status"><strong>Loading premium videos...</strong>Please wait.</div>';
+ grid.innerHTML='<div class="status-box"><strong>Loading premium videos...</strong>Please wait.</div>';
 
  try{
   const {data,error}=await supabaseClient
    .from("videos")
    .select("id,title,description,thumbnail_url,access_type,price,created_at")
    .eq("access_type","paid")
+   .eq("approval_status","approved")
    .order("created_at",{ascending:false});
 
   if(error)throw error;
   const videos=data||[];
 
   if(!videos.length){
-   grid.innerHTML='<div class="status"><strong>No premium videos yet</strong>Premium content will appear here soon.</div>';
+   grid.innerHTML='<div class="status-box"><strong>No premium videos yet</strong>Premium content will appear here soon.</div>';
    return;
   }
 
@@ -427,7 +772,7 @@ async function loadPremiumVideos(){
 
  }catch(error){
   console.error("PREMIUM VIDEOS ERROR:",error);
-  grid.innerHTML=`<div class="status"><strong>Could not load premium videos</strong>${escapeHtml(error.message||"Unknown error")}</div>`;
+  grid.innerHTML=`<div class="status-box"><strong>Could not load premium videos</strong>${escapeHtml(error.message||"Unknown error")}</div>`;
  }
 }
 
@@ -461,7 +806,7 @@ async function openBuy(videoId){
    <div class="modal-box" role="dialog" aria-modal="true">
     <div class="modal-head">
      <h2>Unlock Premium Video</h2>
-     <button class="close-btn" id="closeVideoModal">×</button>
+     <button class="close-btn" id="closeVideoModal" aria-label="Close">×</button>
     </div>
     <div class="notice" style="margin-top:0">
      Amount: <strong>${Number(result.amount||0).toFixed(2)} USDT</strong><br>
@@ -473,20 +818,24 @@ async function openBuy(videoId){
      <button class="btn btn-gold" id="copyVideoWallet">Copy</button>
     </div>
     <label class="field-label" for="videoTxid">Transaction ID (TXID)</label>
-    <input class="field" id="videoTxid" placeholder="Paste your TRON TXID">
+    <input class="field" id="videoTxid" maxlength="150" placeholder="Paste your TRON TXID">
     <button class="btn btn-gold full" id="verifyVideoPayment" style="margin-top:16px">Verify Payment</button>
     <div class="feedback" id="videoStatus" role="status" aria-live="polite">Send the exact amount and enter your transaction hash.</div>
    </div>`;
-  document.body.appendChild(modal);
 
+  document.body.appendChild(modal);
   const close=()=>modal.remove();
   modal.querySelector("#closeVideoModal").addEventListener("click",close);
   modal.addEventListener("click",e=>{if(e.target===modal)close();});
 
   modal.querySelector("#copyVideoWallet").addEventListener("click",async()=>{
    const input=modal.querySelector("#videoWallet");
-   try{await navigator.clipboard.writeText(input.value);modal.querySelector("#copyVideoWallet").textContent="Copied!";}
-   catch{input.select();document.execCommand("copy");}
+   try{
+    await navigator.clipboard.writeText(input.value);
+    modal.querySelector("#copyVideoWallet").textContent="Copied!";
+   }catch{
+    input.select();document.execCommand("copy");
+   }
   });
 
   modal.querySelector("#verifyVideoPayment").addEventListener("click",async()=>{
@@ -518,7 +867,7 @@ async function openBuy(videoId){
     button.textContent="Verified";
 
    }catch(error){
-    status.style.color="#e06b6b";
+    status.style.color="#ff7777";
     status.textContent=error.message||"Payment verification failed.";
     button.disabled=false;
     button.textContent="Verify Payment";
@@ -532,10 +881,17 @@ async function openBuy(videoId){
 }
 
 (async function(){
- const session=await checkAuth();
- if(!session)return;
- await loadUser();
- await loadPremiumVideos();
+ try{
+  const session=await checkAuth();
+  if(!session)return;
+  currentUserId=session.user.id;
+  await loadUser();
+  await Promise.all([loadPremiumVideos(),refreshVipStatus()]);
+  statusTimer=setInterval(refreshVipStatus,12000);
+ }catch(error){
+  console.error("PREMIUM PAGE INIT ERROR:",error);
+  showToast("Could not load the page correctly. Please refresh.");
+ }
 })();
 </script>
 </body>
