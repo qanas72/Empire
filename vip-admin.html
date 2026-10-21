@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>EMPIRE | مدیریت VIP</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      padding: 20px;
+      background: #0b0b0f;
+      color: #f5f5f5;
+      font-family: Arial, sans-serif;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: auto;
+    }
+
+    h1 { color: #e9bd62; }
+
+    .top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 25px;
+    }
+
+    .card {
+      background: #17171e;
+      border: 1px solid #34343d;
+      border-radius: 12px;
+      padding: 18px;
+      margin-bottom: 16px;
+      overflow-wrap: anywhere;
+    }
+
+    .label { color: #aaa; }
+
+    .value {
+      color: #f3cb75;
+      margin-bottom: 12px;
+      direction: ltr;
+      text-align: right;
+    }
+
+    button, .link {
+      display: inline-block;
+      padding: 11px 16px;
+      border: 0;
+      border-radius: 7px;
+      cursor: pointer;
+      text-decoration: none;
+      font-size: 14px;
+      margin: 5px 3px;
+    }
+
+    .gold {
+      background: #e9bd62;
+      color: #151515;
+    }
+
+    .red {
+      background: #a8323e;
+      color: white;
+    }
+
+    .dark {
+      background: #30303a;
+      color: white;
+    }
+
+    .status {
+      padding: 5px 10px;
+      border-radius: 6px;
+      display: inline-block;
+      background: #49391a;
+      color: #f3cb75;
+    }
+
+    #message {
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 18px;
+      overflow-wrap: anywhere;
+    }
+
+    .hidden { display: none; }
+
+    .small {
+      color: #aaa;
+      font-size: 13px;
+      line-height: 1.8;
+    }
+
+    a { color: #e9bd62; }
+  </style>
+</head>
+
+<body>
+<div class="container">
+
+  <div class="top">
+    <h1>👑 مدیریت VIP</h1>
+    <a class="link dark" href="admin.html">بازگشت به پنل مدیریت</a>
+  </div>
+
+  <div id="message">در حال بررسی ورود مدیر...</div>
+
+  <div id="panel" class="hidden">
+    <h2>درخواست‌های پرداخت VIP</h2>
+
+    <p class="small">
+      قبل از تأیید، تراکنش USDT روی شبکه TRON (TRC20)، مبلغ و
+      آدرس دریافت‌کننده را بررسی کن. ثبت TXID به‌تنهایی اثبات پرداخت نیست.
+    </p>
+
+    <button class="gold" id="refreshBtn">🔄 بارگذاری مجدد</button>
+
+    <div id="requests"></div>
+  </div>
+
+</div>
+
+<script>
+(async function () {
+  const SUPABASE_URL =
+    "https://vubjkwbkuwndkjqfnyom.supabase.co";
+
+  const SUPABASE_KEY =
+    "sb_publishable_Ig1R3dpAKyBfjIGSUhhlKw_uC-QF0QQ";
+
+  const ADMIN_ID =
+    "8166f8a9-fdc3-43a4-85c7-53ec1dbbde0e";
+
+  const client = window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+  );
+
+  const message = document.getElementById("message");
+  const panel = document.getElementById("panel");
+  const requestsBox = document.getElementById("requests");
+
+  function showMessage(text, error = false) {
+    message.textContent = text;
+    message.style.color = error ? "#ff8585" : "#e9bd62";
+  }
+
+  const { data: sessionData, error: sessionError } =
+    await client.auth.getSession();
+
+  const session = sessionData?.session;
+
+  if (sessionError || !session) {
+    showMessage("ابتدا وارد حساب کاربری شوید.", true);
+    setTimeout(() => {
+      location.href = "login.html";
+    }, 1500);
+    return;
+  }
+
+  if (session.user.id !== ADMIN_ID) {
+    showMessage("⛔ دسترسی غیرمجاز. این صفحه مخصوص مدیر است.", true);
+    return;
+  }
+
+  const { data: adminCheck, error: adminError } =
+    await client.rpc("is_admin");
+
+  if (adminError || adminCheck !== true) {
+    showMessage(
+      "دسترسی مدیر تأیید نشد. تنظیمات تابع is_admin را بررسی کنید.",
+      true
+    );
+    return;
+  }
+
+  panel.classList.remove("hidden");
+  showMessage("ورود مدیر تأیید شد.");
+
+  function addField(card, label, value) {
+    const title = document.createElement("div");
+    title.className = "label";
+    title.textContent = label;
+
+    const content = document.createElement("div");
+    content.className = "value";
+    content.textContent =
+      value === null || value === undefined || value === ""
+        ? "ثبت نشده"
+        : String(value);
+
+    card.append(title, content);
+  }
+
+  async function loadRequests() {
+    requestsBox.replaceChildren();
+    showMessage("در حال بارگذاری درخواست‌ها...");
+
+    const { data, error } = await client
+      .from("vip_payment_requests")
+      .select(
+        "id,user_id,plan,amount,currency,network,transaction_hash,status,created_at"
+      )
+      .eq("status", "pending")
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      showMessage(
+        "خطا در دریافت درخواست‌ها: " + error.message,
+        true
+      );
+      return;
+    }
+
+    if (!data || data.length === 0) {
+      showMessage("در حال حاضر درخواست پرداخت در انتظار بررسی وجود ندارد.");
+      return;
+    }
+
+    showMessage("تعداد درخواست‌های در انتظار بررسی: " + data.length);
+
+    data.forEach((request) => {
+      const card = document.createElement("div");
+      card.className = "card";
+
+      const heading = document.createElement("h3");
+      heading.textContent = "👑 درخواست VIP";
+      card.appendChild(heading);
+
+      addField(card, "شناسه درخواست", request.id);
+      addField(card, "شناسه کاربر", request.user_id);
+      addField(card, "پلن", request.plan);
+      addField(
+        card,
+        "مبلغ",
+        request.amount + " " + request.currency
+      );
+      addField(card, "شبکه", request.network);
+      addField(card, "TXID تراکنش", request.transaction_hash);
+      addField(card, "تاریخ ثبت", request.created_at);
+
+      const status = document.createElement("span");
+      status.className = "status";
+      status.textContent = "در انتظار بررسی";
+      card.appendChild(status);
+
+      const txLink = document.createElement("a");
+      txLink.className = "link dark";
+      txLink.href =
+        "https://tronscan.org/#/transaction/" +
+        encodeURIComponent(request.transaction_hash || "");
+      txLink.target = "_blank";
+      txLink.rel = "noopener noreferrer";
+      txLink.textContent = "بررسی تراکنش در TronScan";
+      card.appendChild(txLink);
+
+      const approve = document.createElement("button");
+      approve.className = "gold";
+      approve.textContent = "تأیید پرداخت و فعال‌سازی VIP";
+
+      const reject = document.createElement("button");
+      reject.className = "red";
+      reject.textContent = "رد درخواست";
+
+      approve.addEventListener("click", () => {
+        reviewRequest(request.id, "approve");
+      });
+
+      reject.addEventListener("click", () => {
+        reviewRequest(request.id, "reject");
+      });
+
+      card.append(approve, reject);
+      requestsBox.appendChild(card);
+    });
+  }
+
+  async function reviewRequest(requestId, action) {
+    if (action === "approve") {
+      const confirmed = confirm(
+        "آیا تراکنش را روی شبکه بررسی کرده‌ای و از دریافت مبلغ صحیح به آدرس درست مطمئن هستی؟"
+      );
+
+      if (!confirmed) return;
+    } else {
+      if (!confirm("آیا از رد این درخواست مطمئن هستی؟")) return;
+    }
+
+    showMessage("در حال ارسال درخواست...");
+
+    const { data, error } = await client.functions.invoke(
+      "review-vip-payment",
+      {
+        body: {
+          request_id: requestId,
+          action: action
+        }
+      }
+    );
+
+    if (error) {
+      showMessage(
+        "عملیات انجام نشد. ابتدا باید تابع امن review-vip-payment ساخته شود.",
+        true
+      );
+      console.error(error);
+      return;
+    }
+
+    if (!data || data.success !== true) {
+      showMessage(
+        data?.error || "عملیات انجام نشد.",
+        true
+      );
+      return;
+    }
+
+    showMessage(data.message || "عملیات با موفقیت انجام شد.");
+    await loadRequests();
+  }
+
+  document
+    .getElementById("refreshBtn")
+    .addEventListener("click", loadRequests);
+
+  await loadRequests();
+})();
+</script>
+</body>
+</html>
