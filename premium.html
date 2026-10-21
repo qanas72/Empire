@@ -1,1660 +1,542 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-
-  <meta charset="UTF-8">
-
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0">
-
-  <title>Empire — Premium Videos</title>
-
-  <meta
-    name="description"
-    content="Explore premium videos on Empire. Exclusive content with secure USDT access.">
-
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-  <style>
-
-    *{
-      box-sizing:border-box;
-      margin:0;
-      padding:0;
-    }
-
-    body{
-      font-family:Arial,Helvetica,sans-serif;
-      background:#080808;
-      color:#fff;
-      min-height:100vh;
-    }
-
-    a{
-      color:inherit;
-      text-decoration:none;
-    }
-
-    button{
-      font:inherit;
-    }
-
-    .container{
-      width:min(1180px,92%);
-      margin:auto;
-    }
-
-    /* HEADER */
-
-    header{
-      position:sticky;
-      top:0;
-      z-index:100;
-      background:#080808ee;
-      backdrop-filter:blur(14px);
-      border-bottom:1px solid #ffffff12;
-    }
-
-    .nav{
-      min-height:76px;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:25px;
-    }
-
-    .brand{
-      display:flex;
-      align-items:center;
-      gap:10px;
-      font-size:24px;
-      font-weight:900;
-      letter-spacing:2px;
-    }
-
-    .crown{
-      color:#d6a535;
-      font-size:25px;
-    }
-
-    .links{
-      display:flex;
-      align-items:center;
-      gap:22px;
-    }
-
-    .links a{
-      color:#aaa;
-      font-size:14px;
-      transition:.2s;
-    }
-
-    .links a:hover,
-    .links a.active{
-      color:#fff;
-    }
-
-    .user-area{
-      display:flex;
-      align-items:center;
-      gap:15px;
-      margin-left:10px;
-      padding-left:15px;
-      border-left:1px solid #ffffff15;
-    }
-
-    .user-name{
-      color:#d6a535;
-      font-size:13px;
-      font-weight:700;
-    }
-
-    .logout-btn{
-      border:1px solid #ffffff18;
-      background:#111;
-      color:#ddd;
-      padding:8px 12px;
-      border-radius:9px;
-      cursor:pointer;
-    }
-
-    .logout-btn:hover{
-      background:#1a1a1a;
-    }
-
-    /* MOBILE MENU */
-
-    .menu-btn{
-      display:none;
-      background:none;
-      border:0;
-      color:#fff;
-      font-size:26px;
-      cursor:pointer;
-    }
-
-    /* PAGE */
-
-    main{
-      padding:55px 0 80px;
-    }
-
-    .page-head{
-      text-align:center;
-      max-width:720px;
-      margin:0 auto 45px;
-    }
-
-    .eyebrow{
-      color:#d6a535;
-      font-size:12px;
-      font-weight:800;
-      letter-spacing:2px;
-      text-transform:uppercase;
-      margin-bottom:12px;
-    }
-
-    .page-head h1{
-      font-size:clamp(34px,5vw,58px);
-      line-height:1.05;
-      margin-bottom:15px;
-    }
-
-    .gold{
-      color:#d6a535;
-    }
-
-    .page-head p{
-      color:#888;
-      line-height:1.7;
-      font-size:15px;
-    }
-
-    /* GRID */
-
-    .grid{
-      display:grid;
-      grid-template-columns:repeat(3,1fr);
-      gap:22px;
-    }
-
-    /* CARD */
-
-    .card{
-      background:#101010;
-      border:1px solid #ffffff12;
-      border-radius:17px;
-      overflow:hidden;
-      transition:.25s;
-    }
-
-    .card:hover{
-      transform:translateY(-4px);
-      border-color:#d6a53555;
-    }
-
-    .thumb{
-      height:215px;
-      position:relative;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      background:
-        radial-gradient(
-          circle at 70% 30%,
-          #d6a53555,
-          transparent 30%
-        ),
-        linear-gradient(
-          135deg,
-          #262626,
-          #0e0e0e
-        );
-      overflow:hidden;
-    }
-
-    .thumb.two{
-      background:
-        radial-gradient(
-          circle at 25% 30%,
-          #8e6a2d55,
-          transparent 30%
-        ),
-        linear-gradient(
-          135deg,
-          #191919,
-          #080808
-        );
-    }
-
-    .thumb.three{
-      background:
-        radial-gradient(
-          circle at 65% 65%,
-          #c89c3b4d,
-          transparent 28%
-        ),
-        linear-gradient(
-          135deg,
-          #242424,
-          #0b0b0b
-        );
-    }
-
-    .thumb img{
-      width:100%;
-      height:100%;
-      object-fit:cover;
-      position:absolute;
-      inset:0;
-    }
-
-    .thumb-overlay{
-      position:absolute;
-      inset:0;
-      background:
-        linear-gradient(
-          to top,
-          #000d,
-          transparent 65%
-        );
-      z-index:1;
-    }
-
-    .lock-icon{
-      width:62px;
-      height:62px;
-      border-radius:50%;
-      display:grid;
-      place-items:center;
-      background:#111e;
-      border:1px solid #ffffff25;
-      color:#f1c75a;
-      font-size:25px;
-      position:relative;
-      z-index:2;
-    }
-
-    .price-badge{
-      position:absolute;
-      right:12px;
-      top:12px;
-      background:#0a0a0add;
-      border:1px solid #ffffff18;
-      border-radius:999px;
-      padding:6px 11px;
-      font-size:12px;
-      font-weight:800;
-      z-index:3;
-      color:#f1c75a;
-    }
-
-    .card-body{
-      padding:19px;
-    }
-
-    .card-body h3{
-      font-size:18px;
-      margin-bottom:8px;
-    }
-
-    .card-body p{
-      color:#858585;
-      font-size:13px;
-      line-height:1.6;
-      min-height:42px;
-    }
-
-    .card-foot{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      margin-top:18px;
-      gap:10px;
-    }
-
-    .tag{
-      color:#d6a535;
-      font-size:12px;
-      font-weight:800;
-      border:1px solid #d6a53544;
-      padding:6px 9px;
-      border-radius:999px;
-    }
-
-    .btn{
-      border:0;
-      border-radius:10px;
-      padding:10px 16px;
-      cursor:pointer;
-      font-weight:800;
-      transition:.2s;
-    }
-
-    .btn-gold{
-      background:#d6a535;
-      color:#090909;
-    }
-
-    .btn-gold:hover{
-      filter:brightness(1.1);
-      transform:translateY(-1px);
-    }
-
-    /* STATUS */
-
-    .status{
-      grid-column:1/-1;
-      text-align:center;
-      padding:50px 20px;
-      border:1px solid #ffffff12;
-      border-radius:16px;
-      background:#101010;
-      color:#777;
-      line-height:1.8;
-    }
-
-    .status strong{
-      display:block;
-      color:#fff;
-      font-size:18px;
-      margin-bottom:7px;
-    }
-
-    .status.error{
-      border-color:#8b303044;
-    }
-
-    /* FOOTER */
-
-    footer{
-      border-top:1px solid #ffffff12;
-      padding:28px 0;
-      color:#666;
-      text-align:center;
-      font-size:13px;
-    }
-
-    /* MOBILE */
-
-    @media(max-width:850px){
-
-      .links{
-        display:none;
-        position:absolute;
-        top:76px;
-        left:0;
-        right:0;
-        background:#080808;
-        border-bottom:1px solid #ffffff12;
-        padding:20px;
-        flex-direction:column;
-        align-items:stretch;
-      }
-
-      .links.show{
-        display:flex;
-      }
-
-      .links > a{
-        padding:9px 0;
-      }
-
-      .user-area{
-        margin:5px 0 0;
-        padding:15px 0 0;
-        border-left:0;
-        border-top:1px solid #ffffff12;
-        justify-content:space-between;
-        flex-wrap:wrap;
-      }
-
-      .menu-btn{
-        display:block;
-      }
-
-      .grid{
-        grid-template-columns:1fr;
-      }
-
-      .thumb{
-        height:220px;
-      }
-
-    }
-
-    @media(min-width:851px) and (max-width:1050px){
-
-      .grid{
-        grid-template-columns:repeat(2,1fr);
-      }
-
-    }
-
-  </style>
-
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Empire — Premium & VIP</title>
+<meta name="description" content="Empire VIP memberships and premium videos.">
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,Helvetica,sans-serif;background:#080808;color:#fff;min-height:100vh}
+a{color:inherit;text-decoration:none}
+button,input{font:inherit}
+.container{width:min(1180px,92%);margin:auto}
+header{position:sticky;top:0;z-index:100;background:#080808ee;backdrop-filter:blur(14px);border-bottom:1px solid #ffffff12}
+.nav{min-height:76px;display:flex;align-items:center;justify-content:space-between;gap:20px}
+.brand{font-size:24px;font-weight:900;letter-spacing:2px}
+.crown,.gold{color:#d6a535}
+.links{display:flex;align-items:center;gap:22px}
+.links a{color:#aaa;font-size:14px}
+.links a:hover,.links a.active{color:#fff}
+.user-area{display:flex;align-items:center;gap:12px}
+.user-name{color:#d6a535;font-size:13px}
+.logout-btn,.menu-btn{background:#111;color:#ddd;border:1px solid #ffffff18;border-radius:9px;padding:9px 12px;cursor:pointer}
+.menu-btn{display:none;font-size:23px}
+main{padding:45px 0 75px}
+.page-head{text-align:center;max-width:750px;margin:0 auto 38px}
+.eyebrow{color:#d6a535;font-size:12px;font-weight:800;letter-spacing:2px;text-transform:uppercase;margin-bottom:12px}
+h1{font-size:clamp(32px,5vw,52px);margin-bottom:14px}
+.page-head p{color:#999;line-height:1.7}
+.section-title{font-size:26px;margin:35px 0 20px}
+.vip-section{margin-bottom:55px}
+.vip-intro{text-align:center;color:#999;line-height:1.7;margin:-5px auto 25px;max-width:700px}
+.vip-grid,.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+.vip-card,.card{background:#101010;border:1px solid #ffffff15;border-radius:16px;overflow:hidden}
+.vip-card{padding:22px 18px;position:relative;display:flex;flex-direction:column}
+.vip-card.featured{border-color:#d6a535}
+.plan-label{font-size:12px;color:#d6a535;font-weight:800;letter-spacing:1px}
+.vip-card h3{font-size:20px;margin:12px 0}
+.price{font-size:32px;font-weight:900;margin-bottom:5px}
+.price small{font-size:13px;color:#999;font-weight:400}
+.duration{font-size:13px;color:#999;margin-bottom:20px}
+.features{list-style:none;color:#bbb;font-size:13px;line-height:2.1;margin-bottom:20px;flex:1}
+.btn{border:0;border-radius:9px;padding:12px 15px;font-weight:800;cursor:pointer}
+.btn-gold{background:#d6a535;color:#090909}
+.btn-gold:hover{filter:brightness(1.1)}
+.btn-dark{background:#202020;color:#fff;border:1px solid #ffffff20}
+.btn:disabled{opacity:.55;cursor:not-allowed}
+.full{width:100%}
+.notice{background:#111;border:1px solid #ffffff15;border-radius:12px;padding:15px;margin-top:20px;color:#aaa;font-size:13px;line-height:1.7}
+.notice strong{color:#d6a535}
+.divider{border:0;border-top:1px solid #ffffff15;margin:38px 0}
+.grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:22px}
+.card{transition:.2s}
+.card:hover{transform:translateY(-3px);border-color:#d6a53555}
+.thumb{height:210px;position:relative;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 70% 30%,#d6a53555,transparent 30%),linear-gradient(135deg,#262626,#0e0e0e);overflow:hidden}
+.thumb img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0}
+.lock-icon{width:58px;height:58px;border-radius:50%;display:grid;place-items:center;background:#111e;border:1px solid #ffffff25;color:#f1c75a;font-size:24px;position:relative;z-index:2}
+.price-badge{position:absolute;right:12px;top:12px;background:#0a0a0add;border:1px solid #ffffff18;border-radius:999px;padding:6px 10px;font-size:12px;color:#f1c75a;z-index:3}
+.card-body{padding:18px}
+.card-body h3{font-size:18px;margin-bottom:8px}
+.card-body p{color:#999;font-size:13px;line-height:1.6;min-height:42px}
+.card-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:17px}
+.tag{color:#d6a535;font-size:12px;border:1px solid #d6a53544;padding:6px 9px;border-radius:999px}
+.status{grid-column:1/-1;text-align:center;padding:35px 18px;border:1px solid #ffffff12;border-radius:14px;background:#101010;color:#999;line-height:1.8}
+.status strong{display:block;color:#fff;margin-bottom:7px}
+footer{border-top:1px solid #ffffff12;padding:28px 0;color:#666;text-align:center;font-size:13px}
+.modal-backdrop{position:fixed;inset:0;z-index:9999;background:#000c;display:flex;align-items:center;justify-content:center;padding:16px;overflow-y:auto}
+.modal-box{width:min(520px,100%);max-height:92vh;overflow:auto;background:#111;border:1px solid #ffffff20;border-radius:17px;padding:22px}
+.modal-head{display:flex;justify-content:space-between;align-items:center;gap:15px;margin-bottom:20px}
+.modal-head h2{font-size:22px}
+.close-btn{background:#222;color:#fff;border:1px solid #ffffff20;border-radius:50%;width:36px;height:36px;cursor:pointer;font-size:20px}
+.field-label{display:block;color:#bbb;font-size:13px;margin:17px 0 8px}
+.field{width:100%;padding:13px;background:#080808;color:#fff;border:1px solid #ffffff22;border-radius:9px;outline:none}
+.field:focus{border-color:#d6a535}
+.address-row{display:flex;gap:8px}
+.address-row .field{min-width:0}
+.small-note{font-size:12px;color:#888;line-height:1.7;margin-top:10px}
+.feedback{font-size:13px;line-height:1.7;margin-top:15px;overflow-wrap:anywhere}
+@media(max-width:850px){
+ .menu-btn{display:block}
+ .links{display:none;position:absolute;top:76px;left:0;right:0;background:#080808;padding:20px;flex-direction:column;align-items:stretch;border-bottom:1px solid #ffffff15}
+ .links.show{display:flex}
+ .links>a{padding:8px 0}
+ .user-area{padding-top:14px;border-top:1px solid #ffffff15;justify-content:space-between;flex-wrap:wrap}
+ .vip-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:560px){
+ .vip-grid,.grid{grid-template-columns:1fr}
+ .vip-card{padding:22px}
+ .thumb{height:220px}
+}
+</style>
 </head>
 
 <body>
-
 <header>
-
-  <div class="container nav">
-
-    <a
-      class="brand"
-      href="index.html">
-
-      <span class="crown">♛</span>
-
-      EMPIRE
-
-    </a>
-
-
-    <button
-      class="menu-btn"
-      id="menuBtn"
-      onclick="toggleMenu()">
-
-      ☰
-
-    </button>
-
-
-    <nav
-      class="links"
-      id="navLinks">
-
-      <a href="index.html">
-        Home
-      </a>
-
-      <a href="index.html#videos">
-        Videos
-      </a>
-
-      <a
-        href="premium.html"
-        class="active">
-
-        Premium
-
-      </a>
-
-      <a href="about.html">
-        About
-      </a>
-
-
-      <div class="user-area">
-
-        <a href="profile.html">
-          Profile
-        </a>
-
-        <span
-          class="user-name"
-          id="userName">
-
-          Loading...
-
-        </span>
-
-        <button
-          class="logout-btn"
-          onclick="logout()">
-
-          Logout
-
-        </button>
-
-      </div>
-
-    </nav>
-
-  </div>
-
+ <div class="container nav">
+  <a class="brand" href="index.html"><span class="crown">♛</span> EMPIRE</a>
+  <button class="menu-btn" id="menuBtn" aria-label="Open menu">☰</button>
+  <nav class="links" id="navLinks">
+   <a href="index.html">Home</a>
+   <a href="index.html#videos">Videos</a>
+   <a href="premium.html" class="active">Premium & VIP</a>
+   <a href="profile.html">Profile</a>
+   <div class="user-area">
+    <span class="user-name" id="userName">Loading...</span>
+    <button class="logout-btn" id="logoutBtn">Logout</button>
+   </div>
+  </nav>
+ </div>
 </header>
 
+<main class="container">
+ <section class="page-head">
+  <div class="eyebrow">Exclusive Empire Membership</div>
+  <h1>Empire <span class="gold">VIP</span></h1>
+  <p>Choose your membership plan, submit your TRC20 payment transaction, and wait for admin review.</p>
+ </section>
 
-<main>
+ <section class="vip-section" id="vipMembership">
+  <h2 class="section-title">👑 Choose Your VIP Plan</h2>
+  <p class="vip-intro">VIP membership is activated only after your payment has been checked and approved by an Empire administrator.</p>
 
-  <div class="container">
+  <div class="vip-grid">
+   <article class="vip-card">
+    <div class="plan-label">STARTER</div>
+    <h3>1 Month VIP</h3>
+    <div class="price">9 <small>USDT</small></div>
+    <div class="duration">30-day membership</div>
+    <ul class="features">
+     <li>✓ VIP membership request</li>
+     <li>✓ VIP profile status after approval</li>
+     <li>✓ Subject to Empire rules</li>
+    </ul>
+    <button class="btn btn-gold full choose-plan" data-plan="vip-monthly">Choose Plan</button>
+   </article>
 
-    <div class="page-head">
+   <article class="vip-card featured">
+    <div class="plan-label">POPULAR</div>
+    <h3>3 Months VIP</h3>
+    <div class="price">21 <small>USDT</small></div>
+    <div class="duration">90-day membership</div>
+    <ul class="features">
+     <li>✓ VIP membership request</li>
+     <li>✓ VIP profile status after approval</li>
+     <li>✓ Subject to Empire rules</li>
+    </ul>
+    <button class="btn btn-gold full choose-plan" data-plan="vip-quarterly">Choose Plan</button>
+   </article>
 
-      <div class="eyebrow">
-        Exclusive Content
-      </div>
+   <article class="vip-card">
+    <div class="plan-label">EXTENDED</div>
+    <h3>6 Months VIP</h3>
+    <div class="price">49 <small>USDT</small></div>
+    <div class="duration">180-day membership</div>
+    <ul class="features">
+     <li>✓ VIP membership request</li>
+     <li>✓ VIP profile status after approval</li>
+     <li>✓ Subject to Empire rules</li>
+    </ul>
+    <button class="btn btn-gold full choose-plan" data-plan="vip-semiannual">Choose Plan</button>
+   </article>
 
-      <h1>
-        Premium
-        <span class="gold">
-          Videos
-        </span>
-      </h1>
-
-      <p>
-        Explore exclusive Empire videos.
-        Unlock premium content securely with USDT.
-      </p>
-
-    </div>
-
-
-    <div
-      class="grid"
-      id="premiumVideoGrid">
-
-      <div class="status">
-
-        <strong>
-          Loading premium videos...
-        </strong>
-
-        Please wait.
-
-      </div>
-
-    </div>
-
+   <article class="vip-card">
+    <div class="plan-label">ANNUAL</div>
+    <h3>1 Year VIP</h3>
+    <div class="price">89 <small>USDT</small></div>
+    <div class="duration">365-day membership</div>
+    <ul class="features">
+     <li>✓ VIP membership request</li>
+     <li>✓ VIP profile status after approval</li>
+     <li>✓ Subject to Empire rules</li>
+    </ul>
+    <button class="btn btn-gold full choose-plan" data-plan="vip-yearly">Choose Plan</button>
+   </article>
   </div>
 
+  <div class="notice">
+   <strong>Payment safety:</strong> Submitting a transaction hash does not prove payment. Do not submit a payment request until you have sent the exact amount on the correct network. Your VIP status remains pending until an administrator verifies the transaction.
+  </div>
+ </section>
+
+ <hr class="divider">
+
+ <section id="paidVideos">
+  <div class="page-head">
+   <div class="eyebrow">Exclusive Content</div>
+   <h2 class="section-title">Premium <span class="gold">Videos</span></h2>
+   <p>Purchase individual videos separately from VIP membership.</p>
+  </div>
+
+  <div class="grid" id="premiumVideoGrid">
+   <div class="status"><strong>Loading premium videos...</strong>Please wait.</div>
+  </div>
+ </section>
 </main>
 
-
-<footer>
-
-  © 2026 Empire. All rights reserved.
-
-</footer>
-
+<footer>© 2026 Empire. All rights reserved.</footer>
 
 <script>
+const SUPABASE_URL = "https://vubjkwbkuwndkjqfnyom.supabase.co";
+const SUPABASE_KEY = "sb_publishable_Ig1R3dpAKyBfjIGSUhhlKw_uC-QF0QQ";
+const VIP_WALLET_ADDRESS = "TZ9PxtbEchvo1RSrTDjLvyeRHK1HPtmMmV";
 
-  /* SUPABASE */
+const supabaseClient = window.supabase.createClient(
+ SUPABASE_URL,
+ SUPABASE_KEY,
+ {auth:{persistSession:true,autoRefreshToken:true}}
+);
 
-  const SUPABASE_URL =
-    "https://vubjkwbkuwndkjqfnyom.supabase.co";
+const VIP_PLANS = {
+ "vip-monthly":{name:"1 Month VIP",amount:9},
+ "vip-quarterly":{name:"3 Months VIP",amount:21},
+ "vip-semiannual":{name:"6 Months VIP",amount:49},
+ "vip-yearly":{name:"1 Year VIP",amount:89}
+};
 
-  const SUPABASE_KEY =
-    "sb_publishable_Ig1R3dpAKyBfjIGSUhhlKw_uC-QF0QQ";
+function escapeHtml(value){
+ return String(value ?? "")
+  .replace(/&/g,"&amp;")
+  .replace(/</g,"&lt;")
+  .replace(/>/g,"&gt;")
+  .replace(/"/g,"&quot;")
+  .replace(/'/g,"&#039;");
+}
 
-  const supabaseClient =
-    window.supabase.createClient(
-      SUPABASE_URL,
-      SUPABASE_KEY
-    );
+async function getSession(){
+ const {data,error}=await supabaseClient.auth.getSession();
+ if(error) throw error;
+ return data.session;
+}
 
+async function checkAuth(){
+ const session=await getSession();
+ if(!session){
+  window.location.href="login.html";
+  return null;
+ }
+ return session;
+}
 
-  /* HELPERS */
+async function loadUser(){
+ const {data:{user}}=await supabaseClient.auth.getUser();
+ if(!user)return;
+ const {data:profile}=await supabaseClient
+  .from("profiles")
+  .select("username,display_name")
+  .eq("id",user.id)
+  .maybeSingle();
+ document.getElementById("userName").textContent =
+  profile?.display_name || profile?.username || user.email || "User";
+}
 
-  function escapeHtml(value){
+async function logout(){
+ await supabaseClient.auth.signOut();
+ window.location.href="login.html";
+}
 
-    return String(value ?? "")
-      .replace(/&/g,"&amp;")
-      .replace(/</g,"&lt;")
-      .replace(/>/g,"&gt;")
-      .replace(/"/g,"&quot;")
-      .replace(/'/g,"&#039;");
+document.getElementById("logoutBtn").addEventListener("click",logout);
+document.getElementById("menuBtn").addEventListener("click",()=>{
+ document.getElementById("navLinks").classList.toggle("show");
+});
 
+/* VIP PAYMENT REQUEST */
+function openVipPayment(planKey){
+ const plan=VIP_PLANS[planKey];
+ if(!plan)return;
+
+ const backdrop=document.createElement("div");
+ backdrop.className="modal-backdrop";
+ backdrop.id="vipPaymentModal";
+ backdrop.innerHTML=`
+  <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="vipModalTitle">
+   <div class="modal-head">
+    <div>
+     <div class="eyebrow">Empire VIP Payment</div>
+     <h2 id="vipModalTitle">${escapeHtml(plan.name)}</h2>
+    </div>
+    <button class="close-btn" id="closeVipModal" aria-label="Close">×</button>
+   </div>
+
+   <div class="notice" style="margin-top:0">
+    Amount to send: <strong>${plan.amount.toFixed(2)} USDT</strong><br>
+    Network: <strong>TRON (TRC20)</strong>
+   </div>
+
+   <label class="field-label" for="vipWallet">Official payment address</label>
+   <div class="address-row">
+    <input class="field" id="vipWallet" readonly value="${VIP_WALLET_ADDRESS}">
+    <button class="btn btn-gold" id="copyVipWallet" type="button">Copy</button>
+   </div>
+
+   <p class="small-note">Confirm the address and network in your wallet before sending. Crypto transfers are generally irreversible.</p>
+
+   <label class="field-label" for="vipTxHash">Transaction Hash (TXID)</label>
+   <input class="field" id="vipTxHash" maxlength="150" autocomplete="off" placeholder="Paste your transaction hash">
+
+   <button class="btn btn-gold full" id="submitVipRequest" style="margin-top:17px">Submit VIP Request</button>
+   <div class="feedback" id="vipFeedback" role="status" aria-live="polite"></div>
+   <p class="small-note">Your request will be marked pending. This form does not automatically verify blockchain payment or activate VIP.</p>
+  </div>`;
+
+ document.body.appendChild(backdrop);
+
+ const close=()=>backdrop.remove();
+ document.getElementById("closeVipModal").addEventListener("click",close);
+ backdrop.addEventListener("click",e=>{if(e.target===backdrop)close();});
+
+ document.getElementById("copyVipWallet").addEventListener("click",async()=>{
+  const input=document.getElementById("vipWallet");
+  try{
+   await navigator.clipboard.writeText(VIP_WALLET_ADDRESS);
+   document.getElementById("copyVipWallet").textContent="Copied!";
+  }catch{
+   input.focus();input.select();
+   const ok=document.execCommand("copy");
+   document.getElementById("copyVipWallet").textContent=ok?"Copied!":"Select address";
+  }
+ });
+
+ document.getElementById("submitVipRequest").addEventListener("click",async()=>{
+  const button=document.getElementById("submitVipRequest");
+  const feedback=document.getElementById("vipFeedback");
+  const txHash=document.getElementById("vipTxHash").value.trim();
+
+  if(!/^[a-fA-F0-9]{64}$/.test(txHash)){
+   feedback.style.color="#e6a35a";
+   feedback.textContent="Enter a valid 64-character transaction hash. Do not submit a fake or unconfirmed hash.";
+   return;
   }
 
+  button.disabled=true;
+  button.textContent="Submitting...";
+  feedback.style.color="#aaa";
+  feedback.textContent="Submitting your request securely...";
 
-  function escapeAttribute(value){
+  try{
+   const session=await getSession();
+   if(!session){
+    window.location.href="login.html";
+    return;
+   }
 
-    return escapeHtml(value);
+   const response=await fetch(
+    SUPABASE_URL+"/functions/v1/submit-vip-payment",
+    {
+     method:"POST",
+     headers:{
+      "Content-Type":"application/json",
+      "apikey":SUPABASE_KEY,
+      "Authorization":"Bearer "+session.access_token
+     },
+     body:JSON.stringify({
+      plan:planKey,
+      transaction_hash:txHash
+     })
+    }
+   );
 
+   const result=await response.json().catch(()=>({}));
+   if(!response.ok){
+    throw new Error(result.error||"Could not submit your VIP request.");
+   }
+
+   feedback.style.color="#65d391";
+   feedback.textContent="Request submitted. Status: PENDING ADMIN REVIEW. Your VIP membership is not active yet.";
+   button.textContent="Request Submitted";
+   document.getElementById("vipTxHash").disabled=true;
+
+  }catch(error){
+   feedback.style.color="#e06b6b";
+   feedback.textContent=error.message||"Unexpected error.";
+   button.disabled=false;
+   button.textContent="Submit VIP Request";
+  }
+ });
+}
+
+document.querySelectorAll(".choose-plan").forEach(button=>{
+ button.addEventListener("click",()=>openVipPayment(button.dataset.plan));
+});
+
+/* LOAD PAID VIDEOS */
+async function loadPremiumVideos(){
+ const grid=document.getElementById("premiumVideoGrid");
+ grid.innerHTML='<div class="status"><strong>Loading premium videos...</strong>Please wait.</div>';
+
+ try{
+  const {data,error}=await supabaseClient
+   .from("videos")
+   .select("id,title,description,thumbnail_url,access_type,price,created_at")
+   .eq("access_type","paid")
+   .order("created_at",{ascending:false});
+
+  if(error)throw error;
+  const videos=data||[];
+
+  if(!videos.length){
+   grid.innerHTML='<div class="status"><strong>No premium videos yet</strong>Premium content will appear here soon.</div>';
+   return;
   }
 
+  grid.innerHTML=videos.map(video=>`
+   <article class="card">
+    <div class="thumb">
+     ${video.thumbnail_url?`<img src="${escapeHtml(video.thumbnail_url)}" alt="${escapeHtml(video.title)}" loading="lazy">`:""}
+     <span class="price-badge">💰 ${Number(video.price||0).toFixed(2)} USDT</span>
+     <span class="lock-icon">🔒</span>
+    </div>
+    <div class="card-body">
+     <h3>${escapeHtml(video.title)}</h3>
+     <p>${escapeHtml(video.description||"Exclusive Empire premium video.")}</p>
+     <div class="card-foot">
+      <span class="tag">Premium</span>
+      <button class="btn btn-gold buy-video" data-id="${escapeHtml(video.id)}">Buy Now</button>
+     </div>
+    </div>
+   </article>`).join("");
 
-  /* AUTH */
+  grid.querySelectorAll(".buy-video").forEach(button=>{
+   button.addEventListener("click",()=>openBuy(button.dataset.id));
+  });
 
-  async function checkAuth(){
+ }catch(error){
+  console.error("PREMIUM VIDEOS ERROR:",error);
+  grid.innerHTML=`<div class="status"><strong>Could not load premium videos</strong>${escapeHtml(error.message||"Unknown error")}</div>`;
+ }
+}
 
-    const {
-      data:{
-        session
-      }
-    } =
-      await supabaseClient
-        .auth
-        .getSession();
+/* EXISTING INDIVIDUAL VIDEO PURCHASE FLOW */
+async function openBuy(videoId){
+ try{
+  const session=await getSession();
+  if(!session){window.location.href="login.html";return;}
 
+  const response=await fetch(SUPABASE_URL+"/functions/v1/create-purchase",{
+   method:"POST",
+   headers:{
+    "Content-Type":"application/json",
+    "apikey":SUPABASE_KEY,
+    "Authorization":"Bearer "+session.access_token
+   },
+   body:JSON.stringify({video_id:videoId})
+  });
 
-    if(!session){
+  const result=await response.json();
+  if(!response.ok)throw new Error(result.error||"Could not create purchase.");
 
-      window.location.href =
-        "login.html";
-
-      return null;
-
-    }
-
-
-    return session;
-
+  if(result.already_paid){
+   alert("You already purchased this video.");
+   return;
   }
 
-
-  /* USER PROFILE */
-
-  async function loadUser(){
-
-    const {
-      data:{
-        user
-      }
-    } =
-      await supabaseClient
-        .auth
-        .getUser();
-
-
-    if(!user){
-      return;
-    }
-
-
-    const {
-      data:profile
-    } =
-      await supabaseClient
-        .from("profiles")
-        .select(`
-          username,
-          display_name
-        `)
-        .eq(
-          "id",
-          user.id
-        )
-        .maybeSingle();
-
-
-    const userName =
-      document.getElementById(
-        "userName"
-      );
-
-
-    if(userName){
-
-      userName.textContent =
-        profile?.display_name ||
-        profile?.username ||
-        user.email ||
-        "User";
-
-    }
-
-  }
-
-
-  /* LOAD PREMIUM VIDEOS */
-
-  async function loadPremiumVideos(){
-
-    const grid =
-      document.getElementById(
-        "premiumVideoGrid"
-      );
-
-
-    if(!grid){
-      return;
-    }
-
-
-    grid.innerHTML = `
-      <div class="status">
-        <strong>
-          Loading premium videos...
-        </strong>
-        Please wait.
-      </div>
-    `;
-
-
-    try{
-
-      const {
-        data,
-        error
-      } =
-        await supabaseClient
-          .from("videos")
-          .select(`
-            id,
-            title,
-            description,
-            thumbnail_url,
-            access_type,
-            price,
-            created_at
-          `)
-          .eq(
-            "access_type",
-            "paid"
-          )
-          .order(
-            "created_at",
-            {
-              ascending:false
-            }
-          );
-
-
-      if(error){
-        throw error;
-      }
-
-
-      const premiumVideos =
-        data || [];
-
-
-      if(
-        premiumVideos.length === 0
-      ){
-
-        grid.innerHTML = `
-          <div class="status">
-
-            <strong>
-              No premium videos yet
-            </strong>
-
-            Premium content will
-            appear here soon.
-
-          </div>
-        `;
-
-        return;
-
-      }
-
-
-      grid.innerHTML =
-        premiumVideos
-          .map(
-            (video,index) => {
-
-              const thumbClass =
-                index % 3 === 1
-                  ? "two"
-                  : index % 3 === 2
-                    ? "three"
-                    : "";
-
-
-              const thumbnail =
-                video.thumbnail_url
-                  ? `
-                    <img
-                      src="${escapeAttribute(
-                        video.thumbnail_url
-                      )}"
-                      alt="${escapeAttribute(
-                        video.title
-                      )}"
-                      loading="lazy">
-                  `
-                  : "";
-
-
-              const price =
-                Number(
-                  video.price || 0
-                );
-
-
-              return `
-                <article class="card">
-
-                  <div
-                    class="thumb ${thumbClass}">
-
-                    ${thumbnail}
-
-                    ${
-                      thumbnail
-                        ? `
-                          <div
-                            class="thumb-overlay">
-                          </div>
-                        `
-                        : ""
-                    }
-
-                    <span
-                      class="price-badge">
-
-                      💰
-                      ${price.toFixed(2)}
-                      USDT
-
-                    </span>
-
-
-                    <span
-                      class="lock-icon">
-
-                      🔒
-
-                    </span>
-
-                  </div>
-
-
-                  <div class="card-body">
-
-                    <h3>
-                      ${escapeHtml(
-                        video.title
-                      )}
-                    </h3>
-
-
-                    <p>
-                      ${escapeHtml(
-                        video.description ||
-                        "Exclusive Empire premium video."
-                      )}
-                    </p>
-
-
-                    <div
-                      class="card-foot">
-
-                      <span class="tag">
-                        Premium
-                      </span>
-
-
-                      <button
-                        class="btn btn-gold"
-                        onclick="openBuy(
-                          '${video.id}'
-                        )">
-
-                        Buy Now
-
-                      </button>
-
-                    </div>
-
-                  </div>
-
-                </article>
-              `;
-
-            }
-          )
-          .join("");
-
-
-    }catch(error){
-
-      console.error(
-        "PREMIUM VIDEOS ERROR:",
-        error
-      );
-
-
-      grid.innerHTML = `
-        <div
-          class="status error">
-
-          <strong>
-            Could not load premium videos
-          </strong>
-
-          ${escapeHtml(
-            error.message ||
-            "Unknown error"
-          )}
-
-        </div>
-      `;
-
-    }
-
-  }
-
-
-  /* PAYMENT */
-
-  async function openBuy(videoId){
-
-    try{
-
-      const {
-        data:{
-          session
-        }
-      } =
-        await supabaseClient
-          .auth
-          .getSession();
-
-
-      if(!session){
-
-        window.location.href =
-          "login.html";
-
-        return;
-
-      }
-
-
-      const response =
-        await fetch(
-          SUPABASE_URL +
-          "/functions/v1/create-purchase",
-          {
-            method:"POST",
-
-            headers:{
-              "Content-Type":
-                "application/json",
-
-              "Authorization":
-                "Bearer " +
-                session.access_token
-            },
-
-            body:JSON.stringify({
-              video_id:videoId
-            })
-          }
-        );
-
-
-      const result =
-        await response.json();
-
-
-      if(!response.ok){
-
-        throw new Error(
-          result.error ||
-          "Could not create purchase."
-        );
-
-      }
-
-
-      if(
-        result.already_paid
-      ){
-
-        alert(
-          "You already purchased this video."
-        );
-
-        return;
-
-      }
-
-
-      const expiresAt =
-        result.expires_at
-          ? new Date(
-              result.expires_at
-            )
-          : null;
-
-
-      const modal =
-        document.createElement(
-          "div"
-        );
-
-
-      modal.id =
-        "empirePaymentModal";
-
-
-      modal.style.cssText = `
-        position:fixed;
-        inset:0;
-        z-index:9999;
-        background:#000b;
-        display:flex;
-        align-items:center;
-        justify-content:center;
-        padding:20px;
-      `;
-
-
-      modal.innerHTML = `
-
-        <div
-          style="
-            width:min(520px,100%);
-            background:#111;
-            border:1px solid #ffffff18;
-            border-radius:18px;
-            padding:25px;
-            box-shadow:0 20px 70px #000;
-          ">
-
-          <div
-            style="
-              display:flex;
-              justify-content:space-between;
-              align-items:center;
-              gap:15px;
-            ">
-
-            <div>
-
-              <div
-                style="
-                  color:#d6a535;
-                  font-size:12px;
-                  font-weight:800;
-                  letter-spacing:1px;
-                  margin-bottom:6px;
-                ">
-
-                EMPIRE PAYMENT
-
-              </div>
-
-              <h2>
-                Unlock Premium Video
-              </h2>
-
-            </div>
-
-
-            <button
-              id="closePaymentModal"
-              style="
-                background:#191919;
-                border:1px solid #ffffff15;
-                color:#fff;
-                width:38px;
-                height:38px;
-                border-radius:50%;
-                cursor:pointer;
-                font-size:18px;
-              ">
-
-              ×
-
-            </button>
-
-          </div>
-
-
-          <div
-            style="
-              margin-top:20px;
-              background:#0b0b0b;
-              border:1px solid #ffffff12;
-              border-radius:14px;
-              padding:17px;
-            ">
-
-            <div
-              style="
-                display:flex;
-                justify-content:space-between;
-                margin-bottom:10px;
-              ">
-
-              <span>
-                Amount
-              </span>
-
-              <strong
-                style="color:#d6a535">
-
-                ${Number(
-                  result.amount || 0
-                ).toFixed(2)}
-                USDT
-
-              </strong>
-
-            </div>
-
-
-            <div
-              style="
-                display:flex;
-                justify-content:space-between;
-              ">
-
-              <span>
-                Network
-              </span>
-
-              <strong>
-                TRON (TRC20)
-              </strong>
-
-            </div>
-
-          </div>
-
-
-          <div
-            style="
-              margin-top:18px;
-            ">
-
-            <label
-              style="
-                display:block;
-                color:#aaa;
-                font-size:13px;
-                margin-bottom:8px;
-              ">
-
-              Payment Address
-
-            </label>
-
-
-            <div
-              style="
-                display:flex;
-                gap:8px;
-              ">
-
-              <input
-                id="paymentAddress"
-                readonly
-                value="${escapeAttribute(
-                  result.payment_address
-                )}"
-                style="
-                  flex:1;
-                  min-width:0;
-                  background:#080808;
-                  color:#fff;
-                  border:1px solid #ffffff18;
-                  border-radius:10px;
-                  padding:12px;
-                  font-size:12px;
-                ">
-
-
-              <button
-                id="copyPaymentAddress"
-                class="btn btn-gold">
-
-                Copy
-
-              </button>
-
-            </div>
-
-          </div>
-
-
-          <div
-            style="
-              margin-top:16px;
-              color:#aaa;
-              font-size:13px;
-            ">
-
-            Time remaining:
-
-            <strong
-              id="paymentCountdown"
-              style="color:#d6a535">
-
-              30:00
-
-            </strong>
-
-          </div>
-
-
-          <div
-            style="
-              margin-top:18px;
-            ">
-
-            <label
-              style="
-                display:block;
-                color:#aaa;
-                font-size:13px;
-                margin-bottom:8px;
-              ">
-
-              Transaction ID (TXID)
-
-            </label>
-
-
-            <input
-              id="paymentTxid"
-              placeholder="Paste your TRON TXID"
-              style="
-                width:100%;
-                background:#080808;
-                color:#fff;
-                border:1px solid #ffffff18;
-                border-radius:10px;
-                padding:13px;
-                outline:none;
-              ">
-
-          </div>
-
-
-          <button
-            id="verifyPaymentBtn"
-            class="btn btn-gold"
-            style="
-              width:100%;
-              margin-top:16px;
-            ">
-
-            Verify Payment
-
-          </button>
-
-
-          <div
-            id="paymentStatus"
-            style="
-              margin-top:14px;
-              text-align:center;
-              color:#777;
-              font-size:13px;
-              line-height:1.6;
-            ">
-
-            Send the exact amount to the
-            address above, then enter your TXID.
-
-          </div>
-
-        </div>
-
-      `;
-
-
-      document.body.appendChild(
-        modal
-      );
-
-
-      const closeBtn =
-        document.getElementById(
-          "closePaymentModal"
-        );
-
-
-      closeBtn.onclick =
-        () => {
-
-          modal.remove();
-
-        };
-
-
-      modal.addEventListener(
-        "click",
-        event => {
-
-          if(
-            event.target === modal
-          ){
-
-            modal.remove();
-
-          }
-
-        }
-      );
-
-
-      const copyBtn =
-        document.getElementById(
-          "copyPaymentAddress"
-        );
-
-
-      copyBtn.onclick =
-        async () => {
-
-          const address =
-            result.payment_address;
-
-          try{
-
-            await navigator.clipboard.writeText(
-              address
-            );
-
-            copyBtn.textContent =
-              "Copied!";
-
-            setTimeout(
-              () => {
-                copyBtn.textContent =
-                  "Copy";
-              },
-              1500
-            );
-
-          }catch(error){
-
-            const input =
-              document.getElementById(
-                "paymentAddress"
-              );
-
-            input.select();
-
-            document.execCommand(
-              "copy"
-            );
-
-            copyBtn.textContent =
-              "Copied!";
-
-          }
-
-        };
-
-
-      const countdown =
-        document.getElementById(
-          "paymentCountdown"
-        );
-
-
-      let timer;
-
-
-      function updateCountdown(){
-
-        if(!expiresAt){
-
-          return;
-
-        }
-
-
-        const remaining =
-          expiresAt.getTime() -
-          Date.now();
-
-
-        if(remaining <= 0){
-
-          countdown.textContent =
-            "Expired";
-
-          clearInterval(
-            timer
-          );
-
-          return;
-
-        }
-
-
-        const totalSeconds =
-          Math.floor(
-            remaining / 1000
-          );
-
-
-        const minutes =
-          Math.floor(
-            totalSeconds / 60
-          );
-
-
-        const seconds =
-          totalSeconds % 60;
-
-
-        countdown.textContent =
-          String(minutes).padStart(
-            2,
-            "0"
-          ) +
-          ":" +
-          String(seconds).padStart(
-            2,
-            "0"
-          );
-
-      }
-
-
-      updateCountdown();
-
-
-      timer =
-        setInterval(
-          updateCountdown,
-          1000
-        );
-
-
-      const verifyBtn =
-        document.getElementById(
-          "verifyPaymentBtn"
-        );
-
-
-      const status =
-        document.getElementById(
-          "paymentStatus"
-        );
-
-
-      verifyBtn.onclick =
-        async () => {
-
-          const txid =
-            document.getElementById(
-              "paymentTxid"
-            ).value.trim();
-
-
-          if(!txid){
-
-            status.textContent =
-              "Please enter your TXID.";
-
-            return;
-
-          }
-
-
-          verifyBtn.disabled =
-            true;
-
-          verifyBtn.textContent =
-            "Checking...";
-
-
-          status.textContent =
-            "Verifying your payment...";
-
-
-          try{
-
-            const verifyResponse =
-              await fetch(
-                SUPABASE_URL +
-                "/functions/v1/verify-payment",
-                {
-                  method:"POST",
-
-                  headers:{
-                    "Content-Type":
-                      "application/json",
-
-                    "Authorization":
-                      "Bearer " +
-                      session.access_token
-                  },
-
-                  body:JSON.stringify({
-                    purchase_id:
-                      result.purchase_id,
-
-                    txid:txid
-                  })
-                }
-              );
-
-
-            const verifyResult =
-              await verifyResponse.json();
-
-
-            if(!verifyResponse.ok){
-
-              throw new Error(
-                verifyResult.error ||
-                "Payment verification failed."
-              );
-
-            }
-
-
-            status.style.color =
-              "#65d391";
-
-            status.textContent =
-              "Payment confirmed. Your video is now unlocked.";
-
-
-            verifyBtn.textContent =
-              "Payment Confirmed";
-
-
-            clearInterval(
-              timer
-            );
-
-
-            setTimeout(
-              () => {
-
-                modal.remove();
-
-                alert(
-                  "Payment successful. You can now access the video from Home."
-                );
-
-              },
-              1200
-            );
-
-
-          }catch(error){
-
-            status.style.color =
-              "#e06b6b";
-
-            status.textContent =
-              error.message ||
-              "Payment verification failed.";
-
-
-            verifyBtn.disabled =
-              false;
-
-            verifyBtn.textContent =
-              "Verify Payment";
-
-          }
-
-        };
-
-    }catch(error){
-
-      console.error(
-        "BUY ERROR:",
-        error
-      );
-
-      alert(
-        error.message ||
-        "Could not start purchase."
-      );
-
-    }
-
-  }
-
-
-  /* LOGOUT */
-
-  async function logout(){
-
-    await supabaseClient
-      .auth
-      .signOut();
-
-    window.location.href =
-      "login.html";
-
-  }
-
-
-  /* MOBILE MENU */
-
-  function toggleMenu(){
-
-    const links =
-      document.getElementById(
-        "navLinks"
-      );
-
-    if(links){
-
-      links.classList.toggle(
-        "show"
-      );
-
-    }
-
-  }
-
-
-  /* START */
-
-  (async function(){
-
-    const session =
-      await checkAuth();
-
-
-    if(!session){
-      return;
-    }
-
-
-    await loadUser();
-
-    await loadPremiumVideos();
-
-  })();
-
+  const modal=document.createElement("div");
+  modal.className="modal-backdrop";
+  modal.innerHTML=`
+   <div class="modal-box" role="dialog" aria-modal="true">
+    <div class="modal-head">
+     <h2>Unlock Premium Video</h2>
+     <button class="close-btn" id="closeVideoModal">×</button>
+    </div>
+    <div class="notice" style="margin-top:0">
+     Amount: <strong>${Number(result.amount||0).toFixed(2)} USDT</strong><br>
+     Network: <strong>TRON (TRC20)</strong>
+    </div>
+    <label class="field-label" for="videoWallet">Payment Address</label>
+    <div class="address-row">
+     <input class="field" id="videoWallet" readonly value="${escapeHtml(result.payment_address||"")}">
+     <button class="btn btn-gold" id="copyVideoWallet">Copy</button>
+    </div>
+    <label class="field-label" for="videoTxid">Transaction ID (TXID)</label>
+    <input class="field" id="videoTxid" placeholder="Paste your TRON TXID">
+    <button class="btn btn-gold full" id="verifyVideoPayment" style="margin-top:16px">Verify Payment</button>
+    <div class="feedback" id="videoStatus" role="status" aria-live="polite">Send the exact amount and enter your transaction hash.</div>
+   </div>`;
+  document.body.appendChild(modal);
+
+  const close=()=>modal.remove();
+  modal.querySelector("#closeVideoModal").addEventListener("click",close);
+  modal.addEventListener("click",e=>{if(e.target===modal)close();});
+
+  modal.querySelector("#copyVideoWallet").addEventListener("click",async()=>{
+   const input=modal.querySelector("#videoWallet");
+   try{await navigator.clipboard.writeText(input.value);modal.querySelector("#copyVideoWallet").textContent="Copied!";}
+   catch{input.select();document.execCommand("copy");}
+  });
+
+  modal.querySelector("#verifyVideoPayment").addEventListener("click",async()=>{
+   const button=modal.querySelector("#verifyVideoPayment");
+   const status=modal.querySelector("#videoStatus");
+   const txid=modal.querySelector("#videoTxid").value.trim();
+   if(!txid){status.textContent="Please enter your TXID.";return;}
+
+   button.disabled=true;
+   button.textContent="Checking...";
+   status.textContent="Checking payment request...";
+
+   try{
+    const verifyResponse=await fetch(SUPABASE_URL+"/functions/v1/verify-payment",{
+     method:"POST",
+     headers:{
+      "Content-Type":"application/json",
+      "apikey":SUPABASE_KEY,
+      "Authorization":"Bearer "+session.access_token
+     },
+     body:JSON.stringify({purchase_id:result.purchase_id,txid})
+    });
+
+    const verifyResult=await verifyResponse.json();
+    if(!verifyResponse.ok)throw new Error(verifyResult.error||"Payment verification failed.");
+
+    status.style.color="#65d391";
+    status.textContent="Payment verification returned success.";
+    button.textContent="Verified";
+
+   }catch(error){
+    status.style.color="#e06b6b";
+    status.textContent=error.message||"Payment verification failed.";
+    button.disabled=false;
+    button.textContent="Verify Payment";
+   }
+  });
+
+ }catch(error){
+  console.error("BUY ERROR:",error);
+  alert(error.message||"Could not start purchase.");
+ }
+}
+
+(async function(){
+ const session=await checkAuth();
+ if(!session)return;
+ await loadUser();
+ await loadPremiumVideos();
+})();
 </script>
-
 </body>
 </html>
