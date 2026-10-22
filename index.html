@@ -796,6 +796,30 @@ font-size: clamp(14px, 2.2vw, 18px);
 letter-spacing: 2px;
 text-shadow: 0 0 12px rgba(90, 170, 255, 0.4);
 }
+/* Empire Ambient Lighting */
+body {
+background-color: #080808;
+background-attachment: fixed;
+}
+
+body::before {
+content: "";
+position: fixed;
+inset: 0;
+pointer-events: none;
+z-index: 0;
+background:
+radial-gradient(ellipse at 10% 15%, rgba(255, 190, 60, 0.10), transparent 38%),
+radial-gradient(ellipse at 90% 35%, rgba(255, 40, 160, 0.09), transparent 35%),
+radial-gradient(ellipse at 50% 90%, rgba(50, 130, 255, 0.09), transparent 40%);
+}
+
+header,
+main,
+footer {
+position: relative;
+z-index: 1;
+}
 </style>  </head>  <body>  <header>  
   <div class="container nav"> 
     <a class="brand" href="#home" aria-label="Empire Home">
