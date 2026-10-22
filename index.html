@@ -1,1344 +1,1571 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!DOCTYPE html>  <html lang="en">  
+<head>  
+<meta charset="UTF-8">  
+<meta name="viewport" content="width=device-width, initial-scale=1.0">  <title>Empire | Royal Video Experience</title>  <meta name="description" content="Discover free and premium videos on Empire.">  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>  <style>  
+:root{  
+  --gold:#e6bd58;  
+  --gold-light:#fff0b0;  
+  --bg:#080808;  
+  --panel:rgba(16,16,16,.88);  
+  --muted:#aaa;  
+  --border:rgba(255,255,255,.12);  
+}  
+  
+*{  
+  box-sizing:border-box;  
+  margin:0;  
+  padding:0;  
+}  
+  
+html{  
+  scroll-behavior:smooth;  
+}  
+  
+body{  
+  font-family:Inter,Arial,Helvetica,sans-serif;  
+  background:var(--bg);  
+  color:#f7f7f7;  
+  line-height:1.6;  
+  min-height:100vh;  
+}  
+  
+body::before{  
+  content:"";  
+  position:fixed;  
+  inset:0;  
+  z-index:-1;  
+  pointer-events:none;  
+  background:  
+    linear-gradient(  
+      180deg,  
+      rgba(0,0,0,.78),  
+      rgba(0,0,0,.93)  
+    ),  
+    url("empire-background.png") center/cover no-repeat;  
+}  
+  
+a{  
+  color:inherit;  
+  text-decoration:none;  
+}  
+  
+button,input{  
+  font:inherit;  
+}  
+  
+button{  
+  cursor:pointer;  
+}  
+  
+.container{  
+  width:min(1180px,92%);  
+  margin:auto;  
+}  
+  
+/* HEADER */  
+  
+header{  
+  position:sticky;  
+  top:0;  
+  z-index:100;  
+  background:rgba(5,5,5,.88);  
+  backdrop-filter:blur(18px);  
+  border-bottom:1px solid var(--border);  
+}  
+  
+.nav{  
+  min-height:72px;  
+  display:flex;  
+  align-items:center;  
+  justify-content:space-between;  
+  gap:20px;  
+}  
+  
+.brand{  
+  display:flex;  
+  align-items:center;  
+  gap:10px;  
+  font-size:23px;  
+  font-weight:900;  
+  letter-spacing:2px;  
+}  
+  
+.brand-mark{  
+  color:var(--gold);  
+  font-size:27px;  
+}  
+  
+.links{  
+  display:flex;  
+  align-items:center;  
+  gap:26px;  
+  color:#ccc;  
+  font-size:14px;  
+}  
+  
+.links a:hover,  
+.nav-actions a:hover{  
+  color:var(--gold);  
+}  
+  
+.nav-actions{  
+  display:flex;  
+  align-items:center;  
+  gap:16px;  
+  font-size:13px;  
+}  
+  
+.menu{  
+  display:none;  
+  border:1px solid var(--border);  
+  border-radius:9px;  
+  padding:7px 11px;  
+  background:#111;  
+  color:white;  
+  font-size:22px;  
+}  
+  
+/* BUTTONS */  
+  
+.btn{  
+  display:inline-flex;  
+  align-items:center;  
+  justify-content:center;  
+  gap:8px;  
+  padding:11px 18px;  
+  border:1px solid transparent;  
+  border-radius:10px;  
+  font-weight:800;  
+  transition:.2s;  
+}  
+  
+.btn:hover{  
+  transform:translateY(-2px);  
+}  
+  
+.btn-gold{  
+  color:#111;  
+  background:linear-gradient(135deg,var(--gold-light),#bd8524);  
+}  
+  
+.btn-dark{  
+  color:white;  
+  background:#ffffff0b;  
+  border-color:var(--border);  
+}  
+  
+.btn:disabled{  
+  opacity:.55;  
+  cursor:not-allowed;  
+  transform:none;  
+}  
+  
+/* HERO */  
+  
+.hero{  
+  min-height:540px;  
+  display:flex;  
+  align-items:center;  
+  position:relative;  
+  overflow:hidden;  
+  border-bottom:1px solid rgba(255,255,255,.07);  
+}  
+  
+.hero::before{  
+  content:"";  
+  position:absolute;  
+  width:480px;  
+  height:480px;  
+  right:-100px;  
+  top:0;  
+  border-radius:50%;  
+  background:rgba(207,157,52,.10);  
+  filter:blur(100px);  
+  pointer-events:none;  
+}  
+  
+.hero-content{  
+  position:relative;  
+  padding:85px 0;  
+  max-width:780px;  
+}  
+  
+.eyebrow{  
+  color:var(--gold);  
+  font-size:12px;  
+  font-weight:900;  
+  letter-spacing:3px;  
+  text-transform:uppercase;  
+  margin-bottom:18px;  
+}  
+  
+.hero h1{  
+  font-size:clamp(44px,7vw,82px);  
+  line-height:1.04;  
+  letter-spacing:-2px;  
+  margin-bottom:23px;  
+}  
+  
+.gold{  
+  background:linear-gradient(90deg,#fff2b9,#d29a2d);  
+  -webkit-background-clip:text;  
+  background-clip:text;  
+  color:transparent;  
+}  
+  
+.hero p{  
+  max-width:600px;  
+  color:#b3b3b3;  
+  font-size:17px;  
+  margin-bottom:28px;  
+}  
+  
+.hero-actions{  
+  display:flex;  
+  gap:12px;  
+  flex-wrap:wrap;  
+}  
+  
+.hero-note{  
+  margin-top:35px;  
+  font-size:12px;  
+  color:#929292;  
+}  
+  
+/* SEARCH */  
+  
+.search-area{  
+  padding:30px 0 0;  
+}  
+  
+.search-box{  
+  display:flex;  
+  align-items:center;  
+  gap:12px;  
+  width:100%;  
+  padding:5px 15px;  
+  background:rgba(15,15,15,.92);  
+  border:1px solid var(--border);  
+  border-radius:13px;  
+}  
+  
+.search-icon{  
+  color:var(--gold);  
+  font-size:21px;  
+}  
+  
+.search-box input{  
+  flex:1;  
+  min-width:0;  
+  padding:12px 0;  
+  background:transparent;  
+  border:0;  
+  outline:none;  
+  color:white;  
+}  
+  
+.search-box input::placeholder{  
+  color:#777;  
+}  
+  
+/* SECTIONS */  
+  
+section{  
+  padding:65px 0;  
+}  
+  
+.section-head{  
+  display:flex;  
+  justify-content:space-between;  
+  align-items:end;  
+  gap:15px;  
+  margin-bottom:26px;  
+}  
+  
+.section-head h2{  
+  font-size:clamp(25px,4vw,34px);  
+  letter-spacing:-.5px;  
+}  
+  
+.section-head p{  
+  color:#909090;  
+  font-size:13px;  
+  margin-top:5px;  
+}  
+  
+.section-label{  
+  color:var(--gold);  
+  font-size:11px;  
+  font-weight:800;  
+  letter-spacing:2px;  
+  text-transform:uppercase;  
+  margin-bottom:6px;  
+}  
+  
+/* VIDEO GRID */  
+  
+.grid{  
+  display:grid;  
+  grid-template-columns:repeat(3,minmax(0,1fr));  
+  gap:20px;  
+}  
+  
+.card{  
+  min-width:0;  
+  overflow:hidden;  
+  border:1px solid var(--border);  
+  border-radius:15px;  
+  background:var(--panel);  
+  transition:transform .22s,border-color .22s;  
+}  
+  
+.card:hover{  
+  transform:translateY(-4px);  
+  border-color:rgba(230,189,88,.42);  
+}  
+  
+.thumb{  
+  height:205px;  
+  position:relative;  
+  display:flex;  
+  align-items:center;  
+  justify-content:center;  
+  overflow:hidden;  
+  background:  
+    radial-gradient(circle at 65% 35%,#b58b3944,transparent 35%),  
+    linear-gradient(135deg,#252525,#090909);  
+}  
+  
+.thumb img{  
+  position:absolute;  
+  inset:0;  
+  width:100%;  
+  height:100%;  
+  object-fit:cover;  
+}  
+  
+.thumb-overlay{  
+  position:absolute;  
+  inset:0;  
+  background:linear-gradient(to top,#000c,transparent 70%);  
+  pointer-events:none;  
+}  
+  
+.play{  
+  width:55px;  
+  height:55px;  
+  position:relative;  
+  z-index:2;  
+  display:grid;  
+  place-items:center;  
+  padding-left:3px;  
+  border-radius:50%;  
+  color:#111;  
+  background:#ffffffdf;  
+  font-size:21px;  
+}  
+  
+.lock-icon{  
+  width:55px;  
+  height:55px;  
+  position:relative;  
+  z-index:2;  
+  display:grid;  
+  place-items:center;  
+  border:1px solid #ffffff2a;  
+  border-radius:50%;  
+  color:var(--gold);  
+  background:#080808d9;  
+  font-size:23px;  
+}  
+  
+.video-badge{  
+  position:absolute;  
+  top:11px;  
+  right:11px;  
+  z-index:3;  
+  padding:5px 10px;  
+  border:1px solid #ffffff20;  
+  border-radius:50px;  
+  background:#080808e8;  
+  font-size:11px;  
+  font-weight:800;  
+}  
+  
+.video-badge.free{  
+  color:var(--gold);  
+}  
+  
+.video-badge.paid{  
+  color:#fff0b0;  
+}  
+  
+.card-body{  
+  padding:17px;  
+}  
+  
+.card-body h3{  
+  font-size:17px;  
+  line-height:1.4;  
+  margin-bottom:7px;  
+  overflow-wrap:anywhere;  
+}  
+  
+.card-description{  
+  min-height:42px;  
+  color:#999;  
+  font-size:13px;  
+  overflow-wrap:anywhere;  
+  white-space:pre-line;  
+}  
+  
+.card-foot{  
+  display:flex;  
+  align-items:center;  
+  justify-content:space-between;  
+  gap:10px;  
+  margin-top:17px;  
+}  
+  
+.tag{  
+  color:var(--gold);  
+  font-size:11px;  
+  font-weight:800;  
+}  
+  
+.card-foot .btn{  
+  padding:9px 13px;  
+  font-size:12px;  
+}  
+  
+.status{  
+  grid-column:1/-1;  
+  padding:38px 20px;  
+  text-align:center;  
+  border:1px solid var(--border);  
+  border-radius:15px;  
+  background:rgba(15,15,15,.9);  
+  color:#999;  
+  overflow-wrap:anywhere;  
+}  
+  
+.status strong{  
+  display:block;  
+  color:#eee;  
+  font-size:18px;  
+  margin-bottom:6px;  
+}  
+  
+.error{  
+  color:#e9a0a0;  
+}  
+  
+/* FEATURED */  
+  
+.featured{  
+  background:rgba(9,9,9,.72);  
+  border-top:1px solid var(--border);  
+  border-bottom:1px solid var(--border);  
+}  
+  
+.feature-box{  
+  display:grid;  
+  grid-template-columns:1.2fr 1fr;  
+  gap:35px;  
+  align-items:center;  
+}  
+  
+.feature-video{  
+  min-height:300px;  
+  position:relative;  
+  display:grid;  
+  place-items:center;  
+  overflow:hidden;  
+  border:1px solid var(--border);  
+  border-radius:17px;  
+  background:  
+    radial-gradient(circle,#bd8e3540,transparent 40%),  
+    #111;  
+}  
+  
+.feature-video img{  
+  position:absolute;  
+  inset:0;  
+  width:100%;  
+  height:100%;  
+  object-fit:cover;  
+}  
+  
+.feature-copy h2{  
+  font-size:clamp(28px,4vw,42px);  
+  line-height:1.15;  
+  margin:9px 0 14px;  
+  overflow-wrap:anywhere;  
+}  
+  
+.feature-copy p{  
+  color:#aaa;  
+  margin-bottom:22px;  
+  font-size:14px;  
+  overflow-wrap:anywhere;  
+}  
+  
+.feature-list{  
+  display:grid;  
+  gap:9px;  
+  list-style:none;  
+  color:#b7b7b7;  
+  font-size:13px;  
+  margin-bottom:24px;  
+}  
+  
+.feature-list li::before{  
+  content:"✓";  
+  color:var(--gold);  
+  margin-right:9px;  
+}  
+  
+/* FOOTER */  
+  
+footer{  
+  border-top:1px solid var(--border);  
+  padding:30px 0;  
+  color:#858585;  
+  font-size:12px;  
+}  
+  
+.footer-inner{  
+  display:flex;  
+  justify-content:space-between;  
+  gap:18px;  
+  flex-wrap:wrap;  
+}  
+  
+.footer-note{  
+  margin-top:13px;  
+  color:#666;  
+  max-width:750px;  
+}  
+  
+/* VIDEO MODAL */  
+  
+.modal{  
+  position:fixed;  
+  inset:0;  
+  z-index:500;  
+  display:none;  
+  align-items:center;  
+  justify-content:center;  
+  padding:18px;  
+  background:#000e;  
+}  
+  
+.modal.open{  
+  display:flex;  
+}  
+  
+.video-modal-box{  
+  position:relative;  
+  width:min(950px,100%);  
+  max-height:95vh;  
+  overflow:auto;  
+  padding:20px;  
+  border:1px solid var(--border);  
+  border-radius:17px;  
+  background:#101010;  
+}  
+  
+.video-modal-box h2{  
+  padding-right:40px;  
+  font-size:23px;  
+  overflow-wrap:anywhere;  
+}  
+  
+.video-modal-box p{  
+  margin:6px 0 15px;  
+  color:#999;  
+  font-size:13px;  
+  overflow-wrap:anywhere;  
+}  
+  
+.video-player{  
+  display:block;  
+  width:100%;  
+  max-height:70vh;  
+  border-radius:10px;  
+  background:#000;  
+}  
+  
+.close{  
+  position:absolute;  
+  top:12px;  
+  right:15px;  
+  border:0;  
+  background:transparent;  
+  color:#aaa;  
+  font-size:29px;  
+}  
+  
+.close:hover{  
+  color:white;  
+}  
+  
+/* MOBILE */  
+  
+@media(max-width:850px){  
+  .nav{  
+    min-height:65px;  
+  }  
+  
+  .menu{  
+    display:block;  
+  }  
+  
+  .links{  
+    display:none;  
+    position:absolute;  
+    top:65px;  
+    left:4%;  
+    right:4%;  
+    padding:17px;  
+    flex-direction:column;  
+    align-items:stretch;  
+    gap:0;  
+    border:1px solid var(--border);  
+    border-radius:12px;  
+    background:#101010;  
+  }  
+  
+  .links a{  
+    padding:12px 8px;  
+  }  
+  
+  .nav-actions{  
+    gap:11px;  
+  }  
+  
+  .nav-actions .user-name{  
+    display:none;  
+  }  
+  
+  .hero{  
+    min-height:480px;  
+  }  
+  
+  .hero-content{  
+    padding:65px 0;  
+  }  
+  
+  .grid{  
+    grid-template-columns:repeat(2,minmax(0,1fr));  
+    gap:12px;  
+  }  
+  
+  .thumb{  
+    height:155px;  
+  }  
+  
+  .card-body{  
+    padding:12px;  
+  }  
+  
+  .card-body h3{  
+    font-size:14px;  
+  }  
+  
+  .card-description{  
+    font-size:12px;  
+    min-height:48px;  
+  }  
+  
+  .card-foot{  
+    align-items:flex-start;  
+    flex-direction:column;  
+  }  
+  
+  .card-foot .btn{  
+    width:100%;  
+  }  
+  
+  .feature-box{  
+    grid-template-columns:1fr;  
+    gap:22px;  
+  }  
+  
+  .feature-video{  
+    min-height:230px;  
+  }  
+  
+  section{  
+    padding:45px 0;  
+  }  
+}  
+  
+@media(max-width:390px){  
+  .brand{  
+    font-size:18px;  
+  }  
+  
+  .nav-actions{  
+    gap:8px;  
+    font-size:12px;  
+  }  
+  
+  .grid{  
+    gap:9px;  
+  }  
+  
+  .thumb{  
+    height:125px;  
+  }  
+  
+  .hero h1{  
+    font-size:42px;  
+  }  
+  
+  .btn{  
+    padding:10px 13px;  
+  }  
+}  
+</style>  </head>  <body>  <header>  
+  <div class="container nav">  <a class="brand" href="#home" aria-label="Empire Home">  
+  <span class="brand-mark">✦</span>  
+  <span>EMPIRE</span>  
+</a>  
+
+<nav class="links" id="mainLinks">  
+  <a href="#home" onclick="closeMenu()">Home</a>  
+  <a href="#videos" onclick="closeMenu()">Videos</a>  
+  <a href="about.html">About</a>  
+</nav>  
+
+<div class="nav-actions">  
+  <a href="premium.html">Premium</a>  
+  <a href="profile.html">Profile</a>  
+  <span class="user-name" id="userName">Loading...</span>  
+</div>  
+
+<button class="menu" type="button" onclick="toggleMenu()" aria-label="Open menu">☰</button>
+
+  </div>  
+</header>  <main id="home">    <section class="hero">  
+    <div class="container hero-content">  <div class="eyebrow">A new era of video</div>  
+
+  <h1>  
+    Watch what<br>  
+    <span class="gold">matters.</span>  
+  </h1>  
+
+  <p>  
+    Discover exclusive stories, explore new creators,  
+    and enjoy a premium video experience built around you.  
+  </p>  
+
+  <div class="hero-actions">  
+    <a href="#videos" class="btn btn-gold">Explore Videos</a>  
+    <a href="about.html" class="btn btn-dark">Discover Empire</a>  
+  </div>  
+
+  <div class="hero-note">  
+    FREE VIDEOS · PREMIUM CONTENT · ONE EMPIRE  
+  </div>  
 
-<title>Empire | Royal Video Experience</title>
-<meta name="description" content="Empire: تمدنی برای فردا، پناهی برای همه. Discover free and premium videos.">
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-<style>
-:root{
-  --gold:#e6bd58;
-  --gold-light:#fff0b0;
-  --bg:#080808;
-  --panel:rgba(16,16,16,.90);
-  --muted:#aaa;
-  --border:rgba(255,255,255,.12);
-  --pink:#ed82d7;
-  --blue:#82caff;
-}
-
-*{
-  box-sizing:border-box;
-  margin:0;
-  padding:0;
-}
-
-html{
-  scroll-behavior:smooth;
-  scroll-padding-top:150px;
-}
-
-body{
-  position:relative;
-  isolation:isolate;
-  font-family:Inter,Arial,Helvetica,sans-serif;
-  background:var(--bg);
-  color:#f7f7f7;
-  line-height:1.6;
-  min-height:100vh;
-}
-
-body::before{
-  content:"";
-  position:fixed;
-  inset:0;
-  z-index:-1;
-  pointer-events:none;
-  background:
-    linear-gradient(180deg,rgba(0,0,0,.72),rgba(0,0,0,.94)),
-    url("empire-background.png") center/cover no-repeat;
-}
-
-a{
-  color:inherit;
-  text-decoration:none;
-}
-
-button,input{
-  font:inherit;
-}
-
-button{
-  cursor:pointer;
-}
-
-.container{
-  width:min(1180px,92%);
-  margin:auto;
-}
-
-/* ROYAL HEADER */
-
-header{
-  position:sticky;
-  top:0;
-  z-index:1000;
-  background:rgba(5,5,8,.94);
-  backdrop-filter:blur(20px);
-  border-bottom:1px solid rgba(230,189,88,.25);
-}
-
-.nav{
-  min-height:72px;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:18px;
-}
-
-.brand{
-  display:flex;
-  align-items:center;
-  gap:9px;
-  white-space:nowrap;
-  font-family:Georgia,serif;
-  font-size:clamp(20px,3vw,29px);
-  font-weight:900;
-  letter-spacing:1px;
-  background:linear-gradient(120deg,#fff2bd,#e6bd58,#fff);
-  -webkit-background-clip:text;
-  background-clip:text;
-  color:transparent;
-}
-
-.brand-mark{
-  display:inline-block;
-  font-size:30px;
-  color:var(--gold);
-  filter:drop-shadow(0 0 7px #e6bd5880);
-  -webkit-text-fill-color:var(--gold);
-}
-
-.links{
-  display:flex;
-  align-items:center;
-  gap:24px;
-  color:#ccc;
-  font-size:14px;
-}
-
-.links a,
-.nav-actions a{
-  transition:color .2s;
-}
-
-.links a:hover,
-.nav-actions a:hover{
-  color:var(--gold);
-}
-
-.nav-actions{
-  display:flex;
-  align-items:center;
-  gap:15px;
-  font-size:13px;
-}
-
-.user-name{
-  color:var(--gold-light);
-}
-
-.menu{
-  display:none;
-  border:1px solid var(--border);
-  border-radius:9px;
-  padding:6px 11px;
-  background:#111;
-  color:white;
-  font-size:22px;
-}
-
-/* SLOGAN */
-
-.slogan-area{
-  position:relative;
-  padding:24px 0 20px;
-  text-align:center;
-  overflow:hidden;
-  border-bottom:1px solid rgba(255,255,255,.06);
-  background:
-    radial-gradient(ellipse at 20% 0%,rgba(237,130,215,.12),transparent 45%),
-    radial-gradient(ellipse at 80% 0%,rgba(130,202,255,.12),transparent 45%);
-}
-
-.slogan-crown{
-  display:block;
-  margin-bottom:5px;
-  font-size:35px;
-  line-height:1.3;
-  filter:drop-shadow(0 0 10px #e6bd5866);
-}
-
-.slogan{
-  font-family:Georgia,serif;
-  font-size:clamp(21px,4vw,35px);
-  font-weight:800;
-  line-height:1.5;
-  background:linear-gradient(90deg,var(--pink),#fff0b0,var(--blue));
-  -webkit-background-clip:text;
-  background-clip:text;
-  color:transparent;
-}
-
-.slogan-subtitle{
-  margin-top:4px;
-  color:#aaa;
-  font-size:11px;
-  letter-spacing:2px;
-}
-
-/* SEARCH BAR: STAYS VISIBLE WHILE SCROLLING */
-
-.search-area{
-  position:sticky;
-  top:72px;
-  z-index:900;
-  padding:12px 0;
-  background:rgba(5,5,8,.96);
-  backdrop-filter:blur(18px);
-  border-bottom:1px solid rgba(255,255,255,.07);
-}
-
-.search-box{
-  display:flex;
-  align-items:center;
-  gap:12px;
-  width:100%;
-  padding:5px 15px;
-  background:rgba(18,18,20,.96);
-  border:1px solid rgba(220,130,220,.32);
-  border-radius:13px;
-  box-shadow:0 0 18px rgba(220,100,220,.05);
-  transition:border-color .2s,box-shadow .2s;
-}
-
-.search-box:focus-within{
-  border-color:var(--pink);
-  box-shadow:0 0 20px rgba(217,135,236,.13);
-}
-
-.search-icon{
-  color:var(--gold);
-  font-size:23px;
-}
-
-.search-box input{
-  flex:1;
-  min-width:0;
-  padding:11px 0;
-  background:transparent;
-  border:0;
-  outline:none;
-  color:white;
-}
-
-.search-box input::placeholder{
-  color:#777;
-}
-
-/* BUTTONS */
-
-.btn{
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  gap:8px;
-  padding:10px 16px;
-  border:1px solid transparent;
-  border-radius:10px;
-  font-weight:800;
-  transition:transform .2s,filter .2s;
-}
-
-.btn:hover{
-  transform:translateY(-2px);
-  filter:brightness(1.08);
-}
-
-.btn-gold{
-  color:#111;
-  background:linear-gradient(135deg,var(--gold-light),#bd8524);
-}
-
-.btn-dark{
-  color:white;
-  background:#ffffff0b;
-  border-color:var(--border);
-}
-
-.btn:disabled{
-  opacity:.55;
-  cursor:not-allowed;
-  transform:none;
-}
-
-/* VIDEO SECTION */
-
-section{
-  padding:40px 0 65px;
-}
-
-.section-head{
-  display:flex;
-  justify-content:space-between;
-  align-items:end;
-  gap:15px;
-  margin-bottom:25px;
-}
-
-.section-head h2{
-  font-size:clamp(25px,4vw,34px);
-  letter-spacing:-.5px;
-}
-
-.section-head p{
-  color:#909090;
-  font-size:13px;
-  margin-top:5px;
-}
-
-.section-label{
-  color:var(--gold);
-  font-size:11px;
-  font-weight:800;
-  letter-spacing:2px;
-  text-transform:uppercase;
-  margin-bottom:6px;
-}
-
-/* VIDEO CARDS */
-
-.grid{
-  display:grid;
-  grid-template-columns:repeat(3,minmax(0,1fr));
-  gap:20px;
-}
-
-.card{
-  min-width:0;
-  overflow:hidden;
-  border:1px solid var(--border);
-  border-radius:15px;
-  background:var(--panel);
-  transition:transform .22s,border-color .22s;
-}
-
-.card:hover{
-  transform:translateY(-4px);
-  border-color:rgba(230,189,88,.5);
-}
-
-.thumb{
-  height:205px;
-  position:relative;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  overflow:hidden;
-  background:
-    radial-gradient(circle at 65% 35%,#b58b3944,transparent 35%),
-    linear-gradient(135deg,#252525,#090909);
-}
-
-.thumb img{
-  position:absolute;
-  inset:0;
-  width:100%;
-  height:100%;
-  object-fit:cover;
-}
-
-.thumb-overlay{
-  position:absolute;
-  inset:0;
-  background:linear-gradient(to top,#000c,transparent 70%);
-  pointer-events:none;
-}
-
-.play,
-.lock-icon{
-  width:55px;
-  height:55px;
-  position:relative;
-  z-index:2;
-  display:grid;
-  place-items:center;
-  border-radius:50%;
-}
-
-.play{
-  padding-left:3px;
-  color:#111;
-  background:#ffffffdf;
-  font-size:21px;
-}
-
-.lock-icon{
-  border:1px solid #ffffff2a;
-  color:var(--gold);
-  background:#080808d9;
-  font-size:23px;
-}
-
-.video-badge{
-  position:absolute;
-  top:11px;
-  right:11px;
-  z-index:3;
-  padding:5px 10px;
-  border:1px solid #ffffff20;
-  border-radius:50px;
-  background:#080808e8;
-  font-size:11px;
-  font-weight:800;
-}
-
-.video-badge.free{
-  color:var(--gold);
-}
-
-.video-badge.paid{
-  color:#fff0b0;
-}
-
-.card-body{
-  padding:17px;
-}
-
-.card-body h3{
-  font-size:17px;
-  line-height:1.4;
-  margin-bottom:7px;
-  overflow-wrap:anywhere;
-}
-
-.card-description{
-  min-height:42px;
-  color:#999;
-  font-size:13px;
-  overflow-wrap:anywhere;
-  white-space:pre-line;
-}
-
-.card-foot{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:10px;
-  margin-top:17px;
-}
-
-.tag{
-  color:var(--gold);
-  font-size:11px;
-  font-weight:800;
-}
-
-.card-foot .btn{
-  padding:9px 13px;
-  font-size:12px;
-}
-
-.status{
-  grid-column:1/-1;
-  padding:38px 20px;
-  text-align:center;
-  border:1px solid var(--border);
-  border-radius:15px;
-  background:rgba(15,15,15,.9);
-  color:#999;
-  overflow-wrap:anywhere;
-}
-
-.status strong{
-  display:block;
-  color:#eee;
-  font-size:18px;
-  margin-bottom:6px;
-}
-
-.error{
-  color:#e9a0a0;
-}
-
-/* FOOTER */
-
-footer{
-  border-top:1px solid var(--border);
-  padding:25px 0;
-  color:#858585;
-  font-size:12px;
-}
-
-.footer-inner{
-  display:flex;
-  justify-content:space-between;
-  gap:18px;
-  flex-wrap:wrap;
-}
-
-/* VIDEO MODAL */
-
-.modal{
-  position:fixed;
-  inset:0;
-  z-index:500;
-  display:none;
-  align-items:center;
-  justify-content:center;
-  padding:18px;
-  background:#000e;
-}
-
-.modal.open{
-  display:flex;
-}
-
-.video-modal-box{
-  position:relative;
-  width:min(950px,100%);
-  max-height:95vh;
-  overflow:auto;
-  padding:20px;
-  border:1px solid var(--border);
-  border-radius:17px;
-  background:#101010;
-}
-
-.video-modal-box h2{
-  padding-right:40px;
-  font-size:23px;
-  overflow-wrap:anywhere;
-}
-
-.video-modal-box p{
-  margin:6px 0 15px;
-  color:#999;
-  font-size:13px;
-  overflow-wrap:anywhere;
-}
-
-.video-player{
-  display:block;
-  width:100%;
-  max-height:70vh;
-  border-radius:10px;
-  background:#000;
-}
-
-.close{
-  position:absolute;
-  top:12px;
-  right:15px;
-  border:0;
-  background:transparent;
-  color:#aaa;
-  font-size:29px;
-}
-
-.close:hover{
-  color:white;
-}
-
-/* MOBILE */
-
-@media(max-width:850px){
-  .nav{
-    min-height:65px;
-    gap:10px;
-  }
-
-  .menu{
-    display:block;
-  }
-
-  .links{
-    display:none;
-    position:absolute;
-    top:65px;
-    left:4%;
-    right:4%;
-    padding:12px;
-    flex-direction:column;
-    align-items:stretch;
-    gap:0;
-    border:1px solid var(--border);
-    border-radius:12px;
-    background:#101010;
-  }
-
-  .links a{
-    padding:12px 8px;
-  }
-
-  .nav-actions{
-    gap:10px;
-  }
-
-  .nav-actions .user-name{
-    display:none;
-  }
-
-  .search-area{
-    top:65px;
-  }
-
-  .grid{
-    grid-template-columns:repeat(2,minmax(0,1fr));
-    gap:12px;
-  }
-
-  .thumb{
-    height:155px;
-  }
-
-  .card-body{
-    padding:12px;
-  }
-
-  .card-body h3{
-    font-size:14px;
-  }
-
-  .card-description{
-    font-size:12px;
-    min-height:48px;
-  }
-
-  .card-foot{
-    align-items:flex-start;
-    flex-direction:column;
-  }
-
-  .card-foot .btn{
-    width:100%;
-  }
-
-  section{
-    padding:32px 0 45px;
-  }
-}
-
-@media(max-width:390px){
-  .brand{
-    font-size:18px;
-    letter-spacing:0;
-  }
-
-  .brand-mark{
-    font-size:24px;
-  }
-
-  .nav-actions{
-    gap:8px;
-    font-size:12px;
-  }
-
-  .grid{
-    gap:9px;
-  }
-
-  .thumb{
-    height:125px;
-  }
-
-  .btn{
-    padding:9px 11px;
-  }
-
-  .slogan-subtitle{
-    font-size:9px;
-    letter-spacing:1px;
-  }
-}
-</style>
-</head>
-
-<body>
-
-<header>
-  <div class="container nav">
-
-    <a class="brand" href="#home" aria-label="Empire Home">
-      <span class="brand-mark">👑</span>
-      <span>𝑬𝒎𝒑𝒊𝒓𝒆</span>
-    </a>
-
-    <nav class="links" id="mainLinks">
-      <a href="#home" onclick="closeMenu()">Home</a>
-      <a href="#videos" onclick="closeMenu()">Videos</a>
-      <a href="about.html" onclick="closeMenu()">About</a>
-    </nav>
-
-    <div class="nav-actions">
-      <a href="premium.html">Premium</a>
-      <a href="profile.html">Profile</a>
-      <span class="user-name" id="userName">Loading...</span>
-    </div>
-
-    <button class="menu" type="button"
-      onclick="toggleMenu()" aria-label="Open menu">☰</button>
-
-  </div>
-</header>
-
-<main id="home">
-
-  <div class="slogan-area">
-    <div class="container">
-      <span class="slogan-crown">♛</span>
-      <h1 class="slogan">تمدنی برای فردا، پناهی برای همه</h1>
-      <p class="slogan-subtitle">A CIVILIZATION FOR TOMORROW · A HAVEN FOR ALL</p>
-    </div>
-  </div>
-
-  <div class="search-area">
-    <div class="container">
-      <label class="search-box">
-        <span class="search-icon">⌕</span>
-        <input
-          id="videoSearch"
-          type="search"
-          placeholder="Search videos by title or description..."
-          autocomplete="off"
-          aria-label="Search videos">
-      </label>
-    </div>
-  </div>
-
-  <section id="videos">
-    <div class="container">
-
-      <div class="section-head">
-        <div>
-          <div class="section-label">Discover Empire</div>
-          <h2>Latest Videos</h2>
-          <p>Explore the latest content available on Empire.</p>
-        </div>
-
-        <button class="btn btn-dark" type="button"
-          onclick="loadVideos()">↻ Refresh</button>
-      </div>
-
-      <div class="grid" id="videoGrid">
-        <div class="status">
-          <strong>Loading videos...</strong>
-          Please wait.
-        </div>
-      </div>
-
-    </div>
-  </section>
-
-</main>
-
-<footer>
-  <div class="container footer-inner">
-    <div>© 2026 Empire. All rights reserved.</div>
-    <div>تمدنی برای فردا، پناهی برای همه</div>
-  </div>
-</footer>
-
-<div class="modal" id="videoModal" onclick="outsideClose(event)">
-  <div class="video-modal-box">
-
-    <button class="close" type="button"
-      onclick="closeVideo()" aria-label="Close video">×</button>
-
-    <h2 id="modalTitle">Video</h2>
-    <p id="modalDescription">Loading...</p>
-
-    <video
-      id="videoPlayer"
-      class="video-player"
-      controls
-      controlsList="nodownload noremoteplayback"
-      disablePictureInPicture
-      playsinline
-      preload="metadata">
-    </video>
-
-  </div>
 </div>
 
-<script>
-  const SUPABASE_URL = "https://vubjkwbkuwndkjqfnyom.supabase.co";
-const SUPABASE_KEY = "sb_publishable_Ig1R3dpAKyBfjIGSUhhlKw_uC-QF0QQ";
-
-const supabaseClient = window.supabase.createClient(
-  SUPABASE_URL,
-  SUPABASE_KEY
-);
-
-let videos = [];
-
-async function checkAuth() {
-  try {
-    const {
-      data: { session },
-      error
-    } = await supabaseClient.auth.getSession();
-
-    if (error) throw error;
-
-    if (!session) {
-      window.location.href = "login.html";
-      return false;
-    }
-
-    const { data: profile, error: profileError } =
-      await supabaseClient
-        .from("profiles")
-        .select("username, display_name, is_active")
-        .eq("id", session.user.id)
-        .maybeSingle();
-
-    if (profileError || !profile || profile.is_active === false) {
-      await supabaseClient.auth.signOut();
-      window.location.href = "login.html";
-      return false;
-    }
-
-    const name =
-      profile.display_name ||
-      profile.username ||
-      session.user.email ||
-      "Member";
-
-    document.getElementById("userName").textContent = name;
-
-    return true;
-  } catch (error) {
-    console.error("Authentication error:", error);
-    alert("Could not verify your account. Please sign in again.");
-    window.location.href = "login.html";
-    return false;
-  }
-}
-
-async function loadVideos() {
-  const grid = document.getElementById("videoGrid");
-
-  grid.innerHTML = `
-    <div class="empty-state">
-      Loading Empire videos...
-    </div>
-  `;
-
-  try {
-    const { data, error } = await supabaseClient
-      .from("videos")
-      .select(`
-        id,
-        title,
-        description,
-        thumbnail_url,
-        video_path,
-        access_type,
-        price,
-        created_at
-      `)
-      .order("created_at", { ascending: false });
-
-    if (error) throw error;
-
-    videos = data || [];
-    renderVideos();
-  } catch (error) {
-    console.error("Video loading error:", error);
-
-    grid.innerHTML = `
-      <div class="empty-state">
-        Videos could not be loaded. Please refresh the page.
-      </div>
-    `;
-  }
-}
-
-function renderVideos() {
-  const grid = document.getElementById("videoGrid");
-  const searchInput = document.getElementById("videoSearch");
-
-  const searchTerm = (searchInput?.value || "")
-    .trim()
-    .toLowerCase();
-
-  const filteredVideos = videos.filter(video => {
-    const title = (video.title || "").toLowerCase();
-    const description = (video.description || "").toLowerCase();
-
-    return (
-      title.includes(searchTerm) ||
-      description.includes(searchTerm)
-    );
-  });
-
-  if (!filteredVideos.length) {
-    grid.innerHTML = `
-      <div class="empty-state">
-        ${searchTerm
-          ? "No videos match your search."
-          : "No videos available yet. Stay tuned!"}
-      </div>
-    `;
-    return;
-  }
-
-  grid.innerHTML = filteredVideos.map(video => {
-    const isPaid = video.access_type === "paid";
-
-    const thumbnail = video.thumbnail_url
-      ? escapeAttribute(video.thumbnail_url)
-      : "";
-
-    const title = escapeHtml(video.title || "Untitled Video");
-    const description = escapeHtml(
-      video.description || "Discover more on Empire."
-    );
-
-    const price = Number(video.price || 0);
-
-    return `
-      <article class="video-card">
-        <div class="video-thumb">
-          ${
-            thumbnail
-              ? `<img src="${thumbnail}" alt="${title}" loading="lazy">`
-              : `<div class="video-placeholder">👑</div>`
-          }
-
-          <span class="video-badge ${isPaid ? "paid" : ""}">
-            ${isPaid ? "PREMIUM" : "FREE"}
-          </span>
-        </div>
-
-        <div class="video-info">
-          <h3>${title}</h3>
-
-          <p>${description}</p>
-
-          <div class="video-actions">
-            ${
-              isPaid
-                ? `<button
-                    class="btn btn-gold"
-                    onclick="openBuy('${escapeAttribute(video.id)}')">
-                    Buy Now · $${price.toFixed(2)}
-                  </button>`
-                : `<button
-                    class="btn btn-dark"
-                    onclick="watchVideo('${escapeAttribute(video.id)}')">
-                    ▶ Watch Now
-                  </button>`
-            }
-          </div>
-        </div>
-      </article>
-    `;
-  }).join("");
-}
-
-document
-  .getElementById("videoSearch")
-  ?.addEventListener("input", renderVideos);
-
-
-async function watchVideo(videoId) {
-  try {
-    const {
-      data: { session },
-      error: sessionError
-    } = await supabaseClient.auth.getSession();
-
-    if (sessionError || !session) {
-      window.location.href = "login.html";
-      return;
-    }
-
-    const response = await fetch(
-      `${SUPABASE_URL}/functions/v1/get-video-url`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${session.access_token}`,
-          "apikey": SUPABASE_KEY
-        },
-        body: JSON.stringify({
-          video_id: videoId
-        })
-      }
-    );
-
-    const result = await response.json();
-
-    if (!response.ok) {
-      if (result.error === "PURCHASE_REQUIRED") {
-        alert("This video requires a purchase.");
-        return;
-      }
-
-      throw new Error(
-        result.error || "Could not open this video."
-      );
-    }
-
-    if (!result.signed_url) {
-      throw new Error("A secure video link was not returned.");
-    }
-
-    const video = videos.find(
-      item => String(item.id) === String(videoId)
-    );
-
-    document.getElementById("videoTitle").textContent =
-      video?.title || "Empire Video";
-
-    const player = document.getElementById("videoPlayer");
-
-    player.src = result.signed_url;
-
-    document.getElementById("videoModal").classList.add("active");
-    document.body.style.overflow = "hidden";
-
-    const playPromise = player.play();
-
-    if (playPromise !== undefined) {
-      playPromise.catch(error => {
-        console.warn("Playback requires user interaction:", error);
-      });
-    }
-  } catch (error) {
-    console.error("Video playback error:", error);
-    alert(error.message || "Could not play this video.");
-  }
-}
-
-
-async function openBuy(videoId) {
-  try {
-    const {
-      data: { session },
-      error: sessionError
-    } = await supabaseClient.auth.getSession();
-
-    if (sessionError || !session) {
-      window.location.href = "login.html";
-      return;
-    }
-
-    const response = await fetch(
-      `${SUPABASE_URL}/functions/v1/create-purchase`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${session.access_token}`,
-          "apikey": SUPABASE_KEY
-        },
-        body: JSON.stringify({
-          video_id: videoId
-        })
-      }
-    );
-
-    const result = await response.json();
-
-    if (!response.ok) {
-      throw new Error(
-        result.error || "Could not create the purchase."
-      );
-    }
-
-    if (result.already_paid) {
-      await watchVideo(videoId);
-      return;
-    }
-
-    showPaymentModal(videoId, session, result);
-  } catch (error) {
-    console.error("Purchase error:", error);
-    alert(error.message || "Could not start the purchase.");
-  }
-}
-
-
-function showPaymentModal(videoId, session, result) {
-  const modal = document.getElementById("videoModal");
-  const player = document.getElementById("videoPlayer");
-  const videoTitle = document.getElementById("videoTitle");
-
-  player.pause();
-  player.removeAttribute("src");
-  player.load();
-
-  const video = videos.find(
-    item => String(item.id) === String(videoId)
-  );
-
-  videoTitle.textContent = video?.title || "Premium Video";
-
-  modal.classList.add("active");
-  document.body.style.overflow = "hidden";
-
-  const paymentAddress =
-    result.payment_address ||
-    result.wallet_address ||
-    "";
-
-  const amount = result.amount ?? video?.price ?? "";
-
-  let secondsRemaining = 30 * 60;
-
-  modal.querySelector(".modal-content").innerHTML = `
-    <button
-      class="modal-close"
-      onclick="closeVideo()"
-      aria-label="Close">
-      &times;
-    </button>
-
-    <div class="payment-box">
-      <div class="payment-crown">👑</div>
-
-      <h2>Unlock Premium</h2>
-
-      <p class="payment-description">
-        Complete your payment using USDT on the TRON network.
-      </p>
-
-      <div class="payment-detail">
-        <span>Network</span>
-        <strong>TRON (TRC20)</strong>
-      </div>
-
-      <div class="payment-detail">
-        <span>Amount</span>
-        <strong>${escapeHtml(String(amount))} USDT</strong>
-      </div>
-
-      <div class="payment-address">
-        <span>Payment wallet</span>
-        <p id="paymentAddress">${escapeHtml(paymentAddress || "Wallet address unavailable")}</p>
-
-        <button
-          type="button"
-          class="btn btn-dark"
-          id="copyAddressBtn">
-          Copy Address
-        </button>
-      </div>
-
-      <label class="txid-label" for="txidInput">
-        Transaction ID (TXID)
-      </label>
-
-      <input
-        id="txidInput"
-        class="txid-input"
-        type="text"
-        placeholder="Paste your transaction hash"
-        autocomplete="off">
-
-      <p class="payment-timer">
-        Time remaining: <strong id="paymentTimer">30:00</strong>
-      </p>
-
-      <button
-        type="button"
-        class="btn btn-gold"
-        id="verifyPaymentBtn">
-        Verify Payment
-      </button>
-
-      <p id="paymentMessage" class="payment-message"></p>
-
-      <p class="payment-warning">
-        Only submit the TXID after sending the exact amount
-        to the displayed wallet.
-      </p>
-    </div>
-  `;
-
-  document
-    .getElementById("copyAddressBtn")
-    .addEventListener("click", async () => {
-      try {
-        await navigator.clipboard.writeText(paymentAddress);
-        document.getElementById("paymentMessage").textContent =
-          "Wallet address copied.";
-      } catch {
-        document.getElementById("paymentMessage").textContent =
-          "Please copy the wallet address manually.";
-      }
-    });
-
-  const timerElement = document.getElementById("paymentTimer");
-
-  const timer = setInterval(() => {
-    secondsRemaining--;
-
-    const minutes = Math.floor(secondsRemaining / 60);
-    const seconds = secondsRemaining % 60;
-
-    if (timerElement) {
-      timerElement.textContent =
-        `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
-    }
-
-    if (secondsRemaining <= 0) {
-      clearInterval(timer);
-      if (timerElement) timerElement.textContent = "Expired";
-    }
-  }, 1000);
-
-  modal.dataset.paymentTimer = String(timer);
-
-  document
-    .getElementById("verifyPaymentBtn")
-    .addEventListener("click", async () => {
-      const txid = document
-        .getElementById("txidInput")
-        .value
-        .trim();
-
-      const message = document.getElementById("paymentMessage");
-      const button = document.getElementById("verifyPaymentBtn");
-
-      if (!txid) {
-        message.textContent = "Please enter your transaction ID.";
-        return;
-      }
-
-      if (secondsRemaining <= 0) {
-        message.textContent =
-          "The payment session has expired. Please start again.";
-        return;
-      }
-
-      button.disabled = true;
-      button.textContent = "Checking...";
-      message.textContent = "Verifying your transaction...";
-
-      try {
-        const response = await fetch(
-          `${SUPABASE_URL}/functions/v1/verify-payment`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "Authorization": `Bearer ${session.access_token}`,
-              "apikey": SUPABASE_KEY
-            },
-            body: JSON.stringify({
-              purchase_id: result.purchase_id,
-              txid: txid
-            })
-          }
-        );
-
-        const verification = await response.json();
-
-        if (!response.ok) {
-          throw new Error(
-            verification.error || "Payment verification failed."
-          );
-        }
-
-        if (
-          verification.success &&
-          verification.status === "paid"
-        ) {
-          clearInterval(timer);
-          message.textContent = "Payment confirmed. Opening video...";
-
-          setTimeout(() => {
-            closeVideo();
-            watchVideo(videoId);
-          }, 1000);
-
-          return;
-        }
-
-        message.textContent =
-          verification.message ||
-          "Payment has not been confirmed yet. Please check the TXID.";
-      } catch (error) {
-        console.error("Payment verification error:", error);
-        message.textContent =
-          error.message || "Could not verify payment.";
-      } finally {
-        button.disabled = false;
-        button.textContent = "Verify Payment";
-      }
-    });
-}
-
-
-function closeVideo() {
-  const modal = document.getElementById("videoModal");
-  const player = document.getElementById("videoPlayer");
-
-  const timer = Number(modal.dataset.paymentTimer || 0);
-
-  if (timer) {
-    clearInterval(timer);
-    delete modal.dataset.paymentTimer;
-  }
-
-  player.pause();
-  player.removeAttribute("src");
-  player.load();
-
-  modal.classList.remove("active");
-  document.body.style.overflow = "";
-}
-
-
-function outsideClose(event) {
-  if (event.target.id === "videoModal") {
-    closeVideo();
-  }
-}
-
-
-function toggleMenu() {
-  document.getElementById("navLinks")?.classList.toggle("active");
-}
-
-
-function closeMenu() {
-  document.getElementById("navLinks")?.classList.remove("active");
-}
-
-
-function escapeHtml(value) {
-  return String(value).replace(/[&<>"']/g, char => ({
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&#39;"
-  })[char]);
-}
-
-
-function escapeAttribute(value) {
-  return escapeHtml(value);
-}
-
-
-(async function () {
-  const authenticated = await checkAuth();
-
-  if (!authenticated) return;
-
-  await loadVideos();
-})();
-</script>
-</body>
-</html>
+  </section>    <div class="container search-area">  
+    <label class="search-box">  
+      <span class="search-icon">⌕</span>  
+      <input  
+        id="videoSearch"  
+        type="search"  
+        placeholder="Search videos by title or description..."  
+        autocomplete="off"  
+        aria-label="Search videos">  
+    </label>  
+  </div>    <section id="videos">  
+    <div class="container">  <div class="section-head">  
+    <div>  
+      <div class="section-label">Discover</div>  
+      <h2>Latest Videos</h2>  
+      <p>Explore the latest content available on Empire.</p>  
+    </div>  
+
+    <button class="btn btn-dark" type="button" onclick="loadVideos()">↻ Refresh</button>  
+  </div>  
+
+  <div class="grid" id="videoGrid">  
+    <div class="status">  
+      <strong>Loading videos...</strong>  
+      Please wait.  
+    </div>  
+  </div>  
+
+</div>
+
+  </section>    <section class="featured">  
+    <div class="container feature-box">  <div class="feature-video" id="featuredVideoArea">  
+    <div class="play">▶</div>  
+  </div>  
+
+  <div class="feature-copy">  
+    <div class="eyebrow">Featured premiere</div>  
+
+    <h2 id="featuredTitle">Your Empire Library</h2>  
+
+    <p id="featuredDescription">  
+      Discover a featured video from the Empire library.  
+    </p>  
+
+    <ul class="feature-list">  
+      <li>Free and premium video content</li>  
+      <li>Secure video access for signed-in users</li>  
+      <li>Designed for mobile and desktop</li>  
+    </ul>  
+
+    <button  
+      class="btn btn-gold"  
+      id="featuredButton"  
+      type="button"  
+      onclick="openFeatured()"  
+      style="display:none">  
+      ▶ Watch Video  
+    </button>  
+  </div>  
+
+</div>
+
+  </section>  </main>  <footer>  
+  <div class="container">  <div class="footer-inner">  
+  <div>© 2026 Empire. All rights reserved.</div>  
+  <div>Royal Cinematic Video Experience</div>  
+</div>  
+
+<p class="footer-note">  
+  Premium access is subject to payment verification.  
+  Features shown as planned on the About page may not yet be available.  
+</p>
+
+  </div>  
+</footer>  <div class="modal" id="videoModal" onclick="outsideClose(event)">  
+  <div class="video-modal-box">  <button class="close" type="button" onclick="closeVideo()" aria-label="Close video">×</button>  
+
+<h2 id="modalTitle">Video</h2>  
+<p id="modalDescription">Loading...</p>  
+
+<video  
+  id="videoPlayer"  
+  class="video-player"  
+  controls  
+  playsinline  
+  preload="metadata">  
+</video>
+
+  </div>  
+</div>  <script>  
+const SUPABASE_URL = "https://vubjkwbkuwndkjqfnyom.supabase.co";  
+const SUPABASE_KEY = "sb_publishable_Ig1R3dpAKyBfjIGSUhhlKw_uC-QF0QQ";  
+  
+const supabaseClient = window.supabase.createClient(  
+  SUPABASE_URL,  
+  SUPABASE_KEY  
+);  
+  
+let videos = [];  
+let featuredVideo = null;  
+  
+async function checkAuth(){  
+  try{  
+    const {data,error} = await supabaseClient.auth.getSession();  
+    if(error) throw error;  
+  
+    const session = data?.session;  
+    const nameElement = document.getElementById("userName");  
+  
+    if(!session){  
+      if(nameElement) nameElement.textContent = "Guest";  
+      return true;  
+    }  
+  
+    const {data:profiles,error:profileError} = await supabaseClient  
+      .from("profiles")  
+      .select("id, username, display_name, is_active")  
+      .eq("id",session.user.id)  
+      .limit(1);  
+  
+    if(profileError) throw profileError;  
+  
+    if(!profiles || profiles.length === 0){  
+      await supabaseClient.auth.signOut();  
+      if(nameElement) nameElement.textContent = "Guest";  
+      return true;  
+    }  
+  
+    const profile = profiles[0];  
+  
+    if(!profile.is_active){  
+      await supabaseClient.auth.signOut();  
+      alert("Your account is currently inactive.");  
+      window.location.href = "login.html";  
+      return false;  
+    }  
+  
+    if(nameElement){  
+      nameElement.textContent =  
+        profile.display_name || profile.username || "User";  
+    }  
+  
+    return true;  
+  
+  }catch(error){  
+    console.error("AUTH CHECK ERROR:",error);  
+    const nameElement = document.getElementById("userName");  
+    if(nameElement) nameElement.textContent = "Guest";  
+    return true;  
+  }  
+}  
+  
+async function loadVideos(){  
+  const grid = document.getElementById("videoGrid");  
+  if(!grid) return;  
+  
+  grid.innerHTML = `  
+    <div class="status">  
+      <strong>Loading videos...</strong>  
+      Please wait.  
+    </div>`;  
+  
+  try{  
+    const {data,error} = await supabaseClient  
+      .from("videos")  
+      .select(`  
+        id,  
+        title,  
+        description,  
+        thumbnail_url,  
+        video_path,  
+        access_type,  
+        price,  
+        created_at  
+      `)  
+      .order("created_at",{ascending:false});  
+  
+    if(error) throw error;  
+  
+    videos = data || [];  
+  
+    if(videos.length === 0){  
+      grid.innerHTML = `  
+        <div class="status">  
+          <strong>No videos yet</strong>  
+          Your Empire video library is currently empty.  
+        </div>`;  
+      resetFeatured();  
+      return;  
+    }  
+  
+    renderVideos();  
+  
+    featuredVideo =  
+      videos.find(video => video.access_type === "free") || null;  
+  
+    if(featuredVideo){  
+      renderFeatured(featuredVideo);  
+    }else{  
+      resetFeatured();  
+    }  
+  
+  }catch(error){  
+    console.error("LOAD VIDEOS ERROR:",error);  
+    grid.innerHTML = `  
+      <div class="status error">  
+        <strong>Could not load videos</strong>  
+        ${escapeHtml(error.message || "Unknown error")}  
+      </div>`;  
+  }  
+}  
+  
+function renderVideos(){  
+  const grid = document.getElementById("videoGrid");  
+  if(!grid) return;  
+  
+  const searchInput = document.getElementById("videoSearch");  
+  const query = (searchInput?.value || "").trim().toLowerCase();  
+  
+  const filteredVideos = videos.filter(video => {  
+    const title = String(video.title || "").toLowerCase();  
+    const description = String(video.description || "").toLowerCase();  
+    return title.includes(query) || description.includes(query);  
+  });  
+  
+  if(filteredVideos.length === 0){  
+    grid.innerHTML = `  
+      <div class="status">  
+        <strong>No matching videos</strong>  
+        Try another title or search term.  
+      </div>`;  
+    return;  
+  }  
+  
+  grid.innerHTML = filteredVideos.map((video,index) => {  
+    const isPaid = video.access_type === "paid";  
+    const price = Number(video.price || 0);  
+    const thumbnail = video.thumbnail_url  
+      ? `<img src="${escapeAttribute(video.thumbnail_url)}"  
+              alt="${escapeAttribute(video.title)}"  
+              loading="lazy">`  
+      : "";  
+  
+    return `  
+      <article class="card">  
+        <div class="thumb">  
+          ${thumbnail}  
+          ${thumbnail ? '<div class="thumb-overlay"></div>' : ''}  
+  
+          <span class="video-badge ${isPaid ? 'paid' : 'free'}">  
+            ${isPaid ? `${price.toFixed(2)} USDT` : 'FREE'}  
+          </span>  
+  
+          <span class="${isPaid ? 'lock-icon' : 'play'}">  
+            ${isPaid ? '🔒' : '▶'}  
+          </span>  
+        </div>  
+  
+        <div class="card-body">  
+          <h3>${escapeHtml(video.title || "Untitled video")}</h3>  
+  
+          <p class="card-description">  
+            ${escapeHtml(video.description || "Empire video content.")}  
+          </p>  
+  
+          <div class="card-foot">  
+            <span class="tag">${isPaid ? "PREMIUM" : "FREE VIDEO"}</span>  
+  
+            ${isPaid  
+              ? `<button class="btn btn-gold" onclick="openBuy('${escapeAttribute(video.id)}')">Buy Now</button>`  
+              : `<button class="btn btn-gold" onclick="watchVideo('${escapeAttribute(video.id)}')">▶ Watch</button>`  
+            }  
+          </div>  
+        </div>  
+      </article>`;  
+  }).join("");  
+}  
+  
+document.getElementById("videoSearch")?.addEventListener("input",renderVideos);  
+  
+async function watchVideo(videoId){  
+  const video = videos.find(item => String(item.id) === String(videoId));  
+  
+  if(!video){  
+    alert("Video not found.");  
+    return;  
+  }  
+  
+  const modal = document.getElementById("videoModal");  
+  const player = document.getElementById("videoPlayer");  
+  const title = document.getElementById("modalTitle");  
+  const description = document.getElementById("modalDescription");  
+  
+  title.textContent = video.title || "Video";  
+  description.textContent = video.description || "Empire video content.";  
+  
+  player.pause();  
+  player.removeAttribute("src");  
+  player.load();  
+  modal.classList.add("open");  
+  
+  try{  
+    const {data,error} = await supabaseClient.auth.getSession();  
+    if(error) throw error;  
+  
+    const session = data?.session;  
+  
+    if(!session){  
+      closeVideo();  
+      alert("Please sign in to watch this video.");  
+      window.location.href = "login.html";  
+      return;  
+    }  
+  
+    const response = await fetch(  
+      SUPABASE_URL + "/functions/v1/get-video-url",  
+      {  
+        method:"POST",  
+        headers:{  
+          "Authorization":"Bearer " + session.access_token,  
+          "apikey":SUPABASE_KEY,  
+          "Content-Type":"application/json"  
+        },  
+        body:JSON.stringify({video_id:video.id})  
+      }  
+    );  
+  
+    const result = await response.json();  
+  
+    if(!response.ok){  
+      if(result?.code === "PURCHASE_REQUIRED"){  
+        closeVideo();  
+        await openBuy(video.id);  
+        return;  
+      }  
+      throw new Error(result?.error || "Could not get secure video URL.");  
+    }  
+  
+    if(!result?.signed_url){  
+      throw new Error("Secure video URL was not created.");  
+    }  
+  
+    player.src = result.signed_url;  
+    player.load();  
+    await player.play().catch(()=>{});  
+  
+  }catch(error){  
+    console.error("VIDEO ERROR:",error);  
+    description.textContent = error.message || "Could not load this video.";  
+  }  
+}  
+  
+async function openBuy(videoId){  
+  const video = videos.find(item => String(item.id) === String(videoId));  
+  
+  if(!video){  
+    alert("Video not found.");  
+    return;  
+  }  
+  
+  if(Number(video.price || 0) <= 0){  
+    alert("Invalid video price.");  
+    return;  
+  }  
+  
+  try{  
+    const {data:{session}} = await supabaseClient.auth.getSession();  
+  
+    if(!session){  
+      alert("Please sign in to continue with your purchase.");  
+      window.location.href = "login.html";  
+      return;  
+    }  
+  
+    const response = await fetch(  
+      SUPABASE_URL + "/functions/v1/create-purchase",  
+      {  
+        method:"POST",  
+        headers:{  
+          "Authorization":"Bearer " + session.access_token,  
+          "apikey":SUPABASE_KEY,  
+          "Content-Type":"application/json"  
+        },  
+        body:JSON.stringify({video_id:videoId})  
+      }  
+    );  
+  
+    const result = await response.json();  
+  
+    if(!response.ok){  
+      alert(result.error || "Could not create purchase.");  
+      return;  
+    }  
+  
+    if(result.already_paid){  
+      alert("You already purchased this video.");  
+      await watchVideo(videoId);  
+      return;  
+    }  
+  
+    if(!result.payment_address){  
+      alert("Payment address is not configured.");  
+      return;  
+    }  
+  
+    showPaymentModal(videoId,session,result);  
+  
+  }catch(error){  
+    console.error("BUY ERROR:",error);  
+    alert("Could not connect to payment system.");  
+  }  
+}  
+    
+/* PAYMENT MODAL */  
+  
+function showPaymentModal(videoId, session, result){  
+  
+  const paymentAddress = result.payment_address;  
+  const amount = Number(result.amount || 0).toFixed(2);  
+  
+  const expiresAt = result.expires_at  
+    ? new Date(result.expires_at)  
+    : new Date(Date.now() + 30 * 60 * 1000);  
+  
+  document.getElementById("empirePaymentModal")?.remove();  
+  
+  const modal = document.createElement("div");  
+  modal.id = "empirePaymentModal";  
+  
+  modal.style.cssText = `  
+    position:fixed;  
+    inset:0;  
+    z-index:99999;  
+    background:rgba(0,0,0,.88);  
+    display:flex;  
+    align-items:center;  
+    justify-content:center;  
+    padding:16px;  
+    overflow:auto;  
+  `;  
+  
+  modal.innerHTML = `  
+    <div style="  
+      width:100%;  
+      max-width:520px;  
+      background:#101010;  
+      color:#fff;  
+      border:1px solid rgba(230,189,88,.45);  
+      border-radius:18px;  
+      padding:22px;  
+      font-family:Arial,sans-serif;  
+    ">  
+  
+      <div style="  
+        display:flex;  
+        justify-content:space-between;  
+        align-items:center;  
+        gap:10px;  
+        margin-bottom:20px;  
+      ">  
+        <h2 style="color:#e6bd58;margin:0">Empire Payment</h2>  
+        <button id="paymentClose" type="button"  
+          style="background:none;border:0;color:#aaa;font-size:28px">  
+          ×  
+        </button>  
+      </div>  
+  
+      <div style="  
+        background:#1a1a1a;  
+        padding:15px;  
+        border-radius:12px;  
+        margin-bottom:16px;  
+      ">  
+        <div style="font-size:13px;color:#aaa">Amount to pay</div>  
+        <div style="font-size:27px;font-weight:bold;color:#e6bd58;margin:5px 0">  
+          ${amount} USDT  
+        </div>  
+        <div style="font-size:13px;color:#aaa">Network: TRON (TRC20)</div>  
+      </div>  
+  
+      <label for="paymentAddress" style="font-size:13px;color:#aaa">  
+        Payment address  
+      </label>  
+  
+      <div style="display:flex;gap:8px;margin:8px 0 15px">  
+        <input id="paymentAddress" readonly  
+          style="  
+            flex:1;min-width:0;background:#1a1a1a;color:#fff;  
+            border:1px solid #333;border-radius:8px;padding:12px;  
+          ">  
+        <button id="paymentCopy" type="button"  
+          style="  
+            background:#e6bd58;color:#111;border:0;border-radius:8px;  
+            padding:0 13px;font-weight:bold;  
+          ">Copy</button>  
+      </div>  
+  
+      <p style="font-size:12px;color:#aaa;margin-bottom:16px">  
+        Send exactly ${amount} USDT on TRON (TRC20). Make sure the network  
+        and amount are correct before sending.  
+      </p>  
+  
+      <div style="  
+        background:#1a1a1a;border-radius:10px;padding:12px;  
+        text-align:center;margin-bottom:16px;  
+      ">  
+        <div style="font-size:12px;color:#aaa">Payment request expires in</div>  
+        <div id="paymentTimer"  
+          style="font-size:22px;color:#e6bd58;font-weight:bold;margin-top:4px">  
+          30:00  
+        </div>  
+      </div>  
+  
+      <label for="paymentTxid" style="font-size:13px;color:#aaa">  
+        Transaction ID (TXID)  
+      </label>  
+  
+      <input id="paymentTxid" type="text" autocomplete="off"  
+        placeholder="Enter your TRON transaction TXID"  
+        style="  
+          display:block;width:100%;margin:8px 0 13px;padding:13px;  
+          background:#1a1a1a;color:#fff;border:1px solid #333;  
+          border-radius:9px;box-sizing:border-box;  
+        ">  
+  
+      <button id="paymentVerify" type="button"  
+        style="  
+          width:100%;padding:14px;background:#e6bd58;color:#111;  
+          border:0;border-radius:10px;font-weight:bold;  
+        ">Verify Payment</button>  
+  
+      <p id="paymentMessage"  
+        style="min-height:20px;margin-top:12px;text-align:center;  
+        color:#aaa;font-size:13px;overflow-wrap:anywhere"></p>  
+  
+    </div>  
+  `;  
+  
+  document.body.appendChild(modal);  
+  
+  const addressInput = document.getElementById("paymentAddress");  
+  const copyButton = document.getElementById("paymentCopy");  
+  const closeButton = document.getElementById("paymentClose");  
+  const txidInput = document.getElementById("paymentTxid");  
+  const verifyButton = document.getElementById("paymentVerify");  
+  const message = document.getElementById("paymentMessage");  
+  const timer = document.getElementById("paymentTimer");  
+  
+  addressInput.value = paymentAddress;  
+  
+  let timerInterval = null;  
+  
+  function closePayment(){  
+    if(timerInterval) clearInterval(timerInterval);  
+    modal.remove();  
+  }  
+  
+  closeButton.onclick = closePayment;  
+  
+  copyButton.onclick = async () => {  
+    try{  
+      await navigator.clipboard.writeText(paymentAddress);  
+      copyButton.textContent = "Copied!";  
+    }catch(error){  
+      addressInput.select();  
+      try{  
+        document.execCommand("copy");  
+        copyButton.textContent = "Copied!";  
+      }catch(copyError){  
+        message.textContent = "Please copy the address manually.";  
+      }  
+    }  
+  
+    setTimeout(() => {  
+      if(copyButton.isConnected) copyButton.textContent = "Copy";  
+    },1800);  
+  };  
+  
+  function updatePaymentTimer(){  
+    const remaining = expiresAt.getTime() - Date.now();  
+  
+    if(remaining <= 0){  
+      timer.textContent = "Expired";  
+      verifyButton.disabled = true;  
+      message.textContent = "This payment request has expired. Create a new purchase.";  
+      if(timerInterval) clearInterval(timerInterval);  
+      return;  
+    }  
+  
+    const totalSeconds = Math.floor(remaining / 1000);  
+    const minutes = Math.floor(totalSeconds / 60);  
+    const seconds = totalSeconds % 60;  
+  
+    timer.textContent =  
+      String(minutes).padStart(2,"0") + ":" +  
+      String(seconds).padStart(2,"0");  
+  }  
+  
+  updatePaymentTimer();  
+  timerInterval = setInterval(updatePaymentTimer,1000);  
+  
+  verifyButton.onclick = async () => {  
+    const txid = txidInput.value.trim();  
+  
+    if(!txid){  
+      message.textContent = "Please enter the transaction TXID.";  
+      return;  
+    }  
+  
+    if(Date.now() >= expiresAt.getTime()){  
+      message.textContent = "This payment request has expired.";  
+      return;  
+    }  
+  
+    verifyButton.disabled = true;  
+    verifyButton.textContent = "Verifying...";  
+    message.textContent = "Checking transaction. Please wait...";  
+  
+    try{  
+      const verifyResponse = await fetch(  
+        SUPABASE_URL + "/functions/v1/verify-payment",  
+        {  
+          method:"POST",  
+          headers:{  
+            "Authorization":"Bearer " + session.access_token,  
+            "apikey":SUPABASE_KEY,  
+            "Content-Type":"application/json"  
+          },  
+          body:JSON.stringify({  
+            purchase_id:result.purchase_id,  
+            txid:txid  
+          })  
+        }  
+      );  
+  
+      const verifyResult = await verifyResponse.json();  
+  
+      if(  
+        verifyResponse.ok &&  
+        verifyResult.success &&  
+        verifyResult.status === "paid"  
+      ){  
+        message.textContent = "Payment verified successfully!";  
+  
+        if(timerInterval) clearInterval(timerInterval);  
+  
+        setTimeout(async () => {  
+          closePayment();  
+          await watchVideo(videoId);  
+        },900);  
+  
+        return;  
+      }  
+  
+      message.textContent =  
+        verifyResult.message ||  
+        verifyResult.error ||  
+        "Payment has not been verified yet.";  
+  
+    }catch(error){  
+      console.error("PAYMENT VERIFICATION ERROR:",error);  
+      message.textContent = "Could not connect to the payment system.";  
+    }  
+  
+    verifyButton.disabled = false;  
+    verifyButton.textContent = "Verify Payment";  
+  };  
+}  
+  
+/* FEATURED VIDEO */  
+  
+function renderFeatured(video){  
+  if(!video){  
+    resetFeatured();  
+    return;  
+  }  
+  
+  featuredVideo = video;  
+  
+  const title = document.getElementById("featuredTitle");  
+  const description = document.getElementById("featuredDescription");  
+  const button = document.getElementById("featuredButton");  
+  const area = document.getElementById("featuredVideoArea");  
+  
+  title.textContent = video.title || "Featured Video";  
+  description.textContent = video.description || "Discover this Empire video.";  
+  
+  button.style.display = "inline-flex";  
+  button.onclick = () => watchVideo(video.id);  
+  
+  if(video.thumbnail_url){  
+    area.innerHTML = `  
+      <img  
+        src="${escapeAttribute(video.thumbnail_url)}"  
+        alt="${escapeAttribute(video.title || "Featured video")}"  
+        loading="lazy">  
+      <div class="thumb-overlay"></div>  
+      <button class="play" type="button"  
+        aria-label="Watch featured video"  
+        style="border:0;cursor:pointer"  
+        onclick="watchVideo('${escapeAttribute(video.id)}')">▶</button>  
+    `;  
+  }else{  
+    area.innerHTML = `  
+      <button class="play" type="button"  
+        aria-label="Watch featured video"  
+        style="border:0;cursor:pointer"  
+        onclick="watchVideo('${escapeAttribute(video.id)}')">▶</button>  
+    `;  
+  }  
+}  
+  
+function resetFeatured(){  
+  featuredVideo = null;  
+  
+  document.getElementById("featuredTitle").textContent =  
+    "Your Empire Library";  
+  
+  document.getElementById("featuredDescription").textContent =  
+    "Discover featured videos from the Empire library.";  
+  
+  document.getElementById("featuredButton").style.display = "none";  
+  
+  document.getElementById("featuredVideoArea").innerHTML =  
+    '<div class="play">▶</div>';  
+}  
+  
+function openFeatured(){  
+  if(featuredVideo) watchVideo(featuredVideo.id);  
+}  
+  
+/* CLOSE VIDEO */  
+  
+function closeVideo(){  
+  const modal = document.getElementById("videoModal");  
+  const player = document.getElementById("videoPlayer");  
+  
+  if(player){  
+    player.pause();  
+    player.removeAttribute("src");  
+    player.load();  
+  }  
+  
+  if(modal) modal.classList.remove("open");  
+}  
+  
+function outsideClose(event){  
+  if(event.target.id === "videoModal"){  
+    closeVideo();  
+  }  
+}  
+  
+/* MOBILE MENU */  
+  
+function toggleMenu(){  
+  const links = document.getElementById("mainLinks");  
+  if(!links) return;  
+  
+  links.style.display =  
+    links.style.display === "flex" ? "none" : "flex";  
+}  
+  
+function closeMenu(){  
+  const links = document.getElementById("mainLinks");  
+  
+  if(window.innerWidth <= 850 && links){  
+    links.style.display = "none";  
+  }  
+}  
+  
+/* SAFE TEXT OUTPUT */  
+  
+function escapeHtml(value){  
+  return String(value ?? "")  
+    .replaceAll("&","&amp;")  
+    .replaceAll("<","&lt;")  
+    .replaceAll(">","&gt;")  
+    .replaceAll('"',"&quot;")  
+    .replaceAll("'","&#039;");  
+}  
+  
+function escapeAttribute(value){  
+  return escapeHtml(value);  
+}  
+  
+/* START */  
+  
+(async function(){  
+  const authenticated = await checkAuth();  
+  
+  if(!authenticated) return;  
+  
+  await loadVideos();  
+})();  
+</script> 
+</body>  
+</html>  
