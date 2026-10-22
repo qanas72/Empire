@@ -4,41 +4,71 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Empire — Private Video</title>
+<title>Empire | Royal Video Experience</title>
 
-<meta name="description" content="Empire — private video platform.">
+<meta name="description" content="Discover free and premium videos on Empire.">
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
+:root{
+  --gold:#e6bd58;
+  --gold-light:#fff0b0;
+  --bg:#080808;
+  --panel:rgba(16,16,16,.88);
+  --muted:#aaa;
+  --border:rgba(255,255,255,.12);
+}
 
 *{
   box-sizing:border-box;
   margin:0;
-  padding:0
+  padding:0;
 }
 
 html{
-  scroll-behavior:smooth
+  scroll-behavior:smooth;
 }
 
 body{
   font-family:Inter,Arial,Helvetica,sans-serif;
-  background:#080808;
+  background:var(--bg);
   color:#f7f7f7;
-  line-height:1.5
+  line-height:1.6;
+  min-height:100vh;
+}
+
+body::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  z-index:-1;
+  pointer-events:none;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(0,0,0,.78),
+      rgba(0,0,0,.93)
+    ),
+    url("empire-background.png") center/cover no-repeat;
 }
 
 a{
+  color:inherit;
   text-decoration:none;
-  color:inherit
+}
+
+button,input{
+  font:inherit;
 }
 
 button{
-  font:inherit
+  cursor:pointer;
 }
 
 .container{
   width:min(1180px,92%);
-  margin:auto
+  margin:auto;
 }
 
 /* HEADER */
@@ -46,58 +76,62 @@ button{
 header{
   position:sticky;
   top:0;
-  z-index:20;
-  background:rgba(8,8,8,.9);
-  backdrop-filter:blur(14px);
-  border-bottom:1px solid #ffffff12
+  z-index:100;
+  background:rgba(5,5,5,.88);
+  backdrop-filter:blur(18px);
+  border-bottom:1px solid var(--border);
 }
 
 .nav{
-  height:72px;
+  min-height:72px;
   display:flex;
   align-items:center;
-  justify-content:space-between
+  justify-content:space-between;
+  gap:20px;
 }
 
 .brand{
   display:flex;
   align-items:center;
-  gap:11px;
+  gap:10px;
   font-size:23px;
   font-weight:900;
-  letter-spacing:.5px
+  letter-spacing:2px;
 }
 
-.crown{
-  width:39px;
-  height:39px;
-  border-radius:11px;
-  display:grid;
-  place-items:center;
-  background:linear-gradient(135deg,#f6c453,#9a6414);
-  color:#111;
-  font-size:21px
+.brand-mark{
+  color:var(--gold);
+  font-size:27px;
 }
 
 .links{
   display:flex;
-  gap:27px;
-  color:#bdbdbd;
+  align-items:center;
+  gap:26px;
+  color:#ccc;
   font-size:14px;
-  align-items:center
 }
 
-.links a:hover{
-  color:#fff
+.links a:hover,
+.nav-actions a:hover{
+  color:var(--gold);
+}
+
+.nav-actions{
+  display:flex;
+  align-items:center;
+  gap:16px;
+  font-size:13px;
 }
 
 .menu{
   display:none;
-  background:none;
-  border:0;
-  color:#fff;
-  font-size:27px;
-  cursor:pointer
+  border:1px solid var(--border);
+  border-radius:9px;
+  padding:7px 11px;
+  background:#111;
+  color:white;
+  font-size:22px;
 }
 
 /* BUTTONS */
@@ -106,146 +140,197 @@ header{
   display:inline-flex;
   align-items:center;
   justify-content:center;
-  border-radius:10px;
-  padding:13px 21px;
-  font-weight:800;
+  gap:8px;
+  padding:11px 18px;
   border:1px solid transparent;
-  cursor:pointer;
-  transition:.2s
-}
-
-.btn-gold{
-  background:linear-gradient(135deg,#f1c75a,#a86e16);
-  color:#111
-}
-
-.btn-dark{
-  background:#ffffff0a;
-  border-color:#ffffff18;
-  color:#fff
+  border-radius:10px;
+  font-weight:800;
+  transition:.2s;
 }
 
 .btn:hover{
-  transform:translateY(-1px)
+  transform:translateY(-2px);
+}
+
+.btn-gold{
+  color:#111;
+  background:linear-gradient(135deg,var(--gold-light),#bd8524);
+}
+
+.btn-dark{
+  color:white;
+  background:#ffffff0b;
+  border-color:var(--border);
 }
 
 .btn:disabled{
-  opacity:.5;
+  opacity:.55;
   cursor:not-allowed;
-  transform:none
+  transform:none;
 }
 
 /* HERO */
 
 .hero{
-  min-height:620px;
+  min-height:540px;
   display:flex;
   align-items:center;
   position:relative;
-  overflow:hidden
+  overflow:hidden;
+  border-bottom:1px solid rgba(255,255,255,.07);
 }
 
-.hero:before{
+.hero::before{
   content:"";
   position:absolute;
-  inset:-30%;
-  background:
-    radial-gradient(circle at 70% 45%,#d19a2d24,transparent 27%),
-    radial-gradient(circle at 25% 40%,#ffffff0d,transparent 25%);
-  pointer-events:none
+  width:480px;
+  height:480px;
+  right:-100px;
+  top:0;
+  border-radius:50%;
+  background:rgba(207,157,52,.10);
+  filter:blur(100px);
+  pointer-events:none;
 }
 
-.hero-inner{
+.hero-content{
   position:relative;
-  z-index:1;
-  padding:80px 0
+  padding:85px 0;
+  max-width:780px;
 }
 
 .eyebrow{
-  color:#e3b84e;
-  font-weight:800;
-  font-size:13px;
-  letter-spacing:2px;
+  color:var(--gold);
+  font-size:12px;
+  font-weight:900;
+  letter-spacing:3px;
   text-transform:uppercase;
-  margin-bottom:17px
+  margin-bottom:18px;
 }
 
 .hero h1{
-  font-size:clamp(48px,8vw,88px);
-  line-height:.98;
-  max-width:780px;
-  margin-bottom:22px
+  font-size:clamp(44px,7vw,82px);
+  line-height:1.04;
+  letter-spacing:-2px;
+  margin-bottom:23px;
 }
 
 .gold{
-  background:linear-gradient(90deg,#fff1b0,#d69a2e);
+  background:linear-gradient(90deg,#fff2b9,#d29a2d);
   -webkit-background-clip:text;
   background-clip:text;
-  color:transparent
+  color:transparent;
 }
 
 .hero p{
-  max-width:650px;
-  color:#a9a9a9;
-  font-size:18px;
-  margin-bottom:30px
+  max-width:600px;
+  color:#b3b3b3;
+  font-size:17px;
+  margin-bottom:28px;
 }
 
-.hero-stats{
+.hero-actions{
   display:flex;
-  gap:38px;
-  margin-top:45px;
-  color:#9b9b9b;
-  font-size:13px
+  gap:12px;
+  flex-wrap:wrap;
 }
 
-.hero-stats strong{
-  display:block;
-  color:#fff;
-  font-size:22px
+.hero-note{
+  margin-top:35px;
+  font-size:12px;
+  color:#929292;
+}
+
+/* SEARCH */
+
+.search-area{
+  padding:30px 0 0;
+}
+
+.search-box{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  width:100%;
+  padding:5px 15px;
+  background:rgba(15,15,15,.92);
+  border:1px solid var(--border);
+  border-radius:13px;
+}
+
+.search-icon{
+  color:var(--gold);
+  font-size:21px;
+}
+
+.search-box input{
+  flex:1;
+  min-width:0;
+  padding:12px 0;
+  background:transparent;
+  border:0;
+  outline:none;
+  color:white;
+}
+
+.search-box input::placeholder{
+  color:#777;
 }
 
 /* SECTIONS */
 
 section{
-  padding:75px 0
+  padding:65px 0;
 }
 
 .section-head{
   display:flex;
-  align-items:end;
   justify-content:space-between;
-  margin-bottom:27px
+  align-items:end;
+  gap:15px;
+  margin-bottom:26px;
 }
 
 .section-head h2{
-  font-size:32px
+  font-size:clamp(25px,4vw,34px);
+  letter-spacing:-.5px;
 }
 
 .section-head p{
-  color:#858585;
-  font-size:14px
+  color:#909090;
+  font-size:13px;
+  margin-top:5px;
 }
+
+.section-label{
+  color:var(--gold);
+  font-size:11px;
+  font-weight:800;
+  letter-spacing:2px;
+  text-transform:uppercase;
+  margin-bottom:6px;
+}
+
+/* VIDEO GRID */
 
 .grid{
   display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:20px
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:20px;
 }
 
-/* CARDS */
-
 .card{
-  background:#101010;
-  border:1px solid #ffffff12;
-  border-radius:16px;
+  min-width:0;
   overflow:hidden;
-  transition:.2s
+  border:1px solid var(--border);
+  border-radius:15px;
+  background:var(--panel);
+  transition:transform .22s,border-color .22s;
 }
 
 .card:hover{
-  transform:translateY(-3px);
-  border-color:#ffffff24
+  transform:translateY(-4px);
+  border-color:rgba(230,189,88,.42);
 }
 
 .thumb{
@@ -254,224 +339,221 @@ section{
   display:flex;
   align-items:center;
   justify-content:center;
+  overflow:hidden;
   background:
-    radial-gradient(circle at 70% 30%,#d6a53555,transparent 30%),
-    linear-gradient(135deg,#262626,#0e0e0e);
-  overflow:hidden
-}
-
-.thumb.two{
-  background:
-    radial-gradient(circle at 25% 30%,#8e6a2d55,transparent 30%),
-    linear-gradient(135deg,#191919,#080808)
-}
-
-.thumb.three{
-  background:
-    radial-gradient(circle at 65% 65%,#c89c3b4d,transparent 28%),
-    linear-gradient(135deg,#242424,#0b0b0b)
+    radial-gradient(circle at 65% 35%,#b58b3944,transparent 35%),
+    linear-gradient(135deg,#252525,#090909);
 }
 
 .thumb img{
+  position:absolute;
+  inset:0;
   width:100%;
   height:100%;
   object-fit:cover;
-  position:absolute;
-  inset:0
 }
 
 .thumb-overlay{
   position:absolute;
   inset:0;
-  background:linear-gradient(to top,#000b,transparent 60%);
-  z-index:1
+  background:linear-gradient(to top,#000c,transparent 70%);
+  pointer-events:none;
 }
 
 .play{
-  width:58px;
-  height:58px;
-  border-radius:50%;
+  width:55px;
+  height:55px;
+  position:relative;
+  z-index:2;
   display:grid;
   place-items:center;
-  background:#ffffffdd;
-  color:#111;
-  font-size:22px;
   padding-left:3px;
-  position:relative;
-  z-index:2
+  border-radius:50%;
+  color:#111;
+  background:#ffffffdf;
+  font-size:21px;
 }
 
 .lock-icon{
-  width:58px;
-  height:58px;
-  border-radius:50%;
+  width:55px;
+  height:55px;
+  position:relative;
+  z-index:2;
   display:grid;
   place-items:center;
-  background:#111d;
-  border:1px solid #ffffff25;
-  color:#f1c75a;
-  font-size:24px;
-  position:relative;
-  z-index:2
+  border:1px solid #ffffff2a;
+  border-radius:50%;
+  color:var(--gold);
+  background:#080808d9;
+  font-size:23px;
 }
 
-.price-badge{
+.video-badge{
   position:absolute;
-  right:12px;
-  top:12px;
-  background:#0a0a0add;
-  border:1px solid #ffffff18;
-  border-radius:999px;
-  padding:5px 10px;
-  font-size:12px;
-  font-weight:800;
-  z-index:3
-}
-
-.free-badge{
-  position:absolute;
-  right:12px;
-  top:12px;
-  background:#0a0a0add;
-  border:1px solid #ffffff18;
-  border-radius:999px;
-  padding:5px 10px;
-  font-size:12px;
-  font-weight:800;
+  top:11px;
+  right:11px;
   z-index:3;
-  color:#c8a95d
+  padding:5px 10px;
+  border:1px solid #ffffff20;
+  border-radius:50px;
+  background:#080808e8;
+  font-size:11px;
+  font-weight:800;
+}
+
+.video-badge.free{
+  color:var(--gold);
+}
+
+.video-badge.paid{
+  color:#fff0b0;
 }
 
 .card-body{
-  padding:18px
+  padding:17px;
 }
 
 .card-body h3{
-  font-size:18px;
-  margin-bottom:7px
+  font-size:17px;
+  line-height:1.4;
+  margin-bottom:7px;
+  overflow-wrap:anywhere;
 }
 
-.card-body p{
-  color:#858585;
+.card-description{
+  min-height:42px;
+  color:#999;
   font-size:13px;
-  min-height:40px
+  overflow-wrap:anywhere;
+  white-space:pre-line;
 }
 
 .card-foot{
   display:flex;
   align-items:center;
   justify-content:space-between;
+  gap:10px;
   margin-top:17px;
-  gap:10px
 }
 
 .tag{
+  color:var(--gold);
   font-size:11px;
-  color:#c8a95d
+  font-weight:800;
 }
 
-/* STATUS */
+.card-foot .btn{
+  padding:9px 13px;
+  font-size:12px;
+}
 
 .status{
-  padding:40px 20px;
+  grid-column:1/-1;
+  padding:38px 20px;
   text-align:center;
-  color:#888;
-  border:1px solid #ffffff12;
-  background:#0e0e0e;
-  border-radius:16px
+  border:1px solid var(--border);
+  border-radius:15px;
+  background:rgba(15,15,15,.9);
+  color:#999;
+  overflow-wrap:anywhere;
 }
 
 .status strong{
   display:block;
-  color:#ddd;
+  color:#eee;
   font-size:18px;
-  margin-bottom:7px
+  margin-bottom:6px;
 }
 
 .error{
-  color:#d88;
+  color:#e9a0a0;
 }
 
 /* FEATURED */
 
 .featured{
-  background:#0d0d0d;
-  border-top:1px solid #ffffff0c;
-  border-bottom:1px solid #ffffff0c
+  background:rgba(9,9,9,.72);
+  border-top:1px solid var(--border);
+  border-bottom:1px solid var(--border);
 }
 
 .feature-box{
   display:grid;
-  grid-template-columns:1.3fr 1fr;
+  grid-template-columns:1.2fr 1fr;
   gap:35px;
-  align-items:center
+  align-items:center;
 }
 
 .feature-video{
-  min-height:330px;
-  border-radius:18px;
-  border:1px solid #ffffff12;
-  background:
-    radial-gradient(circle,#c9973444,transparent 35%),
-    #141414;
+  min-height:300px;
+  position:relative;
   display:grid;
   place-items:center;
-  overflow:hidden
+  overflow:hidden;
+  border:1px solid var(--border);
+  border-radius:17px;
+  background:
+    radial-gradient(circle,#bd8e3540,transparent 40%),
+    #111;
+}
+
+.feature-video img{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  object-fit:cover;
 }
 
 .feature-copy h2{
-  font-size:40px;
-  margin:8px 0 15px
+  font-size:clamp(28px,4vw,42px);
+  line-height:1.15;
+  margin:9px 0 14px;
+  overflow-wrap:anywhere;
 }
 
 .feature-copy p{
-  color:#929292;
-  margin-bottom:24px
-}
-
-.feature-copy ul{
-  list-style:none;
   color:#aaa;
+  margin-bottom:22px;
+  font-size:14px;
+  overflow-wrap:anywhere;
+}
+
+.feature-list{
   display:grid;
-  gap:8px;
-  margin-bottom:25px
-}
-
-.feature-copy li:before{
-  content:"✓";
-  color:#dcae3d;
-  margin-right:9px
-}
-
-/* HOW */
-
-.steps{
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:18px
-}
-
-.step{
-  padding:25px;
-  border:1px solid #ffffff12;
-  background:#0e0e0e;
-  border-radius:15px
-}
-
-.step-num{
-  color:#d8aa3c;
-  font-weight:900;
+  gap:9px;
+  list-style:none;
+  color:#b7b7b7;
   font-size:13px;
-  margin-bottom:10px
+  margin-bottom:24px;
 }
 
-.step h3{
-  margin-bottom:6px
+.feature-list li::before{
+  content:"✓";
+  color:var(--gold);
+  margin-right:9px;
 }
 
-.step p{
+/* FOOTER */
+
+footer{
+  border-top:1px solid var(--border);
+  padding:30px 0;
   color:#858585;
-  font-size:14px
+  font-size:12px;
+}
+
+.footer-inner{
+  display:flex;
+  justify-content:space-between;
+  gap:18px;
+  flex-wrap:wrap;
+}
+
+.footer-note{
+  margin-top:13px;
+  color:#666;
+  max-width:750px;
 }
 
 /* VIDEO MODAL */
@@ -479,496 +561,335 @@ section{
 .modal{
   position:fixed;
   inset:0;
-  background:#000d;
+  z-index:500;
   display:none;
   align-items:center;
   justify-content:center;
-  padding:20px;
-  z-index:50
+  padding:18px;
+  background:#000e;
 }
 
 .modal.open{
-  display:flex
+  display:flex;
 }
 
 .video-modal-box{
-  width:min(1000px,100%);
+  position:relative;
+  width:min(950px,100%);
+  max-height:95vh;
+  overflow:auto;
+  padding:20px;
+  border:1px solid var(--border);
+  border-radius:17px;
   background:#101010;
-  border:1px solid #ffffff18;
-  border-radius:18px;
-  padding:18px;
-  position:relative
 }
 
 .video-modal-box h2{
-  margin:0 45px 5px 5px;
-  font-size:24px
+  padding-right:40px;
+  font-size:23px;
+  overflow-wrap:anywhere;
 }
 
 .video-modal-box p{
-  color:#888;
-  font-size:14px;
-  margin:0 5px 15px
+  margin:6px 0 15px;
+  color:#999;
+  font-size:13px;
+  overflow-wrap:anywhere;
 }
 
 .video-player{
+  display:block;
   width:100%;
   max-height:70vh;
+  border-radius:10px;
   background:#000;
-  border-radius:12px;
-  display:block
 }
 
 .close{
   position:absolute;
-  right:18px;
-  top:14px;
+  top:12px;
+  right:15px;
   border:0;
-  background:none;
-  color:#888;
-  font-size:30px;
-  cursor:pointer
+  background:transparent;
+  color:#aaa;
+  font-size:29px;
 }
 
 .close:hover{
-  color:#fff
+  color:white;
 }
 
-/* USER */
-
-.user-area{
-  display:flex;
-  align-items:center;
-  gap:10px
-}
-
-.user-name{
-  color:#bdbdbd;
-  font-size:13px
-}
-
-.logout-btn{
-  border:1px solid #ffffff18;
-  background:#ffffff08;
-  color:#aaa;
-  padding:8px 12px;
-  border-radius:8px;
-  cursor:pointer;
-  font-size:12px
-}
-
-.logout-btn:hover{
-  color:#fff;
-  border-color:#ffffff30
-}
-
-/* FOOTER */
-
-footer{
-  border-top:1px solid #ffffff10;
-  padding:35px 0;
-  color:#707070;
-  font-size:13px
-}
-
-.footer-inner{
-  display:flex;
-  justify-content:space-between;
-  gap:20px
-}
-
-.notice{
-  margin-top:14px;
-  color:#5e5e5e;
-  font-size:12px;
-  max-width:720px
-}
-
-/* RESPONSIVE */
+/* MOBILE */
 
 @media(max-width:850px){
-
-  .links{
-    display:none
+  .nav{
+    min-height:65px;
   }
 
   .menu{
-    display:block
+    display:block;
   }
 
-  .grid,
-  .steps{
-    grid-template-columns:1fr
+  .links{
+    display:none;
+    position:absolute;
+    top:65px;
+    left:4%;
+    right:4%;
+    padding:17px;
+    flex-direction:column;
+    align-items:stretch;
+    gap:0;
+    border:1px solid var(--border);
+    border-radius:12px;
+    background:#101010;
   }
 
-  .feature-box{
-    grid-template-columns:1fr
+  .links a{
+    padding:12px 8px;
+  }
+
+  .nav-actions{
+    gap:11px;
+  }
+
+  .nav-actions .user-name{
+    display:none;
   }
 
   .hero{
-    min-height:570px
+    min-height:480px;
   }
 
-  .hero-stats{
-    gap:20px;
-    flex-wrap:wrap
+  .hero-content{
+    padding:65px 0;
   }
 
-  .section-head{
-    align-items:start;
-    gap:10px;
-    flex-direction:column
+  .grid{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:12px;
   }
 
-  .footer-inner{
-    flex-direction:column
+  .thumb{
+    height:155px;
   }
 
-  .user-name{
-    display:none
+  .card-body{
+    padding:12px;
   }
 
-  .video-modal-box{
-    padding:12px
+  .card-body h3{
+    font-size:14px;
   }
 
+  .card-description{
+    font-size:12px;
+    min-height:48px;
+  }
+
+  .card-foot{
+    align-items:flex-start;
+    flex-direction:column;
+  }
+
+  .card-foot .btn{
+    width:100%;
+  }
+
+  .feature-box{
+    grid-template-columns:1fr;
+    gap:22px;
+  }
+
+  .feature-video{
+    min-height:230px;
+  }
+
+  section{
+    padding:45px 0;
+  }
 }
 
+@media(max-width:390px){
+  .brand{
+    font-size:18px;
+  }
+
+  .nav-actions{
+    gap:8px;
+    font-size:12px;
+  }
+
+  .grid{
+    gap:9px;
+  }
+
+  .thumb{
+    height:125px;
+  }
+
+  .hero h1{
+    font-size:42px;
+  }
+
+  .btn{
+    padding:10px 13px;
+  }
+}
 </style>
 </head>
 
 <body>
 
 <header>
-
   <div class="container nav">
 
-    <a class="brand" href="#home">
-      <span class="crown">♛</span>
-      EMPIRE
+    <a class="brand" href="#home" aria-label="Empire Home">
+      <span class="brand-mark">✦</span>
+      <span>EMPIRE</span>
     </a>
 
-    <nav class="links">
+    <nav class="links" id="mainLinks">
+      <a href="#home" onclick="closeMenu()">Home</a>
+      <a href="#videos" onclick="closeMenu()">Videos</a>
+      <a href="about.html">About</a>
+    </nav>
 
-  <a href="#home">Home</a>
-  <a href="#videos">Videos</a>
-  <a href="#how">How It Works</a>
-  <a href="about.html">About</a>
+    <div class="nav-actions">
+      <a href="premium.html">Premium</a>
+      <a href="profile.html">Profile</a>
+      <span class="user-name" id="userName">Loading...</span>
+    </div>
 
-</nav>
-
-<div class="user-area">
-<a href="premium.html">Premium</a>
-  <a href="profile.html">Profile</a>
-
-  <span class="user-name" id="userName">
-    Loading...
-  </span>
-
-  <button class="logout-btn" onclick="logout()">
-    Logout
-  </button>
-
-</div>
-
-    <button class="menu" onclick="toggleMenu()">
-      ☰
-    </button>
+    <button class="menu" type="button" onclick="toggleMenu()" aria-label="Open menu">☰</button>
 
   </div>
-
 </header>
-
 
 <main id="home">
 
-<section id="videos">
+  <section class="hero">
+    <div class="container hero-content">
 
-  <div class="container">
+      <div class="eyebrow">A new era of video</div>
 
-    <div class="section-head">
+      <h1>
+        Watch what<br>
+        <span class="gold">matters.</span>
+      </h1>
 
-      <div>
-
-        <h2>
-  Latest Videos
-</h2>
-
-<p>
-  Discover the latest videos from Empire
-</p>
-
-      </div>
-
-      <button
-        class="btn btn-dark"
-        onclick="loadVideos()">
-
-        Refresh
-
-      </button>
-
-    </div>
-
-
-    <div
-  class="grid"
-  id="videoGrid">
-
-  <div class="status">
-
-    <strong>
-      Loading videos...
-    </strong>
-
-    Please wait.
-
-  </div>
-
-</div>
-
-  </div>
-
-</section>
-
-
-<section class="featured">
-
-  <div class="container feature-box">
-
-    <div
-      class="feature-video"
-      id="featuredVideoArea">
-
-      <div class="play">
-        ▶
-      </div>
-
-    </div>
-
-
-    <div class="feature-copy">
-
-      <div class="eyebrow">
-        Featured premiere
-      </div>
-
-      <h2 id="featuredTitle">
-        Your Empire Library
-      </h2>
-
-      <p id="featuredDescription">
-        Your latest free video can appear here.
+      <p>
+        Discover exclusive stories, explore new creators,
+        and enjoy a premium video experience built around you.
       </p>
 
-      <ul>
+      <div class="hero-actions">
+        <a href="#videos" class="btn btn-gold">Explore Videos</a>
+        <a href="about.html" class="btn btn-dark">Discover Empire</a>
+      </div>
 
-        <li>
-          Private video access
-        </li>
-
-        <li>
-          Free and premium content
-        </li>
-
-        <li>
-          Responsive on mobile and desktop
-        </li>
-
-      </ul>
-
-      <button
-        class="btn btn-gold"
-        id="featuredButton"
-        onclick="openFeatured()"
-        style="display:none">
-
-        Watch Video
-
-      </button>
+      <div class="hero-note">
+        FREE VIDEOS · PREMIUM CONTENT · ONE EMPIRE
+      </div>
 
     </div>
+  </section>
 
+  <div class="container search-area">
+    <label class="search-box">
+      <span class="search-icon">⌕</span>
+      <input
+        id="videoSearch"
+        type="search"
+        placeholder="Search videos by title or description..."
+        autocomplete="off"
+        aria-label="Search videos">
+    </label>
   </div>
 
-</section>
+  <section id="videos">
+    <div class="container">
 
-
-<section id="how">
-
-  <div class="container">
-
-    <div class="section-head">
-
-      <div>
-
-        <h2>
-          How Empire Works
-        </h2>
-
-        <p>
-          A simple private viewing experience
-        </p>
-
-      </div>
-
-    </div>
-
-
-    <div class="steps">
-
-      <div class="step">
-
-        <div class="step-num">
-          01
+      <div class="section-head">
+        <div>
+          <div class="section-label">Discover</div>
+          <h2>Latest Videos</h2>
+          <p>Explore the latest content available on Empire.</p>
         </div>
 
-        <h3>
-          Sign in
-        </h3>
-
-        <p>
-          Use your private Empire account to access the platform.
-        </p>
-
+        <button class="btn btn-dark" type="button" onclick="loadVideos()">↻ Refresh</button>
       </div>
 
-
-      <div class="step">
-
-        <div class="step-num">
-          02
+      <div class="grid" id="videoGrid">
+        <div class="status">
+          <strong>Loading videos...</strong>
+          Please wait.
         </div>
-
-        <h3>
-          Choose a video
-        </h3>
-
-        <p>
-          Watch free videos or choose a premium video to unlock.
-        </p>
-
-      </div>
-
-
-      <div class="step">
-
-        <div class="step-num">
-          03
-        </div>
-
-        <h3>
-          Watch
-        </h3>
-
-        <p>
-          Free videos can be watched immediately.
-          Premium videos will be available after purchase.
-        </p>
-
       </div>
 
     </div>
+  </section>
 
-  </div>
+  <section class="featured">
+    <div class="container feature-box">
 
-</section>
+      <div class="feature-video" id="featuredVideoArea">
+        <div class="play">▶</div>
+      </div>
 
+      <div class="feature-copy">
+        <div class="eyebrow">Featured premiere</div>
 
-<section id="about">
+        <h2 id="featuredTitle">Your Empire Library</h2>
 
-  <div class="container">
-
-    <div class="section-head">
-
-      <div>
-
-        <h2>
-          About Empire
-        </h2>
-
-        <p>
-          Private video publishing
+        <p id="featuredDescription">
+          Discover a featured video from the Empire library.
         </p>
 
+        <ul class="feature-list">
+          <li>Free and premium video content</li>
+          <li>Secure video access for signed-in users</li>
+          <li>Designed for mobile and desktop</li>
+        </ul>
+
+        <button
+          class="btn btn-gold"
+          id="featuredButton"
+          type="button"
+          onclick="openFeatured()"
+          style="display:none">
+          ▶ Watch Video
+        </button>
       </div>
 
     </div>
-
-
-    <div
-      class="card"
-      style="padding:28px">
-
-      <p
-        style="color:#929292;max-width:850px">
-
-        Empire is a private video platform built for
-        authenticated access to exclusive video content.
-
-        Free videos are available immediately.
-        Premium videos require purchase access.
-
-      </p>
-
-    </div>
-
-  </div>
-
-</section>
+  </section>
 
 </main>
 
-
 <footer>
+  <div class="container">
 
-  <div class="container footer-inner">
-
-    <div>
-      © 2026 Empire. All rights reserved.
+    <div class="footer-inner">
+      <div>© 2026 Empire. All rights reserved.</div>
+      <div>Royal Cinematic Video Experience</div>
     </div>
 
-    <div>
-      Private Video Platform
-    </div>
+    <p class="footer-note">
+      Premium access is subject to payment verification.
+      Features shown as planned on the About page may not yet be available.
+    </p>
 
   </div>
-
-  <div class="container notice">
-
-    Free videos can be watched immediately.
-    Premium video payments will be connected
-    through the secure Empire payment system.
-
-  </div>
-
 </footer>
 
-
-<!-- VIDEO MODAL -->
-
-<div
-  class="modal"
-  id="videoModal"
-  onclick="outsideClose(event)">
-
+<div class="modal" id="videoModal" onclick="outsideClose(event)">
   <div class="video-modal-box">
 
-    <button
-      class="close"
-      onclick="closeVideo()">
+    <button class="close" type="button" onclick="closeVideo()" aria-label="Close video">×</button>
 
-      ×
-
-    </button>
-
-    <h2 id="modalTitle">
-      Video
-    </h2>
-
-    <p id="modalDescription">
-      Loading...
-    </p>
+    <h2 id="modalTitle">Video</h2>
+    <p id="modalDescription">Loading...</p>
 
     <video
       id="videoPlayer"
@@ -979,1842 +900,713 @@ footer{
     </video>
 
   </div>
-
 </div>
 
-
-<!-- SUPABASE -->
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
 <script>
+const SUPABASE_URL = "https://vubjkwbkuwndkjqfnyom.supabase.co";
+const SUPABASE_KEY = "sb_publishable_Ig1R3dpAKyBfjIGSUhhlKw_uC-QF0QQ";
 
-/* =========================================================
-   SUPABASE CONFIGURATION
-   ========================================================= */
-
-const SUPABASE_URL =
-  "https://vubjkwbkuwndkjqfnyom.supabase.co";
-
-const SUPABASE_KEY =
-  "sb_publishable_Ig1R3dpAKyBfjIGSUhhlKw_uC-QF0QQ";
-
-const supabaseClient =
-  window.supabase.createClient(
-    SUPABASE_URL,
-    SUPABASE_KEY
-  );
-
-
-/* =========================================================
-   GLOBAL STATE
-   ========================================================= */
+const supabaseClient = window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_KEY
+);
 
 let videos = [];
 let featuredVideo = null;
 
-
-/* =========================================================
-   AUTH CHECK
-   ========================================================= */
-
 async function checkAuth(){
-
   try{
+    const {data,error} = await supabaseClient.auth.getSession();
+    if(error) throw error;
 
-    const {
-      data,
-      error
-    } =
-      await supabaseClient.auth.getSession();
-
-    if(error){
-      throw error;
-    }
-
-    const session =
-      data?.session;
-
-    /* مهمان مجاز است Home را ببیند */
+    const session = data?.session;
+    const nameElement = document.getElementById("userName");
 
     if(!session){
-
-      const userName =
-        document.getElementById(
-          "userName"
-        );
-
-      if(userName){
-        userName.textContent =
-          "Guest";
-      }
-
+      if(nameElement) nameElement.textContent = "Guest";
       return true;
     }
 
+    const {data:profiles,error:profileError} = await supabaseClient
+      .from("profiles")
+      .select("id, username, display_name, is_active")
+      .eq("id",session.user.id)
+      .limit(1);
 
-    const user =
-      session.user;
+    if(profileError) throw profileError;
 
-
-    const {
-      data: profiles,
-      error: profileError
-    } =
-      await supabaseClient
-        .from("profiles")
-        .select(
-          "id, username, display_name, is_active"
-        )
-        .eq(
-          "id",
-          user.id
-        )
-        .limit(1);
-
-
-    if(profileError){
-      throw profileError;
-    }
-
-
-    if(
-      !profiles ||
-      profiles.length === 0
-    ){
-
+    if(!profiles || profiles.length === 0){
       await supabaseClient.auth.signOut();
-
-      const userName =
-        document.getElementById(
-          "userName"
-        );
-
-      if(userName){
-        userName.textContent =
-          "Guest";
-      }
-
+      if(nameElement) nameElement.textContent = "Guest";
       return true;
     }
 
-
-    const profile =
-      profiles[0];
-
+    const profile = profiles[0];
 
     if(!profile.is_active){
-
       await supabaseClient.auth.signOut();
-
-      alert(
-        "Your account is currently inactive."
-      );
-
+      alert("Your account is currently inactive.");
+      window.location.href = "login.html";
       return false;
     }
 
-
-    const userName =
-      document.getElementById(
-        "userName"
-      );
-
-
-    if(userName){
-
-      userName.textContent =
-        profile.display_name ||
-        profile.username ||
-        "User";
-
+    if(nameElement){
+      nameElement.textContent =
+        profile.display_name || profile.username || "User";
     }
 
-
     return true;
-
 
   }catch(error){
-
-    console.error(
-      "AUTH CHECK ERROR:",
-      error
-    );
-
-    const userName =
-      document.getElementById(
-        "userName"
-      );
-
-    if(userName){
-      userName.textContent =
-        "Guest";
-    }
-
+    console.error("AUTH CHECK ERROR:",error);
+    const nameElement = document.getElementById("userName");
+    if(nameElement) nameElement.textContent = "Guest";
     return true;
   }
-
 }
 
-/* =========================================================
-   LOAD VIDEOS
-   ========================================================= */
-
 async function loadVideos(){
-
-  const grid =
-    document.getElementById(
-      "videoGrid"
-    );
-
-
-  if(!grid){
-    return;
-  }
-
+  const grid = document.getElementById("videoGrid");
+  if(!grid) return;
 
   grid.innerHTML = `
     <div class="status">
       <strong>Loading videos...</strong>
       Please wait.
-    </div>
-  `;
-
+    </div>`;
 
   try{
+    const {data,error} = await supabaseClient
+      .from("videos")
+      .select(`
+        id,
+        title,
+        description,
+        thumbnail_url,
+        video_path,
+        access_type,
+        price,
+        created_at
+      `)
+      .order("created_at",{ascending:false});
 
-    const {
-      data,
-      error
-    } =
-      await supabaseClient
-        .from("videos")
-        .select(`
-          id,
-          title,
-          description,
-          thumbnail_url,
-          video_path,
-          access_type,
-          price,
-          created_at
-        `)
-        .order(
-          "created_at",
-          {
-            ascending:false
-          }
-        );
+    if(error) throw error;
 
-
-    if(error){
-      throw error;
-    }
-
-
-    videos =
-      data || [];
-
-
-    const videoCount =
-      document.getElementById(
-        "videoCount"
-      );
-
-    if(videoCount){
-
-      videoCount.textContent =
-        videos.length;
-
-    }
-
+    videos = data || [];
 
     if(videos.length === 0){
-
       grid.innerHTML = `
-        <div
-          class="status"
-          style="grid-column:1/-1">
-
+        <div class="status">
           <strong>No videos yet</strong>
-
-          Your Empire video library
-          is currently empty.
-
-        </div>
-      `;
-
+          Your Empire video library is currently empty.
+        </div>`;
       resetFeatured();
-
       return;
-
     }
-
 
     renderVideos();
 
-
     featuredVideo =
-      videos.find(
-        video =>
-          video.access_type === "free"
-      ) || null;
-
+      videos.find(video => video.access_type === "free") || null;
 
     if(featuredVideo){
-
-      renderFeatured(
-        featuredVideo
-      );
-
+      renderFeatured(featuredVideo);
     }else{
-
       resetFeatured();
-
     }
 
-
   }catch(error){
-
-    console.error(
-      "LOAD VIDEOS ERROR:",
-      error
-    );
-
-
+    console.error("LOAD VIDEOS ERROR:",error);
     grid.innerHTML = `
-      <div
-        class="status error"
-        style="grid-column:1/-1">
-
-        <strong>
-          Could not load videos
-        </strong>
-
-        ${escapeHtml(
-          error.message ||
-          "Unknown error"
-        )}
-
-      </div>
-    `;
-
+      <div class="status error">
+        <strong>Could not load videos</strong>
+        ${escapeHtml(error.message || "Unknown error")}
+      </div>`;
   }
-
 }
 
-
-/* =========================================================
-   RENDER VIDEO CARDS
-   ========================================================= */
 function renderVideos(){
+  const grid = document.getElementById("videoGrid");
+  if(!grid) return;
 
-  const grid =
-    document.getElementById("videoGrid");
+  const searchInput = document.getElementById("videoSearch");
+  const query = (searchInput?.value || "").trim().toLowerCase();
 
-  const premiumGrid =
-    document.getElementById("premiumVideoGrid");
+  const filteredVideos = videos.filter(video => {
+    const title = String(video.title || "").toLowerCase();
+    const description = String(video.description || "").toLowerCase();
+    return title.includes(query) || description.includes(query);
+  });
 
-  if(!grid){
+  if(filteredVideos.length === 0){
+    grid.innerHTML = `
+      <div class="status">
+        <strong>No matching videos</strong>
+        Try another title or search term.
+      </div>`;
     return;
   }
 
-  const latestVideos =
-    videos;
-
-  const premiumVideos =
-    videos.filter(
-      video =>
-        video.access_type === "paid"
-    );
-
-
-  function createVideoCard(video,index){
-
-    const thumbClass =
-      index % 3 === 1
-        ? "two"
-        : index % 3 === 2
-          ? "three"
-          : "";
-
-
-    const thumbnail =
-      video.thumbnail_url
-        ? `
-          <img
-            src="${escapeAttribute(
-              video.thumbnail_url
-            )}"
-            alt="${escapeAttribute(
-              video.title
-            )}"
-            loading="lazy">
-        `
-        : "";
-
-
-    const isPaid =
-      video.access_type === "paid";
-
-
-    const price =
-      Number(video.price || 0);
-
-
-    const badge =
-      isPaid
-
-        ? `
-          <span class="price-badge">
-            💰
-            ${price.toFixed(2)}
-            USDT
-          </span>
-        `
-
-        : `
-          <span class="free-badge">
-            🆓 Free
-          </span>
-        `;
-
-
-    const mediaIcon =
-      isPaid
-
-        ? `
-          <span class="lock-icon">
-            🔒
-          </span>
-        `
-
-        : `
-          <span
-            class="play"
-            onclick="watchVideo('${video.id}')">
-
-            ▶
-
-          </span>
-        `;
-
-
-    const actionButton =
-      isPaid
-
-        ? `
-          <button
-            class="btn btn-gold"
-            onclick="openBuy('${video.id}')">
-
-            Buy Now
-
-          </button>
-        `
-
-        : `
-          <button
-            class="btn btn-gold"
-            onclick="watchVideo('${video.id}')">
-
-            Watch
-
-          </button>
-        `;
-
+  grid.innerHTML = filteredVideos.map((video,index) => {
+    const isPaid = video.access_type === "paid";
+    const price = Number(video.price || 0);
+    const thumbnail = video.thumbnail_url
+      ? `<img src="${escapeAttribute(video.thumbnail_url)}"
+              alt="${escapeAttribute(video.title)}"
+              loading="lazy">`
+      : "";
 
     return `
       <article class="card">
-
-        <div class="thumb ${thumbClass}">
-
+        <div class="thumb">
           ${thumbnail}
+          ${thumbnail ? '<div class="thumb-overlay"></div>' : ''}
 
-          ${
-            thumbnail
-              ? `<div class="thumb-overlay"></div>`
-              : ""
-          }
+          <span class="video-badge ${isPaid ? 'paid' : 'free'}">
+            ${isPaid ? `${price.toFixed(2)} USDT` : 'FREE'}
+          </span>
 
-          ${badge}
-
-          ${mediaIcon}
-
+          <span class="${isPaid ? 'lock-icon' : 'play'}">
+            ${isPaid ? '🔒' : '▶'}
+          </span>
         </div>
-
 
         <div class="card-body">
+          <h3>${escapeHtml(video.title || "Untitled video")}</h3>
 
-          <h3>
-            ${escapeHtml(
-              video.title
-            )}
-          </h3>
-
-
-          <p>
-            ${escapeHtml(
-              video.description ||
-              "Private Empire video."
-            )}
+          <p class="card-description">
+            ${escapeHtml(video.description || "Empire video content.")}
           </p>
 
-
           <div class="card-foot">
+            <span class="tag">${isPaid ? "PREMIUM" : "FREE VIDEO"}</span>
 
-            <span class="tag">
-              ${
-                isPaid
-                  ? "Premium"
-                  : "Free"
-              }
-            </span>
-
-            ${actionButton}
-
+            ${isPaid
+              ? `<button class="btn btn-gold" onclick="openBuy('${escapeAttribute(video.id)}')">Buy Now</button>`
+              : `<button class="btn btn-gold" onclick="watchVideo('${escapeAttribute(video.id)}')">▶ Watch</button>`
+            }
           </div>
-
         </div>
-
-      </article>
-    `;
-  }
-
-
-  /* LATEST VIDEOS */
-
-  grid.innerHTML =
-    latestVideos.length
-
-      ? latestVideos
-          .map(createVideoCard)
-          .join("")
-
-      : `
-        <div
-          class="status"
-          style="grid-column:1/-1">
-
-          <strong>
-            No videos yet
-          </strong>
-
-          Your Empire video library
-          is currently empty.
-
-        </div>
-      `;
-
-
-  /* PREMIUM VIDEOS */
-
-  if(premiumGrid){
-
-    premiumGrid.innerHTML =
-      premiumVideos.length
-
-        ? premiumVideos
-            .map(createVideoCard)
-            .join("")
-
-        : `
-          <div
-            class="status"
-            style="grid-column:1/-1">
-
-            <strong>
-              No premium videos yet
-            </strong>
-
-            Premium content will appear here.
-
-          </div>
-        `;
-  }
-
+      </article>`;
+  }).join("");
 }
-/* =========================================================
-   WATCH VIDEO
-   SECURE EDGE FUNCTION
-   ========================================================= */
+
+document.getElementById("videoSearch")?.addEventListener("input",renderVideos);
 
 async function watchVideo(videoId){
-
-  const video =
-    videos.find(
-      item =>
-        item.id === videoId
-    );
-
-
-  if(!video){
-
-    alert(
-      "Video not found."
-    );
-
-    return;
-
-  }
-
-
-  const modal =
-    document.getElementById(
-      "videoModal"
-    );
-
-  const player =
-    document.getElementById(
-      "videoPlayer"
-    );
-
-  const title =
-    document.getElementById(
-      "modalTitle"
-    );
-
-  const description =
-    document.getElementById(
-      "modalDescription"
-    );
-
-
-  if(!modal || !player){
-
-    alert(
-      "Video player is not available."
-    );
-
-    return;
-
-  }
-
-
-  if(title){
-
-    title.textContent =
-      video.title;
-
-  }
-
-
-  if(description){
-
-    description.textContent =
-      video.description ||
-      "Private Empire video.";
-
-  }
-
-
-  player.removeAttribute(
-    "src"
-  );
-
-  player.load();
-
-
-  modal.classList.add(
-    "open"
-  );
-
-
-  try{
-
-    const {
-      data,
-      error
-    } =
-      await supabaseClient.auth.getSession();
-
-
-    if(error){
-      throw error;
-    }
-
-
-    const session =
-      data?.session;
-
-
-    if(!session){
-
-  closeVideo();
-
-  alert(
-    "Please sign in to watch this video."
-  );
-
-  window.location.href =
-    "login.html";
-
-  return;
-
-}
-
-
-    const response =
-      await fetch(
-
-        SUPABASE_URL +
-        "/functions/v1/get-video-url",
-
-        {
-          method:"POST",
-
-          headers:{
-            "Authorization":
-              "Bearer " +
-              session.access_token,
-
-            "apikey":
-              SUPABASE_KEY,
-
-            "Content-Type":
-              "application/json"
-          },
-
-          body:JSON.stringify({
-            video_id:
-              video.id
-          })
-
-        }
-
-      );
-
-
-    const result =
-      await response.json();
-
-
-    if(!response.ok){
-
-      if(
-        result?.code ===
-        "PURCHASE_REQUIRED"
-      ){
-
-        closeVideo();
-
-        openBuy(
-          video.id
-        );
-
-        return;
-
-      }
-
-
-      throw new Error(
-        result?.error ||
-        "Could not get secure video URL."
-      );
-
-    }
-
-
-    if(
-      !result ||
-      !result.signed_url
-    ){
-
-      throw new Error(
-        "Secure video URL was not created."
-      );
-
-    }
-
-
-    player.src =
-      result.signed_url;
-
-
-    player.load();
-
-
-    await player.play()
-      .catch(
-        () => {}
-      );
-
-
-  }catch(error){
-
-    console.error(
-      "VIDEO ERROR:",
-      error
-    );
-
-
-    if(description){
-
-      description.textContent =
-        error.message ||
-        "Could not load this video.";
-
-    }
-
-  }
-
-}
-
-
-/* =========================================================
-   BUY NOW
-   ========================================================= */
-async function openBuy(videoId){
-
-  const video =
-    videos.find(item => item.id === videoId);
+  const video = videos.find(item => String(item.id) === String(videoId));
 
   if(!video){
     alert("Video not found.");
     return;
   }
 
-  const price =
-    Number(video.price || 0);
+  const modal = document.getElementById("videoModal");
+  const player = document.getElementById("videoPlayer");
+  const title = document.getElementById("modalTitle");
+  const description = document.getElementById("modalDescription");
 
-  if(price <= 0){
+  title.textContent = video.title || "Video";
+  description.textContent = video.description || "Empire video content.";
+
+  player.pause();
+  player.removeAttribute("src");
+  player.load();
+  modal.classList.add("open");
+
+  try{
+    const {data,error} = await supabaseClient.auth.getSession();
+    if(error) throw error;
+
+    const session = data?.session;
+
+    if(!session){
+      closeVideo();
+      alert("Please sign in to watch this video.");
+      window.location.href = "login.html";
+      return;
+    }
+
+    const response = await fetch(
+      SUPABASE_URL + "/functions/v1/get-video-url",
+      {
+        method:"POST",
+        headers:{
+          "Authorization":"Bearer " + session.access_token,
+          "apikey":SUPABASE_KEY,
+          "Content-Type":"application/json"
+        },
+        body:JSON.stringify({video_id:video.id})
+      }
+    );
+
+    const result = await response.json();
+
+    if(!response.ok){
+      if(result?.code === "PURCHASE_REQUIRED"){
+        closeVideo();
+        await openBuy(video.id);
+        return;
+      }
+      throw new Error(result?.error || "Could not get secure video URL.");
+    }
+
+    if(!result?.signed_url){
+      throw new Error("Secure video URL was not created.");
+    }
+
+    player.src = result.signed_url;
+    player.load();
+    await player.play().catch(()=>{});
+
+  }catch(error){
+    console.error("VIDEO ERROR:",error);
+    description.textContent = error.message || "Could not load this video.";
+  }
+}
+
+async function openBuy(videoId){
+  const video = videos.find(item => String(item.id) === String(videoId));
+
+  if(!video){
+    alert("Video not found.");
+    return;
+  }
+
+  if(Number(video.price || 0) <= 0){
     alert("Invalid video price.");
     return;
   }
 
-  try {
-
-    const {
-      data: { session }
-    } =
-      await supabaseClient.auth.getSession();
+  try{
+    const {data:{session}} = await supabaseClient.auth.getSession();
 
     if(!session){
+      alert("Please sign in to continue with your purchase.");
+      window.location.href = "login.html";
+      return;
+    }
 
-  alert(
-    "Please sign in to continue with your purchase."
-  );
+    const response = await fetch(
+      SUPABASE_URL + "/functions/v1/create-purchase",
+      {
+        method:"POST",
+        headers:{
+          "Authorization":"Bearer " + session.access_token,
+          "apikey":SUPABASE_KEY,
+          "Content-Type":"application/json"
+        },
+        body:JSON.stringify({video_id:videoId})
+      }
+    );
 
-  window.location.href =
-    "login.html";
-
-  return;
-}
-
-    const response =
-      await fetch(
-        SUPABASE_URL +
-        "/functions/v1/create-purchase",
-        {
-          method: "POST",
-
-          headers: {
-            "Authorization":
-              "Bearer " +
-              session.access_token,
-
-            "apikey":
-              SUPABASE_KEY,
-
-            "Content-Type":
-              "application/json"
-          },
-
-          body:
-            JSON.stringify({
-              video_id: videoId
-            })
-        }
-      );
-
-    const result =
-      await response.json();
+    const result = await response.json();
 
     if(!response.ok){
-      alert(
-        result.error ||
-        "Could not create purchase."
-      );
+      alert(result.error || "Could not create purchase.");
       return;
     }
 
     if(result.already_paid){
-
-      alert(
-        "You already purchased this video."
-      );
-
+      alert("You already purchased this video.");
       await watchVideo(videoId);
-
       return;
     }
 
     if(!result.payment_address){
-
-      alert(
-        "Payment address is not configured."
-      );
-
+      alert("Payment address is not configured.");
       return;
     }
 
-    const paymentAddress =
-      result.payment_address;
+    showPaymentModal(videoId,session,result);
 
-    const amount =
-      Number(result.amount).toFixed(2);
+  }catch(error){
+    console.error("BUY ERROR:",error);
+    alert("Could not connect to payment system.");
+  }
+}
+  
+/* PAYMENT MODAL */
 
-    const expiresAt =
-      result.expires_at
-        ? new Date(result.expires_at)
-        : null;
+function showPaymentModal(videoId, session, result){
 
-    const oldModal =
-      document.getElementById(
-        "empirePaymentModal"
-      );
+  const paymentAddress = result.payment_address;
+  const amount = Number(result.amount || 0).toFixed(2);
 
-    if(oldModal){
-      oldModal.remove();
-    }
+  const expiresAt = result.expires_at
+    ? new Date(result.expires_at)
+    : new Date(Date.now() + 30 * 60 * 1000);
 
-    const modal =
-      document.createElement("div");
+  document.getElementById("empirePaymentModal")?.remove();
 
-    modal.id =
-      "empirePaymentModal";
+  const modal = document.createElement("div");
+  modal.id = "empirePaymentModal";
 
-    modal.style.cssText = `
-      position:fixed;
-      inset:0;
-      z-index:99999;
-      background:rgba(0,0,0,.82);
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      padding:20px;
-    `;
+  modal.style.cssText = `
+    position:fixed;
+    inset:0;
+    z-index:99999;
+    background:rgba(0,0,0,.88);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:16px;
+    overflow:auto;
+  `;
 
-    modal.innerHTML = `
+  modal.innerHTML = `
+    <div style="
+      width:100%;
+      max-width:520px;
+      background:#101010;
+      color:#fff;
+      border:1px solid rgba(230,189,88,.45);
+      border-radius:18px;
+      padding:22px;
+      font-family:Arial,sans-serif;
+    ">
 
       <div style="
-        width:100%;
-        max-width:520px;
-        background:#111;
-        border:1px solid rgba(212,175,55,.45);
-        border-radius:18px;
-        padding:24px;
-        box-sizing:border-box;
-        color:#fff;
-        box-shadow:0 20px 60px rgba(0,0,0,.6);
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        gap:10px;
+        margin-bottom:20px;
       ">
-
-        <div style="
-          display:flex;
-          justify-content:space-between;
-          align-items:center;
-          margin-bottom:18px;
-        ">
-
-          <h2 style="
-            margin:0;
-            color:#d4af37;
-            font-size:22px;
-          ">
-            Payment
-          </h2>
-
-          <button
-            id="empireClosePayment"
-            style="
-              border:0;
-              background:transparent;
-              color:#aaa;
-              font-size:28px;
-              cursor:pointer;
-            "
-          >
-            ×
-          </button>
-
-        </div>
-
-        <div style="
-          background:#191919;
-          border-radius:12px;
-          padding:15px;
-          margin-bottom:15px;
-        ">
-
-          <div style="
-            color:#aaa;
-            font-size:13px;
-            margin-bottom:6px;
-          ">
-            Amount
-          </div>
-
-          <div style="
-            font-size:24px;
-            font-weight:bold;
-            color:#d4af37;
-          ">
-            ${amount} USDT
-          </div>
-
-          <div style="
-            color:#aaa;
-            margin-top:5px;
-            font-size:13px;
-          ">
-            Network: TRON (TRC20)
-          </div>
-
-        </div>
-
-        <div style="
-          color:#aaa;
-          font-size:13px;
-          margin-bottom:7px;
-        ">
-          Payment Address
-        </div>
-
-        <div style="
-          display:flex;
-          gap:8px;
-          margin-bottom:10px;
-        ">
-
-          <input
-            id="empirePaymentAddress"
-            value="${paymentAddress}"
-            readonly
-            style="
-              flex:1;
-              min-width:0;
-              background:#191919;
-              color:#fff;
-              border:1px solid #333;
-              border-radius:9px;
-              padding:12px;
-              font-size:12px;
-              box-sizing:border-box;
-            "
-          >
-
-          <button
-            id="empireCopyAddress"
-            style="
-              background:#d4af37;
-              color:#111;
-              border:0;
-              border-radius:9px;
-              padding:0 14px;
-              font-weight:bold;
-              cursor:pointer;
-            "
-          >
-            Copy
-          </button>
-
-        </div>
-
-        <div style="
-          color:#aaa;
-          font-size:12px;
-          margin-bottom:18px;
-        ">
-          Send exactly ${amount} USDT on TRON (TRC20) to the address above.
-        </div>
-
-        <div style="
-          background:#191919;
-          border-radius:10px;
-          padding:12px;
-          margin-bottom:16px;
-          text-align:center;
-        ">
-
-          <div style="
-            color:#aaa;
-            font-size:12px;
-            margin-bottom:5px;
-          ">
-            Payment expires in
-          </div>
-
-          <div
-            id="empirePaymentTimer"
-            style="
-              color:#d4af37;
-              font-size:20px;
-              font-weight:bold;
-            "
-          >
-            30:00
-          </div>
-
-        </div>
-
-        <input
-          id="empireTxid"
-          type="text"
-          placeholder="Enter TRON transaction TXID"
-          autocomplete="off"
-          style="
-            width:100%;
-            background:#191919;
-            color:#fff;
-            border:1px solid #333;
-            border-radius:9px;
-            padding:13px;
-            box-sizing:border-box;
-            margin-bottom:12px;
-            outline:none;
-          "
-        >
-
-        <button
-          id="empireVerifyPayment"
-          style="
-            width:100%;
-            background:#d4af37;
-            color:#111;
-            border:0;
-            border-radius:10px;
-            padding:14px;
-            font-size:15px;
-            font-weight:bold;
-            cursor:pointer;
-          "
-        >
-          Verify Payment
+        <h2 style="color:#e6bd58;margin:0">Empire Payment</h2>
+        <button id="paymentClose" type="button"
+          style="background:none;border:0;color:#aaa;font-size:28px">
+          ×
         </button>
-
-        <div
-          id="empirePaymentMessage"
-          style="
-            margin-top:12px;
-            text-align:center;
-            font-size:13px;
-            color:#aaa;
-            min-height:18px;
-          "
-        ></div>
-
       </div>
-    `;
 
-    document.body.appendChild(modal);
-
-    const closeButton =
-      document.getElementById(
-        "empireClosePayment"
-      );
-
-    const copyButton =
-      document.getElementById(
-        "empireCopyAddress"
-      );
-
-    const addressInput =
-      document.getElementById(
-        "empirePaymentAddress"
-      );
-
-    const txidInput =
-      document.getElementById(
-        "empireTxid"
-      );
-
-    const verifyButton =
-      document.getElementById(
-        "empireVerifyPayment"
-      );
-
-    const timer =
-      document.getElementById(
-        "empirePaymentTimer"
-      );
-
-    const message =
-      document.getElementById(
-        "empirePaymentMessage"
-      );
-
-    let timerInterval = null;
-
-    function closeModal(){
-
-      if(timerInterval){
-        clearInterval(timerInterval);
-      }
-
-      modal.remove();
-    }
-
-    closeButton.onclick =
-      closeModal;
-
-    copyButton.onclick =
-      async function(){
-
-        try {
-
-          await navigator.clipboard.writeText(
-            paymentAddress
-          );
-
-          copyButton.textContent =
-            "Copied!";
-
-          setTimeout(() => {
-            copyButton.textContent =
-              "Copy";
-          }, 1800);
-
-        } catch(error){
-
-          addressInput.select();
-
-          document.execCommand(
-            "copy"
-          );
-
-          copyButton.textContent =
-            "Copied!";
-
-          setTimeout(() => {
-            copyButton.textContent =
-              "Copy";
-          }, 1800);
-        }
-      };
-
-    function updateTimer(){
-
-      if(!expiresAt){
-        timer.textContent =
-          "30:00";
-        return;
-      }
-
-      const remaining =
-        expiresAt.getTime() -
-        Date.now();
-
-      if(remaining <= 0){
-
-        timer.textContent =
-          "Expired";
-
-        verifyButton.disabled =
-          true;
-
-        verifyButton.style.opacity =
-          "0.5";
-
-        message.textContent =
-          "This payment request has expired. Please create a new purchase.";
-
-        if(timerInterval){
-          clearInterval(timerInterval);
-        }
-
-        return;
-      }
-
-      const totalSeconds =
-        Math.floor(
-          remaining / 1000
-        );
-
-      const minutes =
-        Math.floor(
-          totalSeconds / 60
-        );
-
-      const seconds =
-        totalSeconds % 60;
-
-      timer.textContent =
-        String(minutes).padStart(2,"0") +
-        ":" +
-        String(seconds).padStart(2,"0");
-    }
-
-    updateTimer();
-
-    if(expiresAt){
-
-      timerInterval =
-        setInterval(
-          updateTimer,
-          1000
-        );
-    }
-
-    verifyButton.onclick =
-      async function(){
-
-        const txid =
-          txidInput.value.trim();
-
-        if(!txid){
-
-          message.textContent =
-            "Please enter the TXID.";
-
-          return;
-        }
-
-        verifyButton.disabled =
-          true;
-
-        verifyButton.textContent =
-          "Verifying...";
-
-        message.textContent =
-          "Checking the transaction on TRON...";
-
-        try {
-
-          const verifyResponse =
-            await fetch(
-              SUPABASE_URL +
-              "/functions/v1/verify-payment",
-              {
-                method:"POST",
-
-                headers:{
-                  "Authorization":
-                    "Bearer " +
-                    session.access_token,
-
-                  "apikey":
-                    SUPABASE_KEY,
-
-                  "Content-Type":
-                    "application/json"
-                },
-
-                body:
-                  JSON.stringify({
-                    purchase_id:
-                      result.purchase_id,
-
-                    txid:
-                      txid
-                  })
-              }
-            );
-
-          const verifyResult =
-            await verifyResponse.json();
-
-          if(
-            verifyResponse.ok &&
-            verifyResult.success &&
-            verifyResult.status === "paid"
-          ){
-
-            message.textContent =
-              "Payment verified successfully!";
-
-            if(timerInterval){
-              clearInterval(
-                timerInterval
-              );
-            }
-
-            setTimeout(
-              async function(){
-
-                closeModal();
-
-                await watchVideo(
-                  videoId
-                );
-
-              },
-              700
-            );
-
-            return;
-          }
-
-          message.textContent =
-            verifyResult.message ||
-            verifyResult.error ||
-            "Payment could not be verified yet.";
-
-          verifyButton.disabled =
-            false;
-
-          verifyButton.textContent =
-            "Verify Payment";
-
-        } catch(error){
-
-          console.error(
-            "VERIFY ERROR:",
-            error
-          );
-
-          message.textContent =
-            "Could not connect to payment system.";
-
-          verifyButton.disabled =
-            false;
-
-          verifyButton.textContent =
-            "Verify Payment";
-        }
-      };
-
-  } catch(error){
-
-    console.error(
-      "BUY ERROR:",
-      error
-    );
-
-    alert(
-      "Could not connect to payment system."
-    );
+      <div style="
+        background:#1a1a1a;
+        padding:15px;
+        border-radius:12px;
+        margin-bottom:16px;
+      ">
+        <div style="font-size:13px;color:#aaa">Amount to pay</div>
+        <div style="font-size:27px;font-weight:bold;color:#e6bd58;margin:5px 0">
+          ${amount} USDT
+        </div>
+        <div style="font-size:13px;color:#aaa">Network: TRON (TRC20)</div>
+      </div>
+
+      <label for="paymentAddress" style="font-size:13px;color:#aaa">
+        Payment address
+      </label>
+
+      <div style="display:flex;gap:8px;margin:8px 0 15px">
+        <input id="paymentAddress" readonly
+          style="
+            flex:1;min-width:0;background:#1a1a1a;color:#fff;
+            border:1px solid #333;border-radius:8px;padding:12px;
+          ">
+        <button id="paymentCopy" type="button"
+          style="
+            background:#e6bd58;color:#111;border:0;border-radius:8px;
+            padding:0 13px;font-weight:bold;
+          ">Copy</button>
+      </div>
+
+      <p style="font-size:12px;color:#aaa;margin-bottom:16px">
+        Send exactly ${amount} USDT on TRON (TRC20). Make sure the network
+        and amount are correct before sending.
+      </p>
+
+      <div style="
+        background:#1a1a1a;border-radius:10px;padding:12px;
+        text-align:center;margin-bottom:16px;
+      ">
+        <div style="font-size:12px;color:#aaa">Payment request expires in</div>
+        <div id="paymentTimer"
+          style="font-size:22px;color:#e6bd58;font-weight:bold;margin-top:4px">
+          30:00
+        </div>
+      </div>
+
+      <label for="paymentTxid" style="font-size:13px;color:#aaa">
+        Transaction ID (TXID)
+      </label>
+
+      <input id="paymentTxid" type="text" autocomplete="off"
+        placeholder="Enter your TRON transaction TXID"
+        style="
+          display:block;width:100%;margin:8px 0 13px;padding:13px;
+          background:#1a1a1a;color:#fff;border:1px solid #333;
+          border-radius:9px;box-sizing:border-box;
+        ">
+
+      <button id="paymentVerify" type="button"
+        style="
+          width:100%;padding:14px;background:#e6bd58;color:#111;
+          border:0;border-radius:10px;font-weight:bold;
+        ">Verify Payment</button>
+
+      <p id="paymentMessage"
+        style="min-height:20px;margin-top:12px;text-align:center;
+        color:#aaa;font-size:13px;overflow-wrap:anywhere"></p>
+
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+
+  const addressInput = document.getElementById("paymentAddress");
+  const copyButton = document.getElementById("paymentCopy");
+  const closeButton = document.getElementById("paymentClose");
+  const txidInput = document.getElementById("paymentTxid");
+  const verifyButton = document.getElementById("paymentVerify");
+  const message = document.getElementById("paymentMessage");
+  const timer = document.getElementById("paymentTimer");
+
+  addressInput.value = paymentAddress;
+
+  let timerInterval = null;
+
+  function closePayment(){
+    if(timerInterval) clearInterval(timerInterval);
+    modal.remove();
   }
+
+  closeButton.onclick = closePayment;
+
+  copyButton.onclick = async () => {
+    try{
+      await navigator.clipboard.writeText(paymentAddress);
+      copyButton.textContent = "Copied!";
+    }catch(error){
+      addressInput.select();
+      try{
+        document.execCommand("copy");
+        copyButton.textContent = "Copied!";
+      }catch(copyError){
+        message.textContent = "Please copy the address manually.";
+      }
+    }
+
+    setTimeout(() => {
+      if(copyButton.isConnected) copyButton.textContent = "Copy";
+    },1800);
+  };
+
+  function updatePaymentTimer(){
+    const remaining = expiresAt.getTime() - Date.now();
+
+    if(remaining <= 0){
+      timer.textContent = "Expired";
+      verifyButton.disabled = true;
+      message.textContent = "This payment request has expired. Create a new purchase.";
+      if(timerInterval) clearInterval(timerInterval);
+      return;
+    }
+
+    const totalSeconds = Math.floor(remaining / 1000);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+
+    timer.textContent =
+      String(minutes).padStart(2,"0") + ":" +
+      String(seconds).padStart(2,"0");
+  }
+
+  updatePaymentTimer();
+  timerInterval = setInterval(updatePaymentTimer,1000);
+
+  verifyButton.onclick = async () => {
+    const txid = txidInput.value.trim();
+
+    if(!txid){
+      message.textContent = "Please enter the transaction TXID.";
+      return;
+    }
+
+    if(Date.now() >= expiresAt.getTime()){
+      message.textContent = "This payment request has expired.";
+      return;
+    }
+
+    verifyButton.disabled = true;
+    verifyButton.textContent = "Verifying...";
+    message.textContent = "Checking transaction. Please wait...";
+
+    try{
+      const verifyResponse = await fetch(
+        SUPABASE_URL + "/functions/v1/verify-payment",
+        {
+          method:"POST",
+          headers:{
+            "Authorization":"Bearer " + session.access_token,
+            "apikey":SUPABASE_KEY,
+            "Content-Type":"application/json"
+          },
+          body:JSON.stringify({
+            purchase_id:result.purchase_id,
+            txid:txid
+          })
+        }
+      );
+
+      const verifyResult = await verifyResponse.json();
+
+      if(
+        verifyResponse.ok &&
+        verifyResult.success &&
+        verifyResult.status === "paid"
+      ){
+        message.textContent = "Payment verified successfully!";
+
+        if(timerInterval) clearInterval(timerInterval);
+
+        setTimeout(async () => {
+          closePayment();
+          await watchVideo(videoId);
+        },900);
+
+        return;
+      }
+
+      message.textContent =
+        verifyResult.message ||
+        verifyResult.error ||
+        "Payment has not been verified yet.";
+
+    }catch(error){
+      console.error("PAYMENT VERIFICATION ERROR:",error);
+      message.textContent = "Could not connect to the payment system.";
+    }
+
+    verifyButton.disabled = false;
+    verifyButton.textContent = "Verify Payment";
+  };
 }
-/* =========================================================
-   FEATURED VIDEO
-   ========================================================= */
+
+/* FEATURED VIDEO */
 
 function renderFeatured(video){
-
   if(!video){
-
     resetFeatured();
-
     return;
-
   }
 
+  featuredVideo = video;
 
-  const featuredTitle =
-    document.getElementById(
-      "featuredTitle"
-    );
+  const title = document.getElementById("featuredTitle");
+  const description = document.getElementById("featuredDescription");
+  const button = document.getElementById("featuredButton");
+  const area = document.getElementById("featuredVideoArea");
 
-  const featuredDescription =
-    document.getElementById(
-      "featuredDescription"
-    );
+  title.textContent = video.title || "Featured Video";
+  description.textContent = video.description || "Discover this Empire video.";
 
-  const button =
-    document.getElementById(
-      "featuredButton"
-    );
+  button.style.display = "inline-flex";
+  button.onclick = () => watchVideo(video.id);
 
-  const area =
-    document.getElementById(
-      "featuredVideoArea"
-    );
-
-
-  if(featuredTitle){
-
-    featuredTitle.textContent =
-      video.title;
-
+  if(video.thumbnail_url){
+    area.innerHTML = `
+      <img
+        src="${escapeAttribute(video.thumbnail_url)}"
+        alt="${escapeAttribute(video.title || "Featured video")}"
+        loading="lazy">
+      <div class="thumb-overlay"></div>
+      <button class="play" type="button"
+        aria-label="Watch featured video"
+        style="border:0;cursor:pointer"
+        onclick="watchVideo('${escapeAttribute(video.id)}')">▶</button>
+    `;
+  }else{
+    area.innerHTML = `
+      <button class="play" type="button"
+        aria-label="Watch featured video"
+        style="border:0;cursor:pointer"
+        onclick="watchVideo('${escapeAttribute(video.id)}')">▶</button>
+    `;
   }
-
-
-  if(featuredDescription){
-
-    featuredDescription.textContent =
-      video.description ||
-      "Featured free Empire video.";
-
-  }
-
-
-  if(button){
-
-    button.style.display =
-      "inline-flex";
-
-
-    button.textContent =
-      "Watch Video";
-
-
-    button.onclick =
-      function(){
-
-        watchVideo(
-          video.id
-        );
-
-      };
-
-  }
-
-
-  if(area){
-
-    if(video.thumbnail_url){
-
-      area.innerHTML = `
-
-        <img
-          src="${escapeAttribute(
-            video.thumbnail_url
-          )}"
-          alt="${escapeAttribute(
-            video.title
-          )}"
-          style="
-            width:100%;
-            height:330px;
-            object-fit:cover;
-            border-radius:18px;
-          ">
-
-      `;
-
-    }else{
-
-      area.innerHTML = `
-
-        <div
-          class="play"
-          onclick="watchVideo('${video.id}')"
-          style="cursor:pointer">
-
-          ▶
-
-        </div>
-
-      `;
-
-    }
-
-  }
-
 }
-
 
 function resetFeatured(){
+  featuredVideo = null;
 
-  featuredVideo =
-    null;
+  document.getElementById("featuredTitle").textContent =
+    "Your Empire Library";
 
+  document.getElementById("featuredDescription").textContent =
+    "Discover featured videos from the Empire library.";
 
-  const title =
-    document.getElementById(
-      "featuredTitle"
-    );
+  document.getElementById("featuredButton").style.display = "none";
 
-  const description =
-    document.getElementById(
-      "featuredDescription"
-    );
-
-  const button =
-    document.getElementById(
-      "featuredButton"
-    );
-
-  const area =
-    document.getElementById(
-      "featuredVideoArea"
-    );
-
-
-  if(title){
-
-    title.textContent =
-      "Your Empire Library";
-
-  }
-
-
-  if(description){
-
-    description.textContent =
-      "Your latest free video can appear here.";
-
-  }
-
-
-  if(button){
-
-    button.style.display =
-      "none";
-
-  }
-
-
-  if(area){
-
-    area.innerHTML = `
-
-      <div class="play">
-        ▶
-      </div>
-
-    `;
-
-  }
-
+  document.getElementById("featuredVideoArea").innerHTML =
+    '<div class="play">▶</div>';
 }
-
 
 function openFeatured(){
-
-  if(featuredVideo){
-
-    watchVideo(
-      featuredVideo.id
-    );
-
-  }
-
+  if(featuredVideo) watchVideo(featuredVideo.id);
 }
 
-
-/* =========================================================
-   CLOSE VIDEO
-   ========================================================= */
+/* CLOSE VIDEO */
 
 function closeVideo(){
-
-  const modal =
-    document.getElementById(
-      "videoModal"
-    );
-
-  const player =
-    document.getElementById(
-      "videoPlayer"
-    );
-
+  const modal = document.getElementById("videoModal");
+  const player = document.getElementById("videoPlayer");
 
   if(player){
-
     player.pause();
-
-
-    player.removeAttribute(
-      "src"
-    );
-
-
+    player.removeAttribute("src");
     player.load();
-
   }
 
-
-  if(modal){
-
-    modal.classList.remove(
-      "open"
-    );
-
-  }
-
+  if(modal) modal.classList.remove("open");
 }
-
 
 function outsideClose(event){
-
-  if(
-    event.target.id ===
-    "videoModal"
-  ){
-
+  if(event.target.id === "videoModal"){
     closeVideo();
-
   }
-
 }
 
-
-/* =========================================================
-   LOGOUT
-   ========================================================= */
-
-async function logout(){
-
-  const confirmed =
-    confirm(
-      "Do you want to log out?"
-    );
-
-
-  if(!confirmed){
-    return;
-  }
-
-
-  const {
-    error
-  } =
-    await supabaseClient.auth.signOut();
-
-
-  if(error){
-
-    alert(
-      "Logout failed: " +
-      error.message
-    );
-
-    return;
-
-  }
-
-
-  window.location.href =
-    "login.html";
-
-}
-
-
-/* =========================================================
-   MOBILE MENU
-   ========================================================= */
+/* MOBILE MENU */
 
 function toggleMenu(){
-
-  const links =
-    document.querySelector(
-      ".links"
-    );
-
-
-  if(!links){
-    return;
-  }
-
-
-  if(
-    links.style.display ===
-    "flex"
-  ){
-
-    links.style.display =
-      "";
-
-    return;
-
-  }
-
+  const links = document.getElementById("mainLinks");
+  if(!links) return;
 
   links.style.display =
-    "flex";
-
-
-  links.style.flexDirection =
-    "column";
-
-
-  links.style.position =
-    "absolute";
-
-
-  links.style.top =
-    "72px";
-
-
-  links.style.right =
-    "4%";
-
-
-  links.style.padding =
-    "18px";
-
-
-  links.style.background =
-    "#111";
-
-
-  links.style.border =
-    "1px solid #ffffff18";
-
-
-  links.style.borderRadius =
-    "12px";
-
+    links.style.display === "flex" ? "none" : "flex";
 }
 
+function closeMenu(){
+  const links = document.getElementById("mainLinks");
 
-/* =========================================================
-   SECURITY / HTML ESCAPING
-   ========================================================= */
+  if(window.innerWidth <= 850 && links){
+    links.style.display = "none";
+  }
+}
+
+/* SAFE TEXT OUTPUT */
 
 function escapeHtml(value){
-
-  return String(
-    value ?? ""
-  )
-
-    .replaceAll(
-      "&",
-      "&amp;"
-    )
-
-    .replaceAll(
-      "<",
-      "&lt;"
-    )
-
-    .replaceAll(
-      ">",
-      "&gt;"
-    )
-
-    .replaceAll(
-      '"',
-      "&quot;"
-    )
-
-    .replaceAll(
-      "'",
-      "&#039;"
-    );
-
+  return String(value ?? "")
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
 }
-
 
 function escapeAttribute(value){
-
-  return escapeHtml(
-    value
-  );
-
+  return escapeHtml(value);
 }
 
-
-/* =========================================================
-   START
-   ========================================================= */
+/* START */
 
 (async function(){
+  const authenticated = await checkAuth();
 
-  const authenticated =
-    await checkAuth();
-
-
-  if(!authenticated){
-    return;
-  }
-
+  if(!authenticated) return;
 
   await loadVideos();
-
 })();
-
 </script>
 
 </body>
