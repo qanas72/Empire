@@ -1,36 +1,50 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#090909">
-  <title>Empire | My Profile</title>  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>  <style>
+
+  <title>Empire | My Profile</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
     :root {
-      --bg: #090909;
-      --panel: #131313;
-      --panel2: #191919;
+      --bg: #080808;
+      --panel: #121212;
+      --panel2: #181818;
       --gold: #d6ad55;
-      --gold-light: #f4d78b;
+      --gold-light: #f5d98b;
       --text: #f5f5f5;
-      --muted: #a3a3a3;
-      --border: rgba(214,173,85,.23);
-      --green: #48d597;
+      --muted: #a6a6a6;
+      --border: rgba(214, 173, 85, .23);
+      --green: #47d18c;
       --red: #ff6464;
     }
 
-    * { box-sizing: border-box; }
+    * {
+      box-sizing: border-box;
+    }
 
     body {
       margin: 0;
       background:
-        radial-gradient(ellipse at top, rgba(214,173,85,.08), transparent 45%),
+        radial-gradient(circle at top right, #29200d 0, transparent 32%),
         var(--bg);
       color: var(--text);
       font-family: Arial, Helvetica, sans-serif;
       min-height: 100vh;
     }
 
-    button, input, textarea, select { font: inherit; }
-    button { cursor: pointer; }
+    button,
+    input {
+      font: inherit;
+    }
+
+    button,
+    a {
+      -webkit-tap-highlight-color: transparent;
+    }
 
     a {
       color: inherit;
@@ -42,398 +56,473 @@
       top: 0;
       z-index: 20;
       display: flex;
-      align-items: center;
       justify-content: space-between;
-      gap: 12px;
+      align-items: center;
+      gap: 15px;
       padding: 15px 5%;
-      background: rgba(9,9,9,.94);
+      background: rgba(8, 8, 8, .94);
       border-bottom: 1px solid var(--border);
       backdrop-filter: blur(12px);
     }
 
     .brand {
       color: var(--gold-light);
-      font-size: 22px;
+      font-size: 23px;
       font-weight: 900;
       letter-spacing: 2px;
     }
 
-    .brand span { color: white; }
-
-    .top-links {
+    .nav-links {
       display: flex;
-      flex-wrap: wrap;
-      gap: 15px;
       align-items: center;
-      font-size: 13px;
-      color: #ddd;
+      gap: 18px;
+      font-size: 14px;
+      color: var(--muted);
     }
 
-    .top-links a:hover { color: var(--gold-light); }
-
-    .container {
-      width: min(1100px, 92%);
-      margin: 28px auto 60px;
+    .nav-links a:hover {
+      color: var(--gold-light);
     }
 
-    .page-heading { margin-bottom: 20px; }
+    .page {
+      width: min(1120px, 92%);
+      margin: 32px auto 60px;
+    }
+
+    .page-heading {
+      margin-bottom: 24px;
+    }
 
     .page-heading h1 {
       margin: 0 0 8px;
-      font-size: clamp(26px, 5vw, 38px);
+      font-size: clamp(27px, 4vw, 38px);
     }
 
     .page-heading p {
       margin: 0;
       color: var(--muted);
       line-height: 1.6;
-      font-size: 14px;
     }
 
-    .gold { color: var(--gold-light); }
+    .gold {
+      color: var(--gold-light);
+    }
 
     .card {
-      background: linear-gradient(145deg, #181818, #101010);
+      background: linear-gradient(145deg, #171717, #0e0e0e);
       border: 1px solid var(--border);
       border-radius: 18px;
-      padding: 22px;
+      padding: 23px;
+      margin-bottom: 22px;
+      box-shadow: 0 12px 35px rgba(0, 0, 0, .18);
       min-width: 0;
-      box-shadow: 0 10px 35px rgba(0,0,0,.16);
     }
 
     .profile-hero {
-      position: relative;
-      overflow: hidden;
       display: grid;
-      grid-template-columns: auto 1fr;
-      gap: 22px;
+      grid-template-columns: 1fr auto;
       align-items: center;
-      margin-bottom: 20px;
+      gap: 28px;
+      overflow: hidden;
+      position: relative;
     }
 
-    .profile-hero::after {
-      content: "♛";
+    .profile-hero::before {
+      content: "";
       position: absolute;
-      right: 18px;
-      bottom: -52px;
-      font-size: 180px;
-      color: rgba(214,173,85,.045);
+      width: 260px;
+      height: 260px;
+      border-radius: 50%;
+      background: rgba(214, 173, 85, .055);
+      right: -80px;
+      top: -120px;
       pointer-events: none;
     }
 
-    .avatar-wrap {
-      width: 116px;
-      height: 116px;
+    .identity {
+      min-width: 0;
       position: relative;
-      flex-shrink: 0;
+      z-index: 1;
     }
 
-    .avatar {
-      width: 116px;
-      height: 116px;
-      object-fit: cover;
-      border-radius: 50%;
-      border: 3px solid var(--gold);
-      background: #222;
-    }
-
-    .avatar-placeholder {
-      width: 116px;
-      height: 116px;
-      display: grid;
-      place-items: center;
-      border-radius: 50%;
-      border: 3px solid var(--gold);
-      background: #222;
-      font-size: 43px;
-      color: var(--gold);
-    }
-
-    .profile-info { min-width: 0; z-index: 1; }
-
-    .profile-info h2 {
-      font-size: 26px;
-      margin: 0 0 6px;
+    .identity h2 {
+      font-size: clamp(24px, 4vw, 34px);
+      margin: 0 0 8px;
       overflow-wrap: anywhere;
     }
 
     .username {
       color: var(--muted);
-      margin-bottom: 12px;
+      margin-bottom: 15px;
       overflow-wrap: anywhere;
-      font-size: 14px;
+    }
+
+    .badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
     }
 
     .badge {
       display: inline-flex;
       align-items: center;
       gap: 6px;
+      border-radius: 30px;
       padding: 7px 11px;
-      border-radius: 100px;
-      background: rgba(214,173,85,.12);
+      font-size: 12px;
       border: 1px solid var(--border);
       color: var(--gold-light);
-      font-size: 11px;
-      font-weight: 800;
-      letter-spacing: .5px;
+      background: rgba(214, 173, 85, .08);
     }
 
-    .status-badge {
-      background: rgba(72,213,151,.1);
-      border-color: rgba(72,213,151,.3);
+    .badge.green {
       color: var(--green);
+      border-color: rgba(71, 209, 140, .3);
+      background: rgba(71, 209, 140, .07);
     }
 
-    .section-title {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-      margin: 0 0 16px;
-      font-size: 19px;
-    }
-
-    .section-title small {
-      font-size: 11px;
-      font-weight: normal;
+    .badge.gray {
       color: var(--muted);
     }
 
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 18px;
-      margin-bottom: 20px;
+    .avatar-stage {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .avatar-large-wrap {
+      width: 152px;
+      height: 152px;
+      padding: 5px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #fff0b4, #b78325, #f7df91);
+      box-shadow: 0 0 32px rgba(214, 173, 85, .18);
+    }
+
+    .avatar-large {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      object-fit: cover;
+      background: #242424;
+      display: block;
+    }
+
+    .avatar-small-row {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .avatar-small {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid var(--gold);
+      background: #242424;
+      display: block;
+    }
+
+    .btn {
+      border: 0;
+      border-radius: 10px;
+      padding: 11px 16px;
+      cursor: pointer;
+      font-weight: 700;
+      transition: .2s ease;
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      gap: 7px;
+      text-align: center;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      filter: brightness(1.08);
+    }
+
+    .btn-gold {
+      color: #17120a;
+      background: linear-gradient(135deg, #f4d98c, #c99b3d);
+    }
+
+    .btn-dark {
+      color: var(--text);
+      background: #252525;
+      border: 1px solid #393939;
+    }
+
+    .btn-danger {
+      color: #fff;
+      background: #6f2020;
+      border: 1px solid #9e3939;
+    }
+
+    .btn:disabled {
+      opacity: .6;
+      cursor: not-allowed;
+      transform: none;
     }
 
     .stats-grid {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 12px;
-      margin-bottom: 20px;
+      gap: 15px;
+      margin: 22px 0;
     }
 
-    .stat {
-      padding: 18px 12px;
+    .stat-card {
       background: var(--panel);
       border: 1px solid var(--border);
-      border-radius: 14px;
-      text-align: center;
+      border-radius: 15px;
+      padding: 19px;
       min-width: 0;
     }
 
+    .stat-label {
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 9px;
+    }
+
     .stat-value {
-      color: var(--gold-light);
-      font-size: 23px;
+      font-size: 19px;
       font-weight: 800;
       overflow-wrap: anywhere;
     }
 
-    .stat-label {
-      margin-top: 7px;
-      color: var(--muted);
-      font-size: 12px;
+    .section-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin: 0 0 18px;
+      font-size: 20px;
     }
 
-    .muted {
+    .section-title small {
+      font-size: 11px;
       color: var(--muted);
-      font-size: 13px;
-      line-height: 1.7;
+      font-weight: 400;
     }
 
-    .field { margin-bottom: 14px; }
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      min-width: 0;
+    }
 
     .field label {
-      display: block;
-      margin-bottom: 7px;
-      color: #ddd;
+      color: #d5d5d5;
       font-size: 13px;
     }
 
-    .field input,
-    .field textarea,
-    .field select {
-      display: block;
+    .field input {
       width: 100%;
-      padding: 12px 13px;
-      background: #0b0b0b;
-      border: 1px solid #383838;
+      min-width: 0;
+      padding: 13px 14px;
       border-radius: 10px;
-      color: white;
+      border: 1px solid #353535;
       outline: none;
+      color: white;
+      background: #0b0b0b;
     }
 
-    .field input:focus,
-    .field textarea:focus {
+    .field input:focus {
       border-color: var(--gold);
     }
 
-    .field textarea {
-      min-height: 85px;
-      resize: vertical;
-    }
-
-    .field input[type="file"] { padding: 9px; }
-
-    .btn {
-      display: inline-flex;
-      justify-content: center;
-      align-items: center;
-      gap: 7px;
-      padding: 11px 15px;
-      border-radius: 10px;
-      border: 1px solid transparent;
-      font-weight: 700;
-      font-size: 13px;
-      transition: .2s;
-    }
-
-    .btn:hover { transform: translateY(-1px); }
-
-    .btn-gold {
-      background: linear-gradient(135deg, var(--gold-light), #b88932);
-      color: #111;
-    }
-
-    .btn-dark {
-      background: #202020;
-      color: white;
-      border-color: #383838;
-    }
-
-    .btn-danger {
-      background: rgba(255,100,100,.1);
-      color: var(--red);
-      border-color: rgba(255,100,100,.35);
-    }
-
-    .btn:disabled {
-      opacity: .55;
+    .field input[readonly] {
+      color: #a8a8a8;
+      background: #151515;
       cursor: not-allowed;
-      transform: none;
     }
 
-    .button-row {
+    .help-text {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.6;
+    }
+
+    .form-actions {
       display: flex;
       flex-wrap: wrap;
-      gap: 9px;
+      gap: 10px;
+      margin-top: 18px;
     }
 
-    .membership-box {
-      border: 1px solid rgba(214,173,85,.35);
-      background: linear-gradient(130deg, rgba(214,173,85,.11), rgba(0,0,0,.1));
-      border-radius: 13px;
-      padding: 16px;
+    .vip-card {
+      border-color: rgba(214, 173, 85, .42);
+      background:
+        radial-gradient(circle at top right, rgba(214, 173, 85, .13), transparent 40%),
+        linear-gradient(145deg, #1b170e, #101010);
     }
 
-    .membership-plan {
-      font-size: 21px;
-      font-weight: 800;
-      color: var(--gold-light);
-      margin-bottom: 8px;
-      text-transform: capitalize;
-    }
-
-    .membership-line {
-      display: flex;
-      justify-content: space-between;
-      gap: 12px;
-      padding: 9px 0;
-      border-bottom: 1px solid rgba(255,255,255,.07);
+    .vip-status {
       font-size: 13px;
+      color: var(--muted);
+      line-height: 1.7;
+      margin-bottom: 15px;
     }
 
-    .membership-line:last-child { border-bottom: 0; }
-    .membership-line span:first-child { color: var(--muted); }
-    .membership-line span:last-child { text-align: right; overflow-wrap: anywhere; }
-
-    .rank-name {
-      font-size: 24px;
-      font-weight: 900;
-      color: var(--gold-light);
-      margin: 8px 0;
-    }
-
-    .rank-list {
+    .vip-dates {
       display: grid;
-      gap: 9px;
-      margin-top: 16px;
-    }
-
-    .rank-item {
-      display: flex;
-      justify-content: space-between;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 12px;
-      padding: 10px 12px;
-      background: #0e0e0e;
-      border: 1px solid #292929;
-      border-radius: 9px;
-      font-size: 12px;
     }
 
-    .rank-item.current {
-      border-color: var(--gold);
-      background: rgba(214,173,85,.09);
-      color: var(--gold-light);
-    }
-
-    .coming {
-      display: inline-block;
-      padding: 6px 9px;
+    .date-box {
+      background: rgba(0, 0, 0, .22);
       border: 1px solid var(--border);
-      background: rgba(214,173,85,.09);
-      border-radius: 7px;
-      color: var(--gold-light);
-      font-size: 10px;
-      font-weight: 900;
-      letter-spacing: 1px;
+      border-radius: 12px;
+      padding: 14px;
+      min-width: 0;
+    }
+
+    .date-box span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 7px;
+    }
+
+    .date-box strong {
+      font-size: 14px;
+      overflow-wrap: anywhere;
+    }
+
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+      margin-bottom: 22px;
+    }
+
+    .feature-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 22px;
+      min-width: 0;
+    }
+
+    .feature-icon {
+      font-size: 25px;
       margin-bottom: 12px;
     }
 
-    .feature-icon { font-size: 29px; margin-bottom: 12px; }
+    .feature-card h3 {
+      margin: 0 0 9px;
+      font-size: 18px;
+    }
 
-    .video-list { display: grid; gap: 11px; }
+    .feature-card p {
+      color: var(--muted);
+      line-height: 1.7;
+      font-size: 13px;
+      margin: 0 0 14px;
+    }
 
-    .video-item {
+    .coming-soon {
+      display: inline-block;
+      font-size: 10px;
+      letter-spacing: 1px;
+      font-weight: 800;
+      color: var(--gold-light);
+      border: 1px solid var(--border);
+      padding: 6px 9px;
+      border-radius: 20px;
+    }
+
+    .list {
       display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .list-item {
+      display: flex;
+      justify-content: space-between;
       align-items: center;
-      gap: 13px;
-      padding: 11px;
-      background: #0e0e0e;
-      border: 1px solid #2b2b2b;
+      gap: 15px;
+      padding: 15px;
+      background: #0b0b0b;
+      border: 1px solid #292929;
       border-radius: 12px;
       min-width: 0;
     }
 
-    .video-thumb {
-      width: 82px;
-      height: 58px;
-      flex-shrink: 0;
-      object-fit: cover;
-      border-radius: 7px;
-      background: #222;
+    .list-main {
+      min-width: 0;
     }
 
-    .video-info { min-width: 0; flex: 1; }
-
-    .video-info strong {
+    .list-main strong {
       display: block;
-      font-size: 13px;
       margin-bottom: 6px;
       overflow-wrap: anywhere;
     }
 
-    .video-info small {
+    .list-main small {
+      display: block;
       color: var(--muted);
-      font-size: 11px;
+      line-height: 1.6;
       overflow-wrap: anywhere;
     }
 
-    .empty {
-      padding: 22px 12px;
-      border: 1px dashed #393939;
-      border-radius: 12px;
+    .list-side {
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    .status-text {
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .status-paid,
+    .status-active {
+      color: var(--green);
+    }
+
+    .status-pending {
+      color: var(--gold-light);
+    }
+
+    .status-failed,
+    .status-rejected,
+    .status-expired {
+      color: var(--red);
+    }
+
+    .empty-state {
       text-align: center;
+      padding: 25px 12px;
+      color: var(--muted);
+      line-height: 1.7;
+      border: 1px dashed #333;
+      border-radius: 12px;
+    }
+
+    .danger-card {
+      border-color: rgba(255, 100, 100, .24);
+    }
+
+    .danger-card p {
       color: var(--muted);
       font-size: 13px;
       line-height: 1.7;
@@ -441,248 +530,431 @@
 
     .notice {
       display: none;
-      padding: 12px 14px;
-      margin-bottom: 16px;
+      margin-bottom: 18px;
+      padding: 13px 15px;
       border-radius: 10px;
-      font-size: 13px;
       line-height: 1.6;
+      font-size: 13px;
+    }
+
+    .notice.show {
+      display: block;
     }
 
     .notice.success {
-      display: block;
-      color: var(--green);
-      background: rgba(72,213,151,.1);
-      border: 1px solid rgba(72,213,151,.25);
+      color: #a4f3c8;
+      background: rgba(71, 209, 140, .1);
+      border: 1px solid rgba(71, 209, 140, .28);
     }
 
     .notice.error {
-      display: block;
-      color: #ff9696;
-      background: rgba(255,100,100,.1);
-      border: 1px solid rgba(255,100,100,.25);
+      color: #ffb0b0;
+      background: rgba(255, 100, 100, .1);
+      border: 1px solid rgba(255, 100, 100, .28);
     }
-
-    .notice.info {
-      display: block;
-      color: var(--gold-light);
-      background: rgba(214,173,85,.08);
-      border: 1px solid var(--border);
-    }
-
-    .footer {
-      text-align: center;
-      color: #777;
-      font-size: 12px;
-      padding: 25px 10px 35px;
-    }
-
-    .hidden { display: none !important; }
 
     .loading {
+      color: var(--muted);
+      font-size: 13px;
+      padding: 12px 0;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    footer {
+      border-top: 1px solid #222;
+      padding: 25px 5%;
+      color: #777;
       text-align: center;
-      padding: 40px 12px;
-      color: var(--gold-light);
+      font-size: 12px;
     }
 
-    hr {
-      border: 0;
-      border-top: 1px solid #2c2c2c;
-      margin: 20px 0;
-    }
+    @media (max-width: 680px) {
+      .topbar {
+        padding: 13px 4%;
+      }
 
-    @media (max-width: 650px) {
-      .topbar { padding: 13px 4%; }
-      .brand { font-size: 19px; }
-      .top-links { gap: 10px; font-size: 12px; }
-      .container { width: 92%; margin-top: 22px; }
-      .card { padding: 17px; }
-      .grid { grid-template-columns: 1fr; gap: 14px; }
-      .stats-grid { gap: 8px; }
-      .stat { padding: 14px 7px; }
-      .stat-value { font-size: 19px; }
-      .stat-label { font-size: 10px; }
-      .profile-hero { grid-template-columns: 82px 1fr; gap: 14px; padding: 17px; }
-      .avatar-wrap, .avatar, .avatar-placeholder { width: 82px; height: 82px; }
-      .avatar-placeholder { font-size: 32px; }
-      .profile-info h2 { font-size: 21px; }
-      .profile-hero::after { font-size: 110px; }
-      .section-title { font-size: 17px; }
-      .video-thumb { width: 68px; height: 51px; }
+      .brand {
+        font-size: 19px;
+      }
+
+      .nav-links {
+        gap: 12px;
+        font-size: 12px;
+      }
+
+      .page {
+        width: 92%;
+        margin-top: 22px;
+      }
+
+      .card {
+        padding: 17px;
+        border-radius: 15px;
+      }
+
+      .profile-hero {
+        grid-template-columns: 1fr;
+        text-align: center;
+        gap: 22px;
+      }
+
+      .avatar-stage {
+        grid-row: 1;
+      }
+
+      .avatar-large-wrap {
+        width: 126px;
+        height: 126px;
+      }
+
+      .avatar-small-row,
+      .badges {
+        justify-content: center;
+      }
+
+      .stats-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+      }
+
+      .stat-card {
+        padding: 15px;
+      }
+
+      .form-grid,
+      .feature-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .vip-dates {
+        grid-template-columns: 1fr;
+      }
+
+      .list-item {
+        align-items: flex-start;
+      }
+
+      .list-side {
+        max-width: 42%;
+        overflow-wrap: anywhere;
+      }
+
+      .section-title {
+        font-size: 18px;
+      }
     }
-  </style></head><body>
+  </style>
+</head>
+
+<body>
+
   <header class="topbar">
-    <a class="brand" href="index.html">♛ EMPIRE<span>.</span></a>
-    <nav class="top-links">
-      <a href="index.html">Home</a>
-      <a href="premium.html">Premium</a>
-      <a href="profile.html" class="gold">Profile</a>
+    <a class="brand" href="/Empire/index.html#home">♛ EMPIRE</a>
+
+    <nav class="nav-links">
+      <a href="/Empire/index.html#home">Home</a>
+      <a href="/Empire/premium.html">Premium</a>
+      <a href="/Empire/profile.html">Profile</a>
     </nav>
-  </header>  <main class="container">
-    <div id="loading" class="loading">Loading your Empire profile...</div><div id="pageContent" class="hidden">
-  <div class="page-heading">
-    <h1>My <span class="gold">Empire</span></h1>
-    <p>Your profile, membership and activity, all in one place.</p>
-  </div>
+  </header>
 
-  <div id="notice" class="notice"></div>
+  <main class="page">
 
-  <section class="card profile-hero">
-    <div class="avatar-wrap">
-      <img id="avatarImage" class="avatar hidden" alt="Profile picture">
-      <div id="avatarPlaceholder" class="avatar-placeholder">♛</div>
+    <div id="notice" class="notice"></div>
+
+    <div class="page-heading">
+      <h1>My <span class="gold">Profile</span></h1>
+      <p>Manage your account, membership and personal information.</p>
     </div>
 
-    <div class="profile-info">
-      <h2 id="displayName">Empire Member</h2>
-      <div id="username" class="username">@member</div>
-      <div class="button-row">
-        <span id="accountStatus" class="badge status-badge">● Active account</span>
-        <span id="vipBadge" class="badge">VIP: Checking...</span>
+    <!-- Profile header -->
+    <section class="card profile-hero">
+
+      <div class="identity">
+        <h2 id="displayName">Loading profile...</h2>
+
+        <div class="username">
+          @<span id="heroUsername">...</span>
+        </div>
+
+        <div class="badges">
+          <span class="badge green" id="accountStatus">● Active</span>
+          <span class="badge" id="vipBadge">♛ Checking VIP...</span>
+        </div>
       </div>
-    </div>
-  </section>
 
-  <section class="stats-grid">
-    <div class="stat">
-      <div class="stat-value" id="accountTypeStat">Member</div>
-      <div class="stat-label">Account Type</div>
-    </div>
-    <div class="stat">
-      <div class="stat-value" id="joinDateStat">--</div>
-      <div class="stat-label">Member Since</div>
-    </div>
-    <div class="stat">
-      <div class="stat-value" id="purchaseCountStat">0</div>
-      <div class="stat-label">Purchases</div>
-    </div>
-  </section>
+      <div class="avatar-stage">
 
-  <div class="grid">
+        <!-- Large profile photo -->
+        <div class="avatar-large-wrap">
+          <img
+            id="avatarLarge"
+            class="avatar-large"
+            alt="Large profile photo"
+            src=""
+          >
+        </div>
+
+        <!-- Small circular version of the same photo -->
+        <div class="avatar-small-row">
+          <img
+            id="avatarSmall"
+            class="avatar-small"
+            alt="Small profile photo"
+            src=""
+          >
+          <span>Your profile photo</span>
+        </div>
+
+        <button
+          type="button"
+          class="btn btn-gold"
+          id="choosePhotoButton"
+        >
+          📷 Change Photo
+        </button>
+
+      </div>
+
+    </section>
+
+    <!-- Account statistics -->
+    <section class="stats-grid">
+
+      <div class="stat-card">
+        <div class="stat-label">ACCOUNT TYPE</div>
+        <div class="stat-value gold" id="accountType">Member</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-label">MEMBER SINCE</div>
+        <div class="stat-value" id="memberSince">...</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-label">PAID PURCHASES</div>
+        <div class="stat-value" id="purchaseCount">0</div>
+      </div>
+
+    </section>
+
+    <!-- Edit profile -->
     <section class="card">
-      <h3 class="section-title">👤 Edit Profile</h3>
+
+      <h2 class="section-title">
+        Edit Profile
+        <small>Personal information</small>
+      </h2>
 
       <form id="profileForm">
-        <div class="field">
-          <label for="displayNameInput">Display name</label>
-          <input id="displayNameInput" type="text" maxlength="60" required>
+
+        <div class="form-grid">
+
+          <div class="field">
+            <label for="displayNameInput">Display Name</label>
+            <input
+              id="displayNameInput"
+              type="text"
+              maxlength="50"
+              required
+              placeholder="Your display name"
+            >
+          </div>
+
+          <div class="field">
+            <label for="usernameInput">Username</label>
+            <input
+              id="usernameInput"
+              type="text"
+              readonly
+              aria-readonly="true"
+            >
+            <div class="help-text">
+              Your username is permanent and cannot be changed here.
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="avatarFile">Profile Photo</label>
+            <input
+              id="avatarFile"
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+            >
+            <div class="help-text">
+              JPG, PNG or WebP. Maximum size: 5 MB.
+            </div>
+          </div>
+
         </div>
 
-        <div class="field">
-          <label for="usernameInput">Username</label>
-          <input id="usernameInput" type="text" maxlength="30" pattern="[A-Za-z0-9_]+" required>
-          <small class="muted">Letters, numbers and underscores only.</small>
+        <div class="form-actions">
+          <button type="submit" class="btn btn-gold" id="saveProfileButton">
+            Save Changes
+          </button>
+
+          <button type="button" class="btn btn-dark" id="uploadPhotoButton">
+            Upload Photo
+          </button>
         </div>
 
-        <div class="field">
-          <label for="avatarFile">Profile photo</label>
-          <input id="avatarFile" type="file" accept="image/png,image/jpeg,image/webp">
-          <small class="muted">JPG, PNG or WebP. Maximum 5 MB.</small>
-        </div>
-
-        <div class="button-row">
-          <button id="saveProfileBtn" class="btn btn-gold" type="submit">Save Changes</button>
-          <button id="uploadAvatarBtn" class="btn btn-dark" type="button">Upload Photo</button>
-        </div>
       </form>
-
-      <p class="muted">Your username and display name appear on your Empire profile.</p>
     </section>
 
-    <section class="card">
-      <h3 class="section-title">👑 VIP Membership</h3>
-      <div id="vipDetails" class="membership-box">
-        <div class="membership-plan">Checking membership...</div>
-        <p class="muted">Your VIP status will appear here.</p>
+    <!-- VIP Membership -->
+    <section class="card vip-card">
+
+      <h2 class="section-title">
+        ♛ VIP Membership
+        <small id="vipPlanLabel">Membership details</small>
+      </h2>
+
+      <div class="vip-status" id="vipDescription">
+        Loading membership information...
       </div>
 
-      <hr>
+      <div class="vip-dates">
 
-      <p class="muted">
-        Want to become a VIP creator? VIP membership plans are available on the Premium page.
-      </p>
+        <div class="date-box">
+          <span>MEMBERSHIP START</span>
+          <strong id="vipStartDate">Not available</strong>
+        </div>
 
-      <a class="btn btn-gold" href="premium.html">View Premium Plans</a>
-    </section>
-  </div>
+        <div class="date-box">
+          <span>MEMBERSHIP EXPIRES</span>
+          <strong id="vipExpiryDate">Not available</strong>
+        </div>
 
-  <div class="grid">
-    <section class="card">
-      <h3 class="section-title">🏆 Community Rank</h3>
-      <p class="muted">
-        Your rank depends on verified social points. The points system is not connected yet, so no score is fabricated here.
-      </p>
-
-      <div class="rank-name" id="rankName">Unranked</div>
-      <div id="rankPoints" class="muted">Social points: Not connected</div>
-
-      <div class="rank-list">
-        <div class="rank-item" data-rank="Bronze"><span>🥉 Bronze</span><span>0–999 points</span></div>
-        <div class="rank-item" data-rank="Silver"><span>🥈 Silver</span><span>1,000–4,999 points</span></div>
-        <div class="rank-item" data-rank="Gold"><span>🥇 Gold</span><span>5,000–9,999 points</span></div>
-        <div class="rank-item" data-rank="Diamond"><span>💎 Diamond</span><span>10,000–29,999 points</span></div>
-        <div class="rank-item" data-rank="Empire Elite"><span>👑 Empire Elite</span><span>30,000+ points</span></div>
       </div>
+
+      <div class="form-actions">
+        <a href="/Empire/premium.html" class="btn btn-gold">
+          Explore Premium
+        </a>
+      </div>
+
     </section>
 
+    <!-- Rank and EmpireCoin -->
+    <section class="feature-grid">
+
+      <div class="feature-card">
+        <div class="feature-icon">🏆</div>
+        <h3>Community Rank</h3>
+        <p>
+          Your rank and community points will appear here after the
+          official points system is connected.
+        </p>
+        <span class="coming-soon" id="rankLabel">NOT CONNECTED</span>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">🪙</div>
+        <h3>EmpireCoin</h3>
+        <p>
+          Your real coin balance will appear here once the secure
+          EmpireCoin ledger is connected. No estimated balance is shown.
+        </p>
+        <span class="coming-soon" id="coinLabel">NOT CONNECTED</span>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">🔄</div>
+        <h3>Exchange</h3>
+        <p>
+          Exchange features are planned for a future Empire update.
+        </p>
+        <span class="coming-soon">COMING SOON</span>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">📈</div>
+        <h3>Investment</h3>
+        <p>
+          Investment features are not available yet.
+        </p>
+        <span class="coming-soon">COMING SOON</span>
+      </div>
+
+    </section>
+
+    <!-- Purchase history -->
     <section class="card">
-      <h3 class="section-title">🪙 EmpireCoin</h3>
-      <div class="feature-icon">🪙</div>
-      <div class="membership-plan">EmpireCoin</div>
-      <span class="coming">BALANCE NOT CONNECTED</span>
-      <p class="muted">
-        Your token balance, rewards and discounts will appear here after the EmpireCoin system is integrated.
-      </p>
-      <p class="muted">
-        The proposed initial platform price is 1,500 EmpireCoin per US$1. This is a planning value, not a live market price or guaranteed redemption value.
-      </p>
-    </section>
-  </div>
 
-  <div class="grid">
+      <h2 class="section-title">
+        Purchase History
+        <small>Your transactions</small>
+      </h2>
+
+      <div id="purchaseList" class="list">
+        <div class="loading">Loading purchase history...</div>
+      </div>
+
+    </section>
+
+    <!-- Account actions -->
     <section class="card">
-      <h3 class="section-title">🔄 Empire Exchange</h3>
-      <div class="feature-icon">🔄</div>
-      <span class="coming">COMING SOON</span>
-      <p class="muted">
-        Token exchange and USDT conversion are not available yet. No trades or conversions can be made from this page.
+
+      <h2 class="section-title">Account Settings</h2>
+
+      <p class="help-text">
+        You can sign out of your account at any time. Signing out does not
+        delete your profile, purchases or membership.
       </p>
-      <button class="btn btn-dark" type="button" disabled>Coming Soon</button>
+
+      <div class="form-actions">
+        <button type="button" class="btn btn-dark" id="logoutButton">
+          Log Out
+        </button>
+      </div>
+
     </section>
 
-    <section class="card">
-      <h3 class="section-title">📈 Empire Investment</h3>
-      <div class="feature-icon">📈</div>
-      <span class="coming">COMING SOON</span>
-      <p class="muted">
-        The investment model is still being designed. No investment deposits, returns or profit rates are currently offered here.
+    <!-- Danger zone -->
+    <section class="card danger-card">
+
+      <h2 class="section-title">
+        Danger Zone
+        <small>Permanent account action</small>
+      </h2>
+
+      <p>
+        Deleting your account is permanent. Your account and associated
+        data may be removed by the account deletion service.
       </p>
-      <button class="btn btn-dark" type="button" disabled>Coming Soon</button>
+
+      <div class="field" style="max-width: 380px;">
+        <label for="deleteConfirmation">
+          Type DELETE to confirm
+        </label>
+        <input
+          id="deleteConfirmation"
+          type="text"
+          autocomplete="off"
+          placeholder="DELETE"
+        >
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="btn btn-danger" id="deleteAccountButton">
+          Delete Account
+        </button>
+      </div>
+
     </section>
-  </div>
 
-  <section class="card" style="margin-bottom:20px">
-    <h3 class="section-title">🎬 My Purchases <small>Paid video access</small></h3>
-    <div id="purchasesList" class="video-list">
-      <div class="empty">Loading purchase history...</div>
-    </div>
-  </section>
+  </main>
 
-  <section class="card" style="margin-bottom:20px">
-    <h3 class="section-title">⚙️ Account Settings</h3>
-    <p class="muted">
-      Sign out of your current session or request account deletion. Account deletion may be permanent.
-    </p>
-    <div class="button-row">
-      <button id="logoutBtn" class="btn btn-dark" type="button">Log Out</button>
-      <button id="deleteAccountBtn" class="btn btn-danger" type="button">Delete Account</button>
-    </div>
-  </section>
-</div>
+  <footer>
+    © <span id="footerYear"></span> Empire. All rights reserved.
+  </footer>
 
-  </main>  <footer class="footer">
-    © <span id="year"></span> Empire. All rights reserved.
-  </footer>  <script>
+  <script>
     const SUPABASE_URL = "https://vubjkwbkuwndkjqfnyom.supabase.co";
+
     const SUPABASE_KEY = "sb_publishable_Ig1R3dpAKyBfjIGSUhhlKw_uC-QF0QQ";
 
     const supabaseClient = window.supabase.createClient(
@@ -692,34 +964,36 @@
 
     let currentUser = null;
     let currentProfile = null;
-    let avatarPath = null;
+    let avatarUploadInProgress = false;
 
     const $ = (id) => document.getElementById(id);
 
-    $("year").textContent = new Date().getFullYear();
+    $("footerYear").textContent = new Date().getFullYear();
 
-    function showNotice(message, type = "info") {
-      const box = $("notice");
-      box.textContent = message;
-      box.className = "notice " + type;
-      box.scrollIntoView({ behavior: "smooth", block: "nearest" });
-    }
+    function showNotice(message, type = "success") {
+      const notice = $("notice");
 
-    function clearNotice() {
-      $("notice").textContent = "";
-      $("notice").className = "notice";
-    }
+      notice.textContent = message;
+      notice.className = "notice show " + type;
 
-    function setButtonLoading(button, loading, loadingText, normalText) {
-      button.disabled = loading;
-      button.textContent = loading ? loadingText : normalText;
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+      });
+
+      window.setTimeout(() => {
+        notice.classList.remove("show");
+      }, 5500);
     }
 
     function formatDate(value) {
       if (!value) return "Not available";
 
       const date = new Date(value);
-      if (Number.isNaN(date.getTime())) return "Not available";
+
+      if (Number.isNaN(date.getTime())) {
+        return "Not available";
+      }
 
       return date.toLocaleDateString(undefined, {
         year: "numeric",
@@ -728,75 +1002,172 @@
       });
     }
 
-    function safeText(value, fallback = "Not available") {
-      if (value === null || value === undefined || value === "") return fallback;
-      return String(value);
+    function formatMoney(amount, currency = "USDT") {
+      const number = Number(amount);
+
+      if (!Number.isFinite(number)) {
+        return `${amount ?? "0"} ${currency}`;
+      }
+
+      return `${number.toFixed(2)} ${currency}`;
+    }
+
+    function escapeHTML(value) {
+      return String(value ?? "").replace(/[&<>"']/g, (char) => {
+        const entities = {
+          "&": "&amp;",
+          "<": "&lt;",
+          ">": "&gt;",
+          '"': "&quot;",
+          "'": "&#039;"
+        };
+
+        return entities[char];
+      });
+    }
+
+    function normalizePlan(plan) {
+      const value = String(plan || "")
+        .toLowerCase()
+        .replace(/_/g, "-");
+
+      const plans = {
+        "1-month": "1 Month",
+        "monthly": "1 Month",
+        "vip-monthly": "1 Month",
+
+        "3-month": "3 Months",
+        "3-months": "3 Months",
+        "quarterly": "3 Months",
+        "vip-quarterly": "3 Months",
+
+        "6-month": "6 Months",
+        "6-months": "6 Months",
+        "semiannual": "6 Months",
+        "vip-semiannual": "6 Months",
+
+        "1-year": "1 Year",
+        "yearly": "1 Year",
+        "annual": "1 Year",
+        "vip-yearly": "1 Year"
+      };
+
+      return plans[value] || (plan || "VIP Membership");
     }
 
     function setAvatar(url) {
+      const large = $("avatarLarge");
+      const small = $("avatarSmall");
+
       if (url) {
-        $("avatarImage").src = url;
-        $("avatarImage").classList.remove("hidden");
-        $("avatarPlaceholder").classList.add("hidden");
-      } else {
-        $("avatarImage").removeAttribute("src");
-        $("avatarImage").classList.add("hidden");
-        $("avatarPlaceholder").classList.remove("hidden");
+        large.src = url;
+        small.src = url;
+
+        large.onerror = () => {
+          large.removeAttribute("src");
+        };
+
+        small.onerror = () => {
+          small.removeAttribute("src");
+        };
+
+        return;
       }
+
+      large.removeAttribute("src");
+      small.removeAttribute("src");
+    }
+
+    async function getSignedAvatar(path) {
+      if (!path) return null;
+
+      if (/^https?:\/\//i.test(path)) {
+        return path;
+      }
+
+      const { data, error } = await supabaseClient
+        .storage
+        .from("avatars")
+        .createSignedUrl(path, 3600);
+
+      if (error) {
+        console.warn("Could not sign avatar URL:", error.message);
+        return null;
+      }
+
+      return data?.signedUrl || null;
     }
 
     async function loadAvatar(profile) {
-      setAvatar(null);
-      avatarPath = null;
+      // First try the saved avatar path from the profile record.
+      if (profile?.avatar_url) {
+        const savedUrl = await getSignedAvatar(profile.avatar_url);
 
-      if (!currentUser) return;
-
-      // First try the avatar path saved in the profile, if present.
-      if (profile && profile.avatar_url) {
-        const saved = String(profile.avatar_url);
-
-        if (/^https?:\/\//i.test(saved)) {
-          setAvatar(saved);
-          return;
-        }
-
-        avatarPath = saved;
-        const { data, error } = await supabaseClient.storage
-          .from("avatars")
-          .createSignedUrl(saved, 3600);
-
-        if (!error && data && data.signedUrl) {
-          setAvatar(data.signedUrl);
+        if (savedUrl) {
+          setAvatar(savedUrl);
           return;
         }
       }
 
-      // Older uploads may have different file extensions.
-      const { data: files, error: listError } = await supabaseClient.storage
-        .from("avatars")
-        .list(currentUser.id, { limit: 100 });
+      // Compatibility fallback for avatars uploaded by the previous version.
+      if (!currentUser) {
+        setAvatar(null);
+        return;
+      }
 
-      if (listError || !files || !files.length) return;
+      try {
+        const { data, error } = await supabaseClient
+          .storage
+          .from("avatars")
+          .list(currentUser.id, {
+            limit: 100,
+            sortBy: {
+              column: "created_at",
+              order: "desc"
+            }
+          });
 
-      const candidates = files
-        .filter(file => file.name && !file.name.startsWith("."))
-        .sort((a, b) => (b.updated_at || "").localeCompare(a.updated_at || ""));
+        if (error) throw error;
 
-      if (!candidates.length) return;
+        const files = (data || [])
+          .filter((file) => file.name && !file.name.startsWith("."))
+          .sort((a, b) => {
+            const aTime = new Date(a.created_at || 0).getTime();
+            const bTime = new Date(b.created_at || 0).getTime();
 
-      const selected = candidates[0];
-      avatarPath = currentUser.id + "/" + selected.name;
+            return bTime - aTime;
+          });
 
-      const { data, error } = await supabaseClient.storage
-        .from("avatars")
-        .createSignedUrl(avatarPath, 3600);
+        if (!files.length) {
+          setAvatar(null);
+          return;
+        }
 
-      if (!error && data && data.signedUrl) {
-        setAvatar(data.signedUrl);
+        const latestPath = `${currentUser.id}/${files[0].name}`;
+        const signedUrl = await getSignedAvatar(latestPath);
+
+        if (signedUrl) {
+          setAvatar(signedUrl);
+        } else {
+          setAvatar(null);
+        }
+      } catch (error) {
+        console.warn("Could not load avatar:", error.message);
+        setAvatar(null);
       }
     }
 
     async function loadProfile() {
+      const { data: authData, error: authError } =
+        await supabaseClient.auth.getUser();
+
+      if (authError || !authData?.user) {
+        window.location.href = "/Empire/login.html";
+        return;
+      }
+
+      currentUser = authData.user;
+
       const { data, error } = await supabaseClient
         .from("profiles")
         .select("*")
@@ -804,73 +1175,160 @@
         .maybeSingle();
 
       if (error) {
-        throw new Error("Could not load your profile: " + error.message);
+        console.error("Profile load error:", error);
+        showNotice("Could not load your profile. Please refresh the page.", "error");
+        return;
       }
 
       if (!data) {
-        throw new Error(
-          "Your account exists, but its profile row was not found. Please contact the site administrator."
+        showNotice(
+          "Your profile record was not found. Please contact the administrator.",
+          "error"
         );
+        return;
       }
 
       currentProfile = data;
 
       $("displayName").textContent =
-        safeText(data.display_name, data.username || "Empire Member");
+        data.display_name || data.username || "Empire Member";
 
-      $("username").textContent =
-        "@" + safeText(data.username, "member");
+      $("heroUsername").textContent = data.username || "user";
 
       $("displayNameInput").value = data.display_name || "";
+
+      // Username is deliberately read-only.
       $("usernameInput").value = data.username || "";
 
       $("accountStatus").textContent =
-        data.is_active === false ? "● Account inactive" : "● Active account";
+        data.is_active === false ? "● Inactive" : "● Active";
 
       $("accountStatus").className =
-        data.is_active === false ? "badge" : "badge status-badge";
+        data.is_active === false ? "badge gray" : "badge green";
 
-      $("joinDateStat").textContent = formatDate(data.created_at);
+      $("memberSince").textContent = formatDate(data.created_at);
 
       await loadAvatar(data);
+
+      await Promise.all([
+        loadMembership(),
+        loadPurchases()
+      ]);
     }
 
-    async function uploadAvatar() {
-      clearNotice();
+    async function saveProfile(event) {
+      event.preventDefault();
 
-      const file = $("avatarFile").files[0];
+      if (!currentUser) return;
 
-      if (!file) {
-        showNotice("Please choose a profile photo first.", "error");
+      const displayName = $("displayNameInput").value.trim();
+
+      if (!displayName) {
+        showNotice("Please enter a display name.", "error");
         return;
       }
 
-      const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
+      if (displayName.length > 50) {
+        showNotice("Display name cannot exceed 50 characters.", "error");
+        return;
+      }
+
+      const button = $("saveProfileButton");
+      button.disabled = true;
+      button.textContent = "Saving...";
+
+      try {
+        // Only display_name is updated. Username is never sent.
+        const { data, error } = await supabaseClient
+          .from("profiles")
+          .update({
+            display_name: displayName
+          })
+          .eq("id", currentUser.id)
+          .select("id, username, display_name, is_active, created_at, avatar_url")
+          .maybeSingle();
+
+        if (error) throw error;
+
+        if (!data) {
+          throw new Error("Profile was not updated. Please check your account permissions.");
+        }
+
+        currentProfile = {
+          ...currentProfile,
+          ...data
+        };
+
+        $("displayName").textContent =
+          data.display_name || data.username || "Empire Member";
+
+        $("heroUsername").textContent = data.username || "user";
+        $("usernameInput").value = data.username || "";
+
+        showNotice("Your display name was updated successfully.");
+      } catch (error) {
+        console.error("Save profile error:", error);
+        showNotice(error.message || "Could not save your profile.", "error");
+      } finally {
+        button.disabled = false;
+        button.textContent = "Save Changes";
+      }
+    }
+
+    async function uploadAvatar() {
+      if (!currentUser) return;
+
+      if (avatarUploadInProgress) return;
+
+      const input = $("avatarFile");
+      const file = input.files?.[0];
+
+      if (!file) {
+        showNotice("Please choose a photo first.", "error");
+        return;
+      }
+
+      const allowedTypes = [
+        "image/jpeg",
+        "image/png",
+        "image/webp"
+      ];
 
       if (!allowedTypes.includes(file.type)) {
         showNotice("Please choose a JPG, PNG or WebP image.", "error");
         return;
       }
 
-      if (file.size > 5 * 1024 * 1024) {
-        showNotice("The image must be 5 MB or smaller.", "error");
+      const maxSize = 5 * 1024 * 1024;
+
+      if (file.size > maxSize) {
+        showNotice("The photo must be 5 MB or smaller.", "error");
         return;
       }
 
-      const button = $("uploadAvatarBtn");
-      setButtonLoading(button, true, "Uploading...", "Upload Photo");
+      avatarUploadInProgress = true;
+
+      const button = $("uploadPhotoButton");
+      const chooseButton = $("choosePhotoButton");
+
+      button.disabled = true;
+      chooseButton.disabled = true;
+      button.textContent = "Uploading...";
 
       try {
-        const extensionMap = {
+        const extensionByType = {
           "image/jpeg": "jpg",
           "image/png": "png",
           "image/webp": "webp"
         };
 
-        const extension = extensionMap[file.type];
-        const path = currentUser.id + "/avatar_" + Date.now() + "." + extension;
+        const extension = extensionByType[file.type] || "jpg";
 
-        const { error: uploadError } = await supabaseClient.storage
+        const path =
+          `${currentUser.id}/avatar_${Date.now()}.${extension}`;
+
+        const { error: uploadError } = await supabaseClient
+          .storage
           .from("avatars")
           .upload(path, file, {
             cacheControl: "3600",
@@ -878,226 +1336,166 @@
             contentType: file.type
           });
 
-        if (uploadError) {
-          throw new Error(
-            "Photo upload failed. Check the avatars bucket policies. " +
-            uploadError.message
-          );
-        }
+        if (uploadError) throw uploadError;
 
-        // Store the path only if this column exists.
-        // If it does not, the avatar can still be loaded from the user's folder.
-        const { error: profileError } = await supabaseClient
-          .from("profiles")
-          .update({ avatar_url: path })
-          .eq("id", currentUser.id);
-
-        if (profileError) {
-          console.warn("Could not save avatar_url in profiles:", profileError.message);
-        } else {
-          currentProfile.avatar_url = path;
-        }
-
-        avatarPath = path;
-
-        const { data: signed, error: signedError } = await supabaseClient.storage
-          .from("avatars")
-          .createSignedUrl(path, 3600);
-
-        if (signedError || !signed || !signed.signedUrl) {
-          await loadAvatar(currentProfile);
-        } else {
-          setAvatar(signed.signedUrl);
-        }
-
-        $("avatarFile").value = "";
-        showNotice("Profile photo uploaded successfully.", "success");
-      } catch (error) {
-        showNotice(error.message || "Could not upload the photo.", "error");
-      } finally {
-        setButtonLoading(button, false, "Uploading...", "Upload Photo");
-      }
-    }
-
-    async function saveProfile(event) {
-      event.preventDefault();
-      clearNotice();
-
-      const displayName = $("displayNameInput").value.trim();
-      const username = $("usernameInput").value.trim();
-
-      if (!displayName || !username) {
-        showNotice("Please enter both your display name and username.", "error");
-        return;
-      }
-
-      if (!/^[A-Za-z0-9_]{3,30}$/.test(username)) {
-        showNotice(
-          "Username must be 3 to 30 characters and contain only letters, numbers or underscores.",
-          "error"
-        );
-        return;
-      }
-
-      const button = $("saveProfileBtn");
-      setButtonLoading(button, true, "Saving...", "Save Changes");
-
-      try {
-        const { data, error } = await supabaseClient
+        // Save the Storage path in the new profiles.avatar_url column.
+        const { error: updateError } = await supabaseClient
           .from("profiles")
           .update({
-            display_name: displayName,
-            username: username
+            avatar_url: path
           })
-          .eq("id", currentUser.id)
-          .select()
-          .maybeSingle();
+          .eq("id", currentUser.id);
 
-        if (error) throw error;
+        if (updateError) {
+          console.error("Could not save avatar path:", updateError);
 
-        if (!data) {
-          throw new Error(
-            "No profile row was updated. Check your profile permissions."
+          showNotice(
+            "The photo was uploaded, but its path could not be saved. Please check the profile update policy.",
+            "error"
           );
+
+          await loadAvatar(currentProfile);
+          return;
         }
 
-        currentProfile = { ...currentProfile, ...data };
+        currentProfile = {
+          ...currentProfile,
+          avatar_url: path
+        };
 
-        $("displayName").textContent = data.display_name || "Empire Member";
-        $("username").textContent = "@" + (data.username || "member");
+        const signedUrl = await getSignedAvatar(path);
 
-        showNotice("Your profile has been updated.", "success");
+        if (!signedUrl) {
+          throw new Error("The photo was uploaded, but its preview could not be loaded.");
+        }
+
+        // Both photo sizes receive the exact same image URL.
+        setAvatar(signedUrl);
+
+        input.value = "";
+
+        showNotice("Your profile photo was updated successfully.");
       } catch (error) {
-        let message = error.message || "Could not save profile.";
-
-        if (/duplicate key|unique constraint/i.test(message)) {
-          message = "That username is already taken. Please choose another one.";
-        }
-
-        showNotice(message, "error");
+        console.error("Avatar upload error:", error);
+        showNotice(error.message || "Could not upload your photo.", "error");
       } finally {
-        setButtonLoading(button, false, "Saving...", "Save Changes");
+        avatarUploadInProgress = false;
+        button.disabled = false;
+        chooseButton.disabled = false;
+        button.textContent = "Upload Photo";
       }
-    }
-
-    function normalizePlan(plan) {
-      const value = String(plan || "VIP").toLowerCase();
-
-      const plans = {
-        "1_month": "1 Month VIP",
-        "1 month": "1 Month VIP",
-        "monthly": "1 Month VIP",
-        "3_months": "3 Months VIP",
-        "3 months": "3 Months VIP",
-        "6_months": "6 Months VIP",
-        "6 months": "6 Months VIP",
-        "1_year": "1 Year VIP",
-        "1 year": "1 Year VIP",
-        "yearly": "1 Year VIP"
-      };
-
-      return plans[value] || (plan ? String(plan) + " VIP" : "VIP Membership");
     }
 
     async function loadMembership() {
-      const box = $("vipDetails");
+      if (!currentUser) return;
+
+      const description = $("vipDescription");
 
       try {
         const { data, error } = await supabaseClient
           .from("vip_memberships")
-          .select("id, plan, starts_at, expires_at, status, created_at")
+          .select("plan, starts_at, expires_at, status, created_at")
           .eq("user_id", currentUser.id)
           .order("created_at", { ascending: false })
-          .limit(10);
+          .limit(1);
 
         if (error) throw error;
 
-        const now = Date.now();
+        const membership = data?.[0];
 
-        const activeMembership = (data || []).find(item => {
-          const status = String(item.status || "").toLowerCase();
-          const expiry = item.expires_at ? new Date(item.expires_at).getTime() : 0;
+        if (!membership) {
+          $("vipBadge").textContent = "♛ Regular Member";
+          $("vipBadge").className = "badge gray";
+          $("accountType").textContent = "Regular Member";
+          $("vipPlanLabel").textContent = "No membership";
+          $("vipStartDate").textContent = "Not available";
+          $("vipExpiryDate").textContent = "Not available";
 
-          return (
-            ["active", "approved"].includes(status) &&
-            expiry > now
-          );
-        });
-
-        if (!activeMembership) {
-          $("vipBadge").textContent = "STANDARD MEMBER";
-          $("accountTypeStat").textContent = "Standard";
-
-          const pending = (data || []).find(item =>
-            String(item.status || "").toLowerCase() === "pending"
-          );
-
-          if (pending) {
-            $("vipBadge").textContent = "VIP PENDING";
-            box.innerHTML = `
-              <div class="membership-plan">Application Pending</div>
-              <div class="membership-line"><span>Plan</span><span>${escapeHtml(normalizePlan(pending.plan))}</span></div>
-              <div class="membership-line"><span>Status</span><span>Waiting for review</span></div>
-              <p class="muted">Your membership is awaiting confirmation.</p>
-            `;
-          } else {
-            box.innerHTML = `
-              <div class="membership-plan">Standard Member</div>
-              <div class="membership-line"><span>VIP status</span><span>Not active</span></div>
-              <p class="muted">Choose a plan on the Premium page to apply for VIP membership.</p>
-            `;
-          }
+          description.textContent =
+            "You do not currently have a VIP membership record.";
 
           return;
         }
 
-        $("vipBadge").textContent = "♛ VIP MEMBER";
-        $("accountTypeStat").textContent = "VIP";
+        const planName = normalizePlan(membership.plan);
+        const status = String(membership.status || "").toLowerCase();
 
-        const expiry = new Date(activeMembership.expires_at);
-        const daysLeft = Math.max(
-          0,
-          Math.ceil((expiry.getTime() - now) / (1000 * 60 * 60 * 24))
-        );
+        const expiry = membership.expires_at
+          ? new Date(membership.expires_at)
+          : null;
 
-        box.innerHTML = `
-          <div class="membership-plan">${escapeHtml(normalizePlan(activeMembership.plan))}</div>
-          <div class="membership-line"><span>Status</span><span class="gold">Active</span></div>
-          <div class="membership-line"><span>Started</span><span>${escapeHtml(formatDate(activeMembership.starts_at))}</span></div>
-          <div class="membership-line"><span>Expires</span><span>${escapeHtml(formatDate(activeMembership.expires_at))}</span></div>
-          <div class="membership-line"><span>Time remaining</span><span>${daysLeft} day(s)</span></div>
-        `;
+        const expired = expiry && expiry.getTime() <= Date.now();
+
+        const isActive =
+          status === "active" &&
+          !expired;
+
+        $("vipPlanLabel").textContent = planName;
+
+        $("vipStartDate").textContent =
+          formatDate(membership.starts_at);
+
+        $("vipExpiryDate").textContent =
+          formatDate(membership.expires_at);
+
+        if (isActive) {
+          $("vipBadge").textContent = "♛ VIP Active";
+          $("vipBadge").className = "badge";
+          $("accountType").textContent = "VIP Member";
+
+          description.textContent =
+            `Your ${planName} membership is active. ` +
+            `It expires on ${formatDate(membership.expires_at)}.`;
+        } else if (status === "pending") {
+          $("vipBadge").textContent = "♛ VIP Pending";
+          $("vipBadge").className = "badge gray";
+          $("accountType").textContent = "Regular Member";
+
+          description.textContent =
+            "Your VIP membership is pending approval. VIP privileges " +
+            "will be available when the membership is activated.";
+        } else {
+          $("vipBadge").textContent = "♛ VIP Inactive";
+          $("vipBadge").className = "badge gray";
+          $("accountType").textContent = "Regular Member";
+
+          description.textContent = expired
+            ? `Your ${planName} membership has expired. Your account and content have not been deleted.`
+            : `Your membership status is ${status || "inactive"}.`;
+        }
       } catch (error) {
-        console.error("VIP membership error:", error);
+        console.error("Membership load error:", error);
 
-        $("vipBadge").textContent = "VIP STATUS UNAVAILABLE";
-        $("accountTypeStat").textContent = "Member";
+        $("vipBadge").textContent = "♛ VIP Status";
+        $("vipBadge").className = "badge gray";
+        $("vipPlanLabel").textContent = "Unavailable";
 
-        box.innerHTML = `
-          <div class="membership-plan">Status unavailable</div>
-          <p class="muted">Membership information could not be loaded. Please try again later.</p>
-        `;
+        description.textContent =
+          "Membership information could not be loaded.";
       }
     }
 
-    function escapeHtml(value) {
-      return String(value ?? "").replace(/[&<>"']/g, character => ({
-        "&": "&amp;",
-        "<": "&lt;",
-        ">": "&gt;",
-        '"': "&quot;",
-        "'": "&#39;"
-      })[character]);
-    }
-
     async function loadPurchases() {
-      const list = $("purchasesList");
-      list.innerHTML = '<div class="empty">Loading purchase history...</div>';
+      if (!currentUser) return;
+
+      const container = $("purchaseList");
+
+      container.innerHTML =
+        '<div class="loading">Loading purchase history...</div>';
 
       try {
         const { data, error } = await supabaseClient
           .from("purchases")
-          .select("*")
+          .select(`
+            id,
+            video_id,
+            amount,
+            currency,
+            status,
+            created_at,
+            paid_at,
+            videos(title)
+          `)
           .eq("user_id", currentUser.id)
           .order("created_at", { ascending: false })
           .limit(50);
@@ -1105,126 +1503,127 @@
         if (error) throw error;
 
         const purchases = data || [];
-        const paid = purchases.filter(p =>
-          String(p.status || "").toLowerCase() === "paid"
-        );
 
-        $("purchaseCountStat").textContent = String(paid.length);
+        const paidCount = purchases.filter((purchase) =>
+          String(purchase.status || "").toLowerCase() === "paid"
+        ).length;
+
+        $("purchaseCount").textContent = String(paidCount);
 
         if (!purchases.length) {
-          list.innerHTML = `
-            <div class="empty">
-              No purchase records found yet.<br>
-              Your eligible video purchases will appear here.
+          container.innerHTML = `
+            <div class="empty-state">
+              No purchases yet.<br>
+              Your purchase history will appear here.
             </div>
           `;
           return;
         }
 
-        // Fetch video titles where a video_id is available.
-        const videoIds = [...new Set(
-          purchases.map(p => p.video_id).filter(Boolean)
-        )];
+        container.innerHTML = purchases.map((purchase) => {
+          const status = String(purchase.status || "pending").toLowerCase();
 
-        let videosById = {};
+          let statusClass = "status-pending";
 
-        if (videoIds.length) {
-          const { data: videos, error: videosError } = await supabaseClient
-            .from("videos")
-            .select("id, title, thumbnail_url")
-            .in("id", videoIds);
-
-          if (!videosError && videos) {
-            videosById = Object.fromEntries(videos.map(v => [v.id, v]));
-          }
-        }
-
-        list.innerHTML = "";
-
-        purchases.forEach(purchase => {
-          const video = videosById[purchase.video_id] || {};
-          const title = video.title || "Video purchase";
-          const status = safeText(purchase.status, "unknown");
-          const date = formatDate(purchase.created_at);
-          const amount = purchase.amount !== undefined && purchase.amount !== null
-            ? String(purchase.amount) + " " + safeText(purchase.currency, "USDT")
-            : "Amount unavailable";
-
-          const item = document.createElement("div");
-          item.className = "video-item";
-
-          if (video.thumbnail_url) {
-            const image = document.createElement("img");
-            image.className = "video-thumb";
-            image.alt = "";
-            image.src = video.thumbnail_url;
-            image.onerror = () => { image.style.display = "none"; };
-            item.appendChild(image);
-          } else {
-            const thumb = document.createElement("div");
-            thumb.className = "video-thumb";
-            thumb.style.display = "grid";
-            thumb.style.placeItems = "center";
-            thumb.textContent = "🎬";
-            item.appendChild(thumb);
+          if (status === "paid") {
+            statusClass = "status-paid";
+          } else if (
+            status === "failed" ||
+            status === "rejected" ||
+            status === "cancelled"
+          ) {
+            statusClass = "status-failed";
           }
 
-          const info = document.createElement("div");
-          info.className = "video-info";
+          const videoTitle =
+            purchase.videos?.title || "Video purchase";
 
-          const strong = document.createElement("strong");
-          strong.textContent = title;
+          const transactionDate =
+            purchase.paid_at || purchase.created_at;
 
-          const small = document.createElement("small");
-          small.textContent = amount + " • " + date + " • " + status;
+          return `
+            <div class="list-item">
+              <div class="list-main">
+                <strong>${escapeHTML(videoTitle)}</strong>
+                <small>
+                  Date: ${escapeHTML(formatDate(transactionDate))}
+                </small>
+                <small>
+                  Transaction: ${escapeHTML(String(purchase.id).slice(0, 12))}
+                </small>
+              </div>
 
-          info.appendChild(strong);
-          info.appendChild(small);
-          item.appendChild(info);
-          list.appendChild(item);
-        });
+              <div class="list-side">
+                <strong class="gold">
+                  ${escapeHTML(formatMoney(
+                    purchase.amount,
+                    purchase.currency || "USDT"
+                  ))}
+                </strong>
+
+                <div class="status-text ${statusClass}" style="margin-top:7px">
+                  ${escapeHTML(status.toUpperCase())}
+                </div>
+              </div>
+            </div>
+          `;
+        }).join("");
+
       } catch (error) {
         console.error("Purchase history error:", error);
-        $("purchaseCountStat").textContent = "—";
-        list.innerHTML = `
-          <div class="empty">
-            Purchase history is unavailable right now.<br>
-            This can happen if the purchases table has different columns or permissions.
+
+        container.innerHTML = `
+          <div class="empty-state">
+            Purchase history could not be loaded.
+            Please refresh the page.
           </div>
         `;
       }
     }
 
     async function logout() {
-      const button = $("logoutBtn");
-      setButtonLoading(button, true, "Logging out...", "Log Out");
+      const button = $("logoutButton");
 
-      try {
-        const { error } = await supabaseClient.auth.signOut();
-        if (error) throw error;
+      button.disabled = true;
+      button.textContent = "Logging out...";
 
-        window.location.href = "login.html";
-      } catch (error) {
-        showNotice(error.message || "Could not log out.", "error");
-        setButtonLoading(button, false, "Logging out...", "Log Out");
+      const { error } = await supabaseClient.auth.signOut();
+
+      if (error) {
+        console.error("Logout error:", error);
+        showNotice("Could not log out. Please try again.", "error");
+
+        button.disabled = false;
+        button.textContent = "Log Out";
+        return;
       }
+
+      window.location.href = "/Empire/login.html";
     }
 
     async function deleteAccount() {
-      const confirmed = confirm(
-        "Are you sure you want to request account deletion? This action may be permanent."
+      if (!currentUser) return;
+
+      const confirmation = $("deleteConfirmation").value.trim();
+
+      if (confirmation !== "DELETE") {
+        showNotice(
+          'Please type DELETE exactly to confirm account deletion.',
+          "error"
+        );
+        return;
+      }
+
+      const confirmed = window.confirm(
+        "Are you sure you want to permanently delete your account? This action cannot be undone."
       );
 
       if (!confirmed) return;
 
-      const secondConfirm = confirm(
-        "Final confirmation: do you really want to continue?"
-      );
+      const button = $("deleteAccountButton");
 
-      if (!secondConfirm) return;
-
-      const button = $("deleteAccountBtn");
-      setButtonLoading(button, true, "Processing...", "Delete Account");
+      button.disabled = true;
+      button.textContent = "Deleting account...";
 
       try {
         const { data: sessionData, error: sessionError } =
@@ -1232,22 +1631,24 @@
 
         if (sessionError) throw sessionError;
 
-        const accessToken = sessionData.session?.access_token;
+        const accessToken = sessionData?.session?.access_token;
 
         if (!accessToken) {
           throw new Error("Your session has expired. Please sign in again.");
         }
 
         const response = await fetch(
-          SUPABASE_URL + "/functions/v1/delete-account",
+          `${SUPABASE_URL}/functions/v1/delete-account`,
           {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
-              "Authorization": "Bearer " + accessToken,
+              "Authorization": `Bearer ${accessToken}`,
               "apikey": SUPABASE_KEY
             },
-            body: JSON.stringify({})
+            body: JSON.stringify({
+              confirmation: "DELETE"
+            })
           }
         );
 
@@ -1255,64 +1656,52 @@
 
         if (!response.ok) {
           throw new Error(
-            result.error || result.message || "The account deletion request failed."
+            result.error || result.message || "Account deletion failed."
           );
         }
 
         await supabaseClient.auth.signOut();
-        alert("Your account deletion request was processed.");
-        window.location.href = "login.html";
+
+        window.location.href = "/Empire/login.html";
       } catch (error) {
+        console.error("Delete account error:", error);
+
         showNotice(
-          "Account deletion could not be completed: " +
-          (error.message || "Unknown error") +
-          ". Please contact the administrator if this continues.",
+          error.message || "Could not delete your account.",
           "error"
         );
-        setButtonLoading(button, false, "Processing...", "Delete Account");
+
+        button.disabled = false;
+        button.textContent = "Delete Account";
       }
     }
 
-    async function initializePage() {
-      try {
-        const { data, error } = await supabaseClient.auth.getSession();
-
-        if (error) throw error;
-
-        currentUser = data.session?.user || null;
-
-        if (!currentUser) {
-          window.location.replace("login.html");
-          return;
-        }
-
-        await loadProfile();
-
-        $("loading").classList.add("hidden");
-        $("pageContent").classList.remove("hidden");
-
-        await Promise.all([
-          loadMembership(),
-          loadPurchases()
-        ]);
-      } catch (error) {
-        console.error("Profile initialization error:", error);
-
-        $("loading").classList.remove("hidden");
-        $("loading").innerHTML = `
-          <div style="color:#ff9696;margin-bottom:12px">
-            ${escapeHtml(error.message || "Could not load your profile.")}
-          </div>
-          <a href="login.html" class="btn btn-gold">Return to Login</a>
-        `;
-      }
-    }
-
+    // Event handlers
     $("profileForm").addEventListener("submit", saveProfile);
-    $("uploadAvatarBtn").addEventListener("click", uploadAvatar);
-    $("logoutBtn").addEventListener("click", logout);
-    $("deleteAccountBtn").addEventListener("click", deleteAccount);
 
-    initializePage();
-  </script></body>
+    $("uploadPhotoButton").addEventListener("click", uploadAvatar);
+
+    $("choosePhotoButton").addEventListener("click", () => {
+      $("avatarFile").click();
+    });
+
+    $("avatarFile").addEventListener("change", () => {
+      const file = $("avatarFile").files?.[0];
+
+      if (file) {
+        $("uploadPhotoButton").textContent = "Upload Selected Photo";
+      } else {
+        $("uploadPhotoButton").textContent = "Upload Photo";
+      }
+    });
+
+    $("logoutButton").addEventListener("click", logout);
+
+    $("deleteAccountButton").addEventListener("click", deleteAccount);
+
+    // Start the page.
+    loadProfile();
+  </script>
+
+</body>
 </html>
