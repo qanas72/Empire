@@ -234,9 +234,15 @@ header{
   
 /* SEARCH */  
   
-.search-area{  
-  padding:30px 0 0;  
-}  
+.search-area{
+position: sticky;
+top: 72px;
+z-index: 100;
+padding: 12px 0 10px;
+background: rgba(8,8,8,.94);
+backdrop-filter: blur(14px);
+-webkit-backdrop-filter: blur(14px);
+}
   
 .search-box{  
   display:flex;  
@@ -727,11 +733,75 @@ footer{
     padding:10px 13px;  
   }  
 }  
+  /* Empire Royal Crown Effect */
+.brand-mark {
+display: inline-block;
+font-size: 30px;
+margin-right: 8px;
+filter:
+drop-shadow(0 0 4px #ffd700)
+drop-shadow(0 0 9px rgba(255, 40, 160, 0.8))
+drop-shadow(0 0 14px rgba(80, 180, 255, 0.65));
+transform: perspective(300px) rotateY(-12deg);
+animation: crownGlow 3s ease-in-out infinite alternate;
+}
+
+.brand-name {
+color: #ffe39a;
+font-weight: 900;
+letter-spacing: 1px;
+text-shadow:
+0 0 5px rgba(255, 215, 0, 0.8),
+0 0 12px rgba(255, 70, 170, 0.35);
+}
+
+@keyframes crownGlow {
+from {
+filter:
+drop-shadow(0 0 4px #ffd700)
+drop-shadow(0 0 7px rgba(255, 40, 160, 0.5));
+transform: perspective(300px) rotateY(-12deg) translateY(0);
+}
+to {
+filter:
+drop-shadow(0 0 8px #ffd700)
+drop-shadow(0 0 13px rgba(255, 40, 160, 0.9))
+drop-shadow(0 0 17px rgba(80, 180, 255, 0.7));
+transform: perspective(300px) rotateY(12deg) translateY(-2px);
+}
+}
+  .empire-slogan {
+text-align: center;
+padding: 28px 16px 20px;
+position: relative;
+overflow: hidden;
+}
+
+.empire-slogan p {
+margin: 0;
+color: #ffe5a0;
+font-size: clamp(20px, 3.5vw, 32px);
+font-weight: 800;
+letter-spacing: 0.5px;
+text-shadow:
+0 0 8px rgba(255, 205, 80, 0.35),
+0 0 18px rgba(255, 70, 170, 0.2);
+}
+
+.empire-slogan span {
+display: block;
+margin-top: 8px;
+color: #c9dfff;
+font-size: clamp(14px, 2.2vw, 18px);
+letter-spacing: 2px;
+text-shadow: 0 0 12px rgba(90, 170, 255, 0.4);
+}
 </style>  </head>  <body>  <header>  
-  <div class="container nav">  <a class="brand" href="#home" aria-label="Empire Home">  
-  <span class="brand-mark">✦</span>  
-  <span>EMPIRE</span>  
-</a>  
+  <div class="container nav"> 
+    <a class="brand" href="#home" aria-label="Empire Home">
+  <span class="brand-mark" aria-hidden="true">👑</span>
+  <span class="brand-name">𝑬𝒎𝒑𝒊𝒓𝒆</span>
+    </a>
 
 <nav class="links" id="mainLinks">  
   <a href="#home" onclick="closeMenu()">Home</a>  
@@ -748,31 +818,14 @@ footer{
 <button class="menu" type="button" onclick="toggleMenu()" aria-label="Open menu">☰</button>
 
   </div>  
-</header>  <main id="home">    <section class="hero">  
-    <div class="container hero-content">  <div class="eyebrow">A new era of video</div>  
-
-  <h1>  
-    Watch what<br>  
-    <span class="gold">matters.</span>  
-  </h1>  
-
-  <p>  
-    Discover exclusive stories, explore new creators,  
-    and enjoy a premium video experience built around you.  
-  </p>  
-
-  <div class="hero-actions">  
-    <a href="#videos" class="btn btn-gold">Explore Videos</a>  
-    <a href="about.html" class="btn btn-dark">Discover Empire</a>  
-  </div>  
-
-  <div class="hero-note">  
-    FREE VIDEOS · PREMIUM CONTENT · ONE EMPIRE  
-  </div>  
-
+</header> 
+  <div class="empire-slogan">
+  <p>Building Tomorrow’s Civilization.</p>
+  <span>A Haven for All.</span>
 </div>
-
-  </section>    <div class="container search-area">  
+  <main id="home">  
+  
+    <div class="container search-area">  
     <label class="search-box">  
       <span class="search-icon">⌕</span>  
       <input  
@@ -802,39 +855,9 @@ footer{
 
 </div>
 
-  </section>    <section class="featured">  
-    <div class="container feature-box">  <div class="feature-video" id="featuredVideoArea">  
-    <div class="play">▶</div>  
-  </div>  
-
-  <div class="feature-copy">  
-    <div class="eyebrow">Featured premiere</div>  
-
-    <h2 id="featuredTitle">Your Empire Library</h2>  
-
-    <p id="featuredDescription">  
-      Discover a featured video from the Empire library.  
-    </p>  
-
-    <ul class="feature-list">  
-      <li>Free and premium video content</li>  
-      <li>Secure video access for signed-in users</li>  
-      <li>Designed for mobile and desktop</li>  
-    </ul>  
-
-    <button  
-      class="btn btn-gold"  
-      id="featuredButton"  
-      type="button"  
-      onclick="openFeatured()"  
-      style="display:none">  
-      ▶ Watch Video  
-    </button>  
-  </div>  
-
-</div>
-
-  </section>  </main>  <footer>  
+  </section>  
+    
+  </main>  <footer>  
   <div class="container">  <div class="footer-inner">  
   <div>© 2026 Empire. All rights reserved.</div>  
   <div>Royal Cinematic Video Experience</div>  
@@ -964,15 +987,6 @@ async function loadVideos(){
     }  
   
     renderVideos();  
-  
-    featuredVideo =  
-      videos.find(video => video.access_type === "free") || null;  
-  
-    if(featuredVideo){  
-      renderFeatured(featuredVideo);  
-    }else{  
-      resetFeatured();  
-    }  
   
   }catch(error){  
     console.error("LOAD VIDEOS ERROR:",error);  
@@ -1439,68 +1453,6 @@ function showPaymentModal(videoId, session, result){
     verifyButton.disabled = false;  
     verifyButton.textContent = "Verify Payment";  
   };  
-}  
-  
-/* FEATURED VIDEO */  
-  
-function renderFeatured(video){  
-  if(!video){  
-    resetFeatured();  
-    return;  
-  }  
-  
-  featuredVideo = video;  
-  
-  const title = document.getElementById("featuredTitle");  
-  const description = document.getElementById("featuredDescription");  
-  const button = document.getElementById("featuredButton");  
-  const area = document.getElementById("featuredVideoArea");  
-  
-  title.textContent = video.title || "Featured Video";  
-  description.textContent = video.description || "Discover this Empire video.";  
-  
-  button.style.display = "inline-flex";  
-  button.onclick = () => watchVideo(video.id);  
-  
-  if(video.thumbnail_url){  
-    area.innerHTML = `  
-      <img  
-        src="${escapeAttribute(video.thumbnail_url)}"  
-        alt="${escapeAttribute(video.title || "Featured video")}"  
-        loading="lazy">  
-      <div class="thumb-overlay"></div>  
-      <button class="play" type="button"  
-        aria-label="Watch featured video"  
-        style="border:0;cursor:pointer"  
-        onclick="watchVideo('${escapeAttribute(video.id)}')">▶</button>  
-    `;  
-  }else{  
-    area.innerHTML = `  
-      <button class="play" type="button"  
-        aria-label="Watch featured video"  
-        style="border:0;cursor:pointer"  
-        onclick="watchVideo('${escapeAttribute(video.id)}')">▶</button>  
-    `;  
-  }  
-}  
-  
-function resetFeatured(){  
-  featuredVideo = null;  
-  
-  document.getElementById("featuredTitle").textContent =  
-    "Your Empire Library";  
-  
-  document.getElementById("featuredDescription").textContent =  
-    "Discover featured videos from the Empire library.";  
-  
-  document.getElementById("featuredButton").style.display = "none";  
-  
-  document.getElementById("featuredVideoArea").innerHTML =  
-    '<div class="play">▶</div>';  
-}  
-  
-function openFeatured(){  
-  if(featuredVideo) watchVideo(featuredVideo.id);  
 }  
   
 /* CLOSE VIDEO */  
