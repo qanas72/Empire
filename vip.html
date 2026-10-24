@@ -1,0 +1,542 @@
+<!DOCTYPE html><html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b0b0f">
+  <title>EMPIRE | VIP Creator Studio</title>  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>  <style>
+    * { box-sizing: border-box; }
+
+    :root {
+      --bg: #0b0b0f;
+      --card: #17171e;
+      --gold: #e9bd62;
+      --text: #f5f5f5;
+      --muted: #aaa;
+      --border: #34343d;
+      --green: #72df9a;
+      --red: #ff8585;
+    }
+
+    body {
+      margin: 0;
+      padding: 20px;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Arial, sans-serif;
+    }
+
+    .container {
+      max-width: 820px;
+      margin: auto;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 26px;
+    }
+
+    .brand {
+      color: var(--gold);
+      font-size: 25px;
+      font-weight: bold;
+      letter-spacing: 2px;
+    }
+
+    h1, h2 { color: var(--gold); }
+
+    h1 { font-size: 24px; }
+    h2 { font-size: 20px; }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 22px;
+      margin-bottom: 20px;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 7px 12px;
+      border-radius: 20px;
+      background: #49391a;
+      color: #f3cb75;
+      font-size: 13px;
+    }
+
+    label {
+      display: block;
+      margin: 18px 0 8px;
+      color: var(--gold);
+      font-size: 14px;
+    }
+
+    input, textarea {
+      width: 100%;
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid #454550;
+      background: #101015;
+      color: white;
+      font: inherit;
+    }
+
+    textarea {
+      min-height: 110px;
+      resize: vertical;
+    }
+
+    input[type="file"] {
+      padding: 10px;
+    }
+
+    input[type="checkbox"] {
+      width: auto;
+      margin-right: 0;
+      transform: scale(1.15);
+    }
+
+    .rules {
+      background: #101015;
+      border: 1px solid #454550;
+      border-radius: 10px;
+      padding: 16px;
+      color: #ddd;
+      line-height: 1.9;
+    }
+
+    .rules li { margin-bottom: 8px; }
+
+    .accept {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      line-height: 1.7;
+      color: var(--text);
+    }
+
+    button, .link {
+      display: inline-block;
+      border: 0;
+      border-radius: 8px;
+      padding: 12px 17px;
+      margin-top: 16px;
+      font-size: 14px;
+      cursor: pointer;
+      text-decoration: none;
+    }
+
+    .gold-button {
+      background: var(--gold);
+      color: #151515;
+      font-weight: bold;
+    }
+
+    .dark-button {
+      background: #30303a;
+      color: white;
+    }
+
+    button:disabled {
+      opacity: .55;
+      cursor: not-allowed;
+    }
+
+    #message {
+      padding: 14px;
+      margin-bottom: 18px;
+      border-radius: 8px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      line-height: 1.7;
+      overflow-wrap: anywhere;
+    }
+
+    .small {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.8;
+    }
+
+    .hidden { display: none !important; }
+
+    .video-item {
+      border-top: 1px solid var(--border);
+      padding: 15px 0;
+      overflow-wrap: anywhere;
+    }
+
+    .pending { color: var(--gold); }
+    .approved { color: var(--green); }
+    .rejected { color: var(--red); }
+
+    @media (max-width: 520px) {
+      body { padding: 14px; }
+      .card { padding: 16px; }
+      header { align-items: flex-start; }
+    }
+  </style></head><body>
+<div class="container">  <header>
+    <div class="brand">♛ EMPIRE</div>
+    <a class="link dark-button" href="profile.html">My Profile</a>
+  </header>  <h1>VIP Creator Studio</h1>  <div id="message">Checking your account...</div>  <section id="publishingPanel" class="hidden"><div class="card">
+  <h2>Publish a Video</h2>
+
+  <span class="badge">VIP MEMBERS ONLY</span>
+
+  <p class="small">
+    Submit your original content for review. Your video will not
+    be published publicly until an administrator approves it.
+  </p>
+
+  <form id="publishForm">
+
+    <label for="title">Video Title *</label>
+    <input
+      id="title"
+      type="text"
+      maxlength="120"
+      required
+      placeholder="Enter a clear video title"
+    >
+
+    <label for="description">Video Description *</label>
+    <textarea
+      id="description"
+      maxlength="3000"
+      required
+      placeholder="Describe your video"
+    ></textarea>
+
+    <label for="videoFile">Video File *</label>
+    <input
+      id="videoFile"
+      type="file"
+      accept="video/mp4,video/webm,video/quicktime"
+      required
+    >
+
+    <p class="small">
+      Maximum file size: 40 MB. Larger uploads require a resumable
+      upload system.
+    </p>
+
+    <label for="thumbnailFile">Thumbnail Image (Optional)</label>
+    <input
+      id="thumbnailFile"
+      type="file"
+      accept="image/jpeg,image/png,image/webp"
+    >
+
+    <h2>Content Publishing Rules</h2>
+
+    <div class="rules">
+      <ol>
+        <li>Do not upload illegal content or instructions that facilitate criminal activity.</li>
+        <li>Respect copyright. Do not upload content you do not own or have permission to use.</li>
+        <li>Do not publish private information or images of others without appropriate consent.</li>
+        <li>Threats, harassment, bullying, and hateful content are prohibited.</li>
+        <li>Sexual exploitation and any sexual content involving minors are strictly prohibited.</li>
+        <li>Use accurate titles, descriptions, and thumbnails. Misleading content is not allowed.</li>
+        <li>Scams, malicious links, and deceptive promotions are prohibited.</li>
+        <li>Never publish passwords, financial credentials, or other sensitive personal information.</li>
+        <li>All submitted videos are subject to administrator review. Submission does not guarantee approval.</li>
+        <li>Empire may reject or remove content that violates these rules and may restrict accounts when appropriate.</li>
+        <li>Creators are responsible for their content, permissions, and compliance with applicable laws.</li>
+      </ol>
+    </div>
+
+    <label class="accept">
+      <input id="acceptRules" type="checkbox" required>
+      <span>
+        I have read and agree to the Empire Content Publishing Rules.
+      </span>
+    </label>
+
+    <button id="submitBtn" class="gold-button" type="submit">
+      Submit Video for Review
+    </button>
+
+  </form>
+</div>
+
+<div class="card">
+  <h2>My Submitted Videos</h2>
+  <div id="myVideos" class="small">Loading your submissions...</div>
+</div>
+
+  </section></div><script>
+(async function () {
+  const SUPABASE_URL =
+    "https://vubjkwbkuwndkjqfnyom.supabase.co";
+
+  const SUPABASE_KEY =
+    "sb_publishable_Ig1R3dpAKyBfjIGSUhhlKw_uC-QF0QQ";
+
+  const client = window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+  );
+
+  const message = document.getElementById("message");
+  const panel = document.getElementById("publishingPanel");
+  const form = document.getElementById("publishForm");
+  const submitBtn = document.getElementById("submitBtn");
+  const myVideos = document.getElementById("myVideos");
+
+  let currentUser = null;
+
+  function showMessage(text, error = false) {
+    message.textContent = text;
+    message.style.color = error ? "#ff8585" : "#e9bd62";
+  }
+
+  function safeFileName(name) {
+    return name
+      .normalize("NFKD")
+      .replace(/[^a-zA-Z0-9._-]/g, "_")
+      .slice(-100) || "upload";
+  }
+
+  async function getActiveVIP() {
+    const { data, error } = await client
+      .from("vip_memberships")
+      .select("id")
+      .eq("user_id", currentUser.id)
+      .eq("status", "active")
+      .lte("starts_at", new Date().toISOString())
+      .gt("expires_at", new Date().toISOString())
+      .limit(1);
+
+    if (error) throw error;
+    return Boolean(data && data.length);
+  }
+
+  async function initialize() {
+    const { data, error } = await client.auth.getSession();
+
+    if (error || !data?.session) {
+      showMessage("Please sign in to your Empire account.", true);
+      return;
+    }
+
+    currentUser = data.session.user;
+
+    try {
+      const active = await getActiveVIP();
+
+      if (!active) {
+        showMessage(
+          "An active VIP membership is required to publish videos.",
+          true
+        );
+        return;
+      }
+
+      panel.classList.remove("hidden");
+      showMessage("Your VIP membership is active. Welcome to Creator Studio.");
+
+      await loadMyVideos();
+    } catch (error) {
+      showMessage(
+        "Unable to verify VIP membership: " + error.message,
+        true
+      );
+    }
+  }
+
+  async function loadMyVideos() {
+    const { data, error } = await client
+      .from("videos")
+      .select("id,title,approval_status,rejection_reason,created_at")
+      .eq("creator_id", currentUser.id)
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      myVideos.textContent =
+        "Unable to load submissions: " + error.message;
+      return;
+    }
+
+    myVideos.replaceChildren();
+
+    if (!data || data.length === 0) {
+      myVideos.textContent = "You have not submitted any videos yet.";
+      return;
+    }
+
+    const statuses = {
+      pending: ["Pending Admin Review", "pending"],
+      approved: ["Approved", "approved"],
+      rejected: ["Rejected", "rejected"]
+    };
+
+    data.forEach((video) => {
+      const item = document.createElement("div");
+      item.className = "video-item";
+
+      const title = document.createElement("strong");
+      title.textContent = video.title;
+
+      const status = document.createElement("p");
+      const state = statuses[video.approval_status] ||
+        ["Status Unknown", "pending"];
+
+      status.className = state[1];
+      status.textContent = "Status: " + state[0];
+
+      item.append(title, status);
+
+      if (video.rejection_reason) {
+        const reason = document.createElement("p");
+        reason.textContent =
+          "Administrator's feedback: " + video.rejection_reason;
+        item.appendChild(reason);
+      }
+
+      myVideos.appendChild(item);
+    });
+  }
+
+  form.addEventListener("submit", async function (event) {
+    event.preventDefault();
+
+    if (!currentUser) {
+      showMessage("Please sign in again.", true);
+      return;
+    }
+
+    if (!document.getElementById("acceptRules").checked) {
+      showMessage("You must accept the publishing rules.", true);
+      return;
+    }
+
+    const title = document.getElementById("title").value.trim();
+    const description = document.getElementById("description").value.trim();
+    const videoFile = document.getElementById("videoFile").files[0];
+    const thumbnailFile =
+      document.getElementById("thumbnailFile").files[0];
+
+    if (!title || !description || !videoFile) {
+      showMessage("Please complete all required fields.", true);
+      return;
+    }
+
+    if (videoFile.size > 40 * 1024 * 1024) {
+      showMessage("The video file must not exceed 40 MB.", true);
+      return;
+    }
+
+    if (thumbnailFile && thumbnailFile.size > 5 * 1024 * 1024) {
+      showMessage("The thumbnail must not exceed 5 MB.", true);
+      return;
+    }
+
+    submitBtn.disabled = true;
+
+    let uploadedVideoPath = null;
+    let uploadedThumbnailPath = null;
+
+    try {
+      showMessage("Verifying your VIP membership...");
+
+      if (!await getActiveVIP()) {
+        throw new Error("Your VIP membership is not active.");
+      }
+
+      const folder = currentUser.id;
+      const videoName =
+        Date.now() + "-" + safeFileName(videoFile.name);
+
+      uploadedVideoPath = folder + "/" + videoName;
+
+      showMessage("Uploading video...");
+
+      const { error: uploadError } = await client.storage
+        .from("videos")
+        .upload(uploadedVideoPath, videoFile, {
+          cacheControl: "3600",
+          upsert: false,
+          contentType: videoFile.type
+        });
+
+      if (uploadError) throw uploadError;
+
+      let thumbnailPath = null;
+
+      if (thumbnailFile) {
+        const thumbName =
+          Date.now() + "-thumb-" + safeFileName(thumbnailFile.name);
+
+        uploadedThumbnailPath = folder + "/" + thumbName;
+
+        showMessage("Uploading thumbnail...");
+
+        const { error: thumbError } = await client.storage
+          .from("videos")
+          .upload(uploadedThumbnailPath, thumbnailFile, {
+            cacheControl: "3600",
+            upsert: false,
+            contentType: thumbnailFile.type
+          });
+
+        if (thumbError) throw thumbError;
+
+        thumbnailPath = uploadedThumbnailPath;
+      }
+
+      showMessage("Submitting video for administrator review...");
+
+      const { error: insertError } = await client
+        .from("videos")
+        .insert({
+          title,
+          description,
+          video_path: uploadedVideoPath,
+          thumbnail_url: thumbnailPath,
+          creator_id: currentUser.id,
+          access_type: "free",
+          approval_status: "pending",
+          reviewed_at: null,
+          reviewed_by: null,
+          rejection_reason: null
+        });
+
+      if (insertError) throw insertError;
+
+      form.reset();
+
+      showMessage(
+        "Your video has been submitted successfully. It will remain unpublished until approved."
+      );
+
+      await loadMyVideos();
+
+    } catch (error) {
+      console.error(error);
+
+      if (uploadedVideoPath) {
+        await client.storage.from("videos").remove([uploadedVideoPath]);
+      }
+
+      if (uploadedThumbnailPath) {
+        await client.storage.from("videos").remove([uploadedThumbnailPath]);
+      }
+
+      showMessage(
+        "Submission failed: " + (error.message || "Unknown error"),
+        true
+      );
+    } finally {
+      submitBtn.disabled = false;
+    }
+  });
+
+  await initialize();
+})();
+</script></body>
+</html>
