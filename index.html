@@ -273,7 +273,11 @@ backdrop-filter: blur(14px);
 .search-box input::placeholder{  
   color:#777;  
 }  
-  
+  .search-box:focus-within {
+border-color: #ffd700;
+box-shadow: 0 0 10px rgba(255, 215, 0, 0.18);
+transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
 /* SECTIONS */  
   
 section{  
