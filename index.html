@@ -255,10 +255,16 @@ backdrop-filter: blur(14px);
   border-radius:13px;  
 }  
   
-.search-icon{  
-  color:var(--gold);  
-  font-size:21px;  
-}  
+.search-icon {
+color: #ffd700;
+font-size: 25px;
+text-shadow: 0 0 8px rgba(255, 215, 0, 0.35);
+transition: transform 0.25s ease;
+}
+
+.search-box:focus-within .search-icon {
+transform: scale(1.12);
+}
   
 .search-box input{  
   flex:1;  
