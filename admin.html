@@ -1397,7 +1397,7 @@ async function loadVideos(){
       await supabaseClient
         .from("videos")
         .select(
-          "id,title,description,thumbnail_url,video_path,access_type,price,created_at"
+          "id,title,description,thumbnail_url,video_path,access_type,price,created_at,approval_status,rejection_reason,creator_id"
         )
         .order(
           "created_at",
@@ -1481,8 +1481,12 @@ async function loadVideos(){
                   <div class="video-meta">
 
                     ${badge}
+                    <span class="badge" style="background:${video.approval_status === "approved" ? "#dcfce7" : video.approval_status === "rejected" ? "#fee2e2" : "#fef3c7"};color:${video.approval_status === "approved" ? "#166534" : video.approval_status === "rejected" ? "#991b1b" : "#92400e"}">
+                      ${escapeHtml(video.approval_status || "unknown").toUpperCase()}
+                    </span>
 
                   </div>
+                  ${video.rejection_reason ? `<div class="video-description">Reason: ${escapeHtml(video.rejection_reason)}</div>` : ""}
 
                   <div class="video-path">
                     ${escapeHtml(video.video_path)}
@@ -1501,6 +1505,10 @@ async function loadVideos(){
 
                   </button>
 
+                  ${video.approval_status === "pending" ? `
+                    <button class="btn btn-gold" onclick="reviewVideo('${video.id}', 'approved')">Approve</button>
+                    <button class="btn btn-danger" onclick="reviewVideo('${video.id}', 'rejected')">Reject</button>
+                  ` : ""}
 
                   <button
                     class="btn btn-danger"
@@ -1537,6 +1545,53 @@ async function loadVideos(){
 
   }
 
+}
+
+
+/* =========================================================
+   REVIEW USER SUBMISSIONS
+   ========================================================= */
+
+async function reviewVideo(videoId, decision){
+
+  if(!["approved", "rejected"].includes(decision)) return;
+
+  const video = videos.find(item => item.id === videoId);
+  if(!video) return;
+
+  let rejectionReason = null;
+  if(decision === "rejected"){
+    rejectionReason = prompt("Please enter a reason for rejecting this video:");
+    if(rejectionReason === null) return;
+    rejectionReason = rejectionReason.trim();
+    if(!rejectionReason){
+      alert("A rejection reason is required.");
+      return;
+    }
+  }
+
+  try{
+    const { error } = await supabaseClient
+      .from("videos")
+      .update({
+        approval_status: decision,
+        reviewed_at: new Date().toISOString(),
+        reviewed_by: currentUser.id,
+        rejection_reason: rejectionReason
+      })
+      .eq("id", videoId);
+
+    if(error) throw error;
+
+    showStatus(
+      decision === "approved" ? "Video approved and published." : "Video rejected.",
+      "success"
+    );
+    await loadVideos();
+  }catch(error){
+    console.error("VIDEO REVIEW ERROR:", error);
+    showStatus("Could not review video: " + error.message, "error");
+  }
 }
 
 
