@@ -449,6 +449,58 @@ footer{
 
 @media(max-width:700px){
 
+  html, body{
+    max-width:100%;
+    overflow-x:hidden;
+  }
+
+  .container{
+    width:100%;
+    max-width:100%;
+    padding-left:14px;
+    padding-right:14px;
+    box-sizing:border-box;
+  }
+
+  .panel,
+  .video-row,
+  .video-info{
+    min-width:0;
+    max-width:100%;
+    box-sizing:border-box;
+  }
+
+  .video-row{
+    width:100%;
+    gap:12px;
+    padding:14px;
+  }
+
+  .video-info{
+    width:100%;
+    overflow:hidden;
+  }
+
+  .video-path{
+    overflow-wrap:anywhere;
+    word-break:break-word;
+  }
+
+  .video-actions{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    width:100%;
+    gap:8px;
+  }
+
+  .video-actions button{
+    width:100%;
+    min-width:0;
+    padding:10px 8px;
+    font-size:13px;
+    white-space:normal;
+  }
+
   .form-grid{
     grid-template-columns:1fr;
   }
