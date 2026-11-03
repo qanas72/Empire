@@ -981,6 +981,7 @@ async function loadVideos(){
         price,  
         created_at  
       `)  
+      .eq("approval_status","approved")
       .order("created_at",{ascending:false});  
   
     if(error) throw error;  
