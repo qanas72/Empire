@@ -1382,12 +1382,9 @@
 
       avatarUploadInProgress = true;
 
-      const button = $("uploadPhotoButton");
       const chooseButton = $("choosePhotoButton");
-
-      button.disabled = true;
       chooseButton.disabled = true;
-      button.textContent = "Uploading...";
+      chooseButton.textContent = "⏳";
 
       try {
         const extensionByType = {
@@ -1454,9 +1451,8 @@
         showNotice(error.message || "Could not upload your photo.", "error");
       } finally {
         avatarUploadInProgress = false;
-        button.disabled = false;
         chooseButton.disabled = false;
-        button.textContent = "Upload Photo";
+        chooseButton.textContent = "📷";
       }
     }
 
