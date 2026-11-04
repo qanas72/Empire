@@ -16,12 +16,16 @@ button,.button{border:0;border-radius:9px;padding:11px 16px;background:linear-gr
 button:disabled{opacity:.5;cursor:not-allowed}.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:14px}.notice{padding:12px;border-radius:9px;margin-bottom:14px;display:none;line-height:1.6}.notice.show{display:block}.error{background:#321616;color:#ffbaba}.success{background:#12301f;color:#b6f3ca}
 .post-head{display:flex;justify-content:space-between;gap:10px;color:var(--muted);font-size:12px;margin-bottom:12px}.post-body{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.8}.post img{width:100%;max-height:520px;object-fit:contain;background:#080808;border-radius:10px;margin-top:12px}.post-actions{display:flex;justify-content:flex-end;margin-top:12px}.report-btn{background:#282020;color:#ffbaba;border:1px solid #633333;padding:8px 12px;font-size:12px}.vip{border-color:#8a6b2e;background:linear-gradient(145deg,#211a0d,#111)}.hidden{display:none!important}
 @media(max-width:560px){.top{padding:13px 4%;align-items:flex-start}.nav{gap:10px;font-size:12px;flex-wrap:wrap;justify-content:flex-end}.intro h1{font-size:27px}.card,.post{padding:15px}}
+
+.report-modal{position:fixed;inset:0;z-index:1000;display:none;align-items:center;justify-content:center;padding:18px;background:#000b;backdrop-filter:blur(5px)}.report-modal.open{display:flex}.report-dialog{width:min(100%,460px);padding:24px;border:1px solid #8a6b2e;border-radius:18px;background:linear-gradient(145deg,#211a0d,#101010);box-shadow:0 22px 70px #000b}.report-dialog h2{margin:0 0 8px;color:var(--gold)}.report-dialog p{color:var(--muted);font-size:13px;line-height:1.6}.report-dialog textarea{min-height:110px}.report-dialog .row{justify-content:flex-end}.secondary-btn{background:#292929;color:#eee;border:1px solid #555}.report-dialog button{min-width:104px}
+@media(max-width:560px){.top{align-items:center;gap:12px;flex-wrap:wrap}.brand{font-size:20px;white-space:nowrap}.nav{width:100%;justify-content:space-between;gap:8px;padding-top:8px;border-top:1px solid #302817;font-size:13px}.top{position:sticky}.report-dialog{padding:20px}.intro h1{font-size:25px}}
 </style></head>
 <body>
 <header class="top"><a class="brand" href="index.html">♛ EMPIRE</a><nav class="nav"><a href="index.html">Home</a><a href="profile.html">Profile</a><a href="premium.html">VIP</a></nav></header>
 <main>
 <section class="intro"><h1>Empire <span class="gold">Publishing</span></h1><p class="muted">Share your thoughts and images with the Empire community.</p></section>
 <div id="notice" class="notice"></div>
+<div class="report-modal" id="reportModal" role="dialog" aria-modal="true" aria-labelledby="reportTitle"><div class="report-dialog"><h2 id="reportTitle">Report publication</h2><p>Please explain why this publication should be reviewed.</p><form id="reportForm"><label for="reportReason">Reason for report</label><textarea id="reportReason" maxlength="1000" required placeholder="e.g. illegal content, abuse, harassment or copyright"></textarea><div class="row"><button type="button" class="secondary-btn" id="cancelReport">Cancel</button><button type="submit" id="sendReport">Submit report</button></div></form></div></div>
 <section class="card" id="composer">
 <h2 class="gold">Create a publication</h2>
 <p class="hint" id="loginHint">Sign in to publish text or images. Text and image posts are published immediately.</p>
@@ -55,14 +59,25 @@ async function loadFeed(){
  $("feed").innerHTML=cards.join("");
  $("feed").querySelectorAll("[data-report]").forEach(b=>b.addEventListener("click",()=>reportPost(b.dataset.report)));
 }
+let selectedReportPost=null;
+function closeReportModal(){$("reportModal").classList.remove("open");$("reportForm").reset();selectedReportPost=null;}
 async function reportPost(postId){
  if(!user){notify("Please sign in to report a publication.",true);return;}
- const reason=prompt("Why are you reporting this publication? (e.g. illegal, abusive, harassment, copyright)");
- if(!reason||!reason.trim())return;
- const {error}=await db.from("post_reports").insert({post_id:postId,reporter_id:user.id,reason:reason.trim().slice(0,1000)});
- if(error){notify(error.code==="23505"?"You have already reported this publication.":error.message,true);return;}
- notify("Report submitted. The administration will review it.");
+ selectedReportPost=postId;$("reportModal").classList.add("open");$("reportReason").focus();
 }
+$("cancelReport").addEventListener("click",closeReportModal);
+$("reportModal").addEventListener("click",e=>{if(e.target===$("reportModal"))closeReportModal();});
+$("reportForm").addEventListener("submit",async e=>{
+ e.preventDefault();if(!user||!selectedReportPost)return;
+ const reason=$("reportReason").value.trim();if(!reason)return;
+ const btn=$("sendReport");btn.disabled=true;btn.textContent="Submitting...";
+ try{
+  const {error}=await db.from("post_reports").insert({post_id:selectedReportPost,reporter_id:user.id,reason:reason.slice(0,1000)});
+  if(error)throw error;
+  closeReportModal();notify("Report submitted. The administration will review it.");
+ }catch(error){notify(error.code==="23505"?"You have already reported this publication.":error.message,true);}
+ finally{btn.disabled=false;btn.textContent="Submit report";}
+});
 $("postForm").addEventListener("submit",async e=>{
  e.preventDefault();
  if(!user){notify("Please sign in before publishing.",true);return;}
