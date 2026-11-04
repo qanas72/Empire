@@ -994,7 +994,9 @@ async function loadCommunityFeed(){
       let image='';
       if(post.image_path){const {data:u}=supabaseClient.storage.from("post-images").getPublicUrl(post.image_path);if(u?.publicUrl)image='<img src="'+escapeAttribute(u.publicUrl)+'" alt="Community publication" loading="lazy">';}
       const author=authorMap.get(post.author_id);
-      const authorHtml=author?'<a href="user-profile.html?username='+encodeURIComponent(author.username)+'"><img src="'+escapeAttribute(author.avatar_url||fallbackAvatar)+'" alt=""><span class="community-author-name">'+escapeHtml(author.display_name||author.username)+'</span></a>':'<div class="community-admin"><span class="community-admin-mark">♛</span><span>EMPIRE Administration</span></div>';
+      const avatarUrl=author?.avatar_url?supabaseClient.storage.from("avatars").getPublicUrl(author.avatar_url).data?.publicUrl:null;
+      const ownProfile=!!currentSession&&currentSession.user.id===post.author_id;
+      const authorHtml=author?'<a href="'+(ownProfile?"profile.html":"user-profile.html?username="+encodeURIComponent(author.username))+'"><img src="'+escapeAttribute(avatarUrl||fallbackAvatar)+'" alt=""><span class="community-author-name">'+escapeHtml(author.display_name||author.username)+'</span></a>':'<div class="community-admin"><span class="community-admin-mark">♛</span><span>EMPIRE Administration</span></div>';
       const report=currentSession?'<div class="community-post-foot"><button type="button" onclick="reportCommunityPost(\''+escapeAttribute(post.id)+'\')">Report</button></div>':'';
       return '<article class="community-post"><div class="community-post-head"><div class="community-author">'+authorHtml+'</div><span>'+new Date(post.created_at).toLocaleString()+'</span></div><div class="community-post-body">'+escapeHtml(post.content||"")+'</div>'+image+report+'</article>';
     }).join("");
