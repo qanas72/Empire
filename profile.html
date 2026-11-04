@@ -1303,19 +1303,6 @@
 
       currentUser = authData.user;
 
-      // Never leave the VIP badge in its initial loading state indefinitely.
-      setTimeout(() => {
-        const badge = $("vipBadge");
-        if (badge && badge.textContent.includes("Checking VIP")) {
-          badge.textContent = "♛ VIP check timed out";
-          badge.className = "badge gray";
-          $("accountType").textContent = "Status unavailable";
-          const description = $("vipDescription");
-          if (description) description.textContent =
-            "The VIP status request did not finish. Please try again later.";
-        }
-      }, 15000);
-
       // Use the Auth account creation timestamp immediately as a reliable fallback.
       $("memberSince").textContent = formatDate(currentUser.created_at);
 
@@ -1627,8 +1614,16 @@
 
       const description = $("vipDescription");
 
-      $("vipBadge").textContent = "♛ Checking VIP...";
+      // Default to the regular account state while membership is checked.
+      // A confirmed active VIP record below will replace this state.
+      $("vipBadge").textContent = "♛ Regular Member";
       $("vipBadge").className = "badge gray";
+      $("accountType").textContent = "Regular Member";
+      $("vipPlanLabel").textContent = "Checking membership...";
+      $("vipStartDate").textContent = "Not available";
+      $("vipExpiryDate").textContent = "Not available";
+      $("vipCreatorCard").style.display = "none";
+      description.textContent = "No active VIP membership has been confirmed.";
 
       try {
         const { data, error } = await withProfileTimeout(
@@ -1712,13 +1707,17 @@
         $("vipCreatorCard").style.display = "none";
         console.error("Membership load error:", error);
 
-        $("vipBadge").textContent = "♛ VIP status unavailable";
+        // Keep the account usable as a regular member if the VIP lookup fails.
+        // VIP-only actions remain hidden unless an active membership is confirmed.
+        $("vipBadge").textContent = "♛ Regular Member";
         $("vipBadge").className = "badge gray";
-        $("accountType").textContent = "Status unavailable";
-        $("vipPlanLabel").textContent = "Could not check status";
+        $("accountType").textContent = "Regular Member";
+        $("vipPlanLabel").textContent = "Verification unavailable";
+        $("vipStartDate").textContent = "Not available";
+        $("vipExpiryDate").textContent = "Not available";
 
         if (description) description.textContent =
-          "VIP status could not be checked. Please refresh the page or try again later.";
+          "Your account is shown as a Regular Member because an active VIP membership could not be confirmed. Please refresh later to verify VIP status.";
       }
     }
 
