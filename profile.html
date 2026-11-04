@@ -617,6 +617,7 @@
 
       .topbar {
         padding: 13px 4%;
+        flex-wrap: wrap;
       }
 
       .brand {
@@ -624,8 +625,20 @@
       }
 
       .nav-links {
-        gap: 12px;
+        width: 100%;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 7px;
         font-size: 12px;
+      }
+
+      .nav-links a, .nav-links button {
+        padding: 8px 5px;
+        min-width: 0;
+        font-size: 12px;
+      }
+
+      .nav-links .nav-secondary {
+        justify-content: center;
       }
 
       .page {
