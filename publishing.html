@@ -60,7 +60,9 @@ async function loadFeed(){
   let image="";
   if(p.image_path){const {data:u}=db.storage.from("post-images").getPublicUrl(p.image_path);image=u?.publicUrl?'<img src="'+escapeHTML(u.publicUrl)+'" alt="Publication image" loading="lazy">':"";}
   const author=authorMap.get(p.author_id);
-  const authorHtml=author?'<a href="user-profile.html?username='+encodeURIComponent(author.username)+'"><img src="'+escapeHTML(author.avatar_url||fallbackAvatar)+'" alt=""><span class="post-author-name">'+escapeHTML(author.display_name||author.username)+'</span></a>':'<div class="post-admin"><span class="post-admin-mark">♛</span><span>EMPIRE Administration</span></div>';
+  const avatarUrl=author?.avatar_url?db.storage.from("avatars").getPublicUrl(author.avatar_url).data?.publicUrl:null;
+  const ownProfile=!!user&&user.id===p.author_id;
+  const authorHtml=author?'<a href="'+(ownProfile?"profile.html":"user-profile.html?username="+encodeURIComponent(author.username))+'"><img src="'+escapeHTML(avatarUrl||fallbackAvatar)+'" alt=""><span class="post-author-name">'+escapeHTML(author.display_name||author.username)+'</span></a>':'<div class="post-admin"><span class="post-admin-mark">♛</span><span>EMPIRE Administration</span></div>';
   return '<article class="post"><div class="post-head"><div class="post-author">'+authorHtml+'</div><span>'+new Date(p.created_at).toLocaleString()+'</span></div><div class="post-body">'+escapeHTML(p.content||"")+'</div>'+image+'<div class="post-actions"><button class="report-btn" data-report="'+p.id+'">Report publication</button></div></article>';
  }));
  $("feed").innerHTML=cards.join("");
