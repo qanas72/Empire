@@ -183,16 +183,19 @@
     TRON: {
       label: "USDT TRC20",
       address: "TZ9PxtbEchvo1RSrTDjLvyeRHK1HPtmMmV",
+      tokenContract: "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
       explorer: "https://tronscan.org/#/transaction/"
     },
     BSC: {
-      label: "USDT BEP20",
+      label: "USDT BEP20 (BSC representation)",
       address: "0xe8D7B16C603Ea5c2B7EEe87e567192Bf651c1DEA",
+      tokenContract: "0x55d398326f99059fF775485246999027B3197955",
       explorer: "https://bscscan.com/tx/"
     },
     TON: {
       label: "USDT TON Jetton",
       address: "UQBGbzaKDO0j_gddN5qguj15BrI6L9_VGcnUT0xP6rGXK7KT",
+      tokenContract: "EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs",
       explorer: "https://tonviewer.com/transaction/"
     }
   };
@@ -264,6 +267,11 @@
         card,
         "آدرس رسمی دریافت برای این شبکه",
         PAYMENT_NETWORKS[request.network]?.address || "شبکه ناشناخته"
+      );
+      addField(
+        card,
+        "قرارداد توکن USDT / Jetton Master",
+        PAYMENT_NETWORKS[request.network]?.tokenContract || "شبکه ناشناخته"
       );
       addField(card, "TXID تراکنش", request.transaction_hash);
       addField(card, "تاریخ ثبت", request.created_at);
