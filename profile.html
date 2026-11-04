@@ -144,16 +144,18 @@
     }
 
     .card {
-      background: linear-gradient(135deg, rgba(20,17,13,.58), rgba(9,10,14,.48));
-      border: 1px solid rgba(245,217,139,.48);
+      background: linear-gradient(135deg, rgba(255,255,255,.13), rgba(255,255,255,.045) 48%, rgba(214,173,85,.075));
+      border: 1px solid rgba(255,226,157,.58);
       border-radius: 18px;
       padding: 23px;
       margin-bottom: 22px;
-      box-shadow: 0 14px 38px rgba(0,0,0,.24), inset 0 1px 0 rgba(255,255,255,.08);
-      backdrop-filter: blur(16px) saturate(135%);
-      -webkit-backdrop-filter: blur(16px) saturate(135%);
+      box-shadow: 0 16px 42px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.24), inset 0 -1px 0 rgba(255,220,150,.10);
+      backdrop-filter: blur(24px) saturate(165%);
+      -webkit-backdrop-filter: blur(24px) saturate(165%);
       min-width: 0;
     }
+    .card:not(.profile-hero) { background-color:rgba(255,255,255,.055); }
+    .card h2,.card h3 { text-shadow:0 1px 12px rgba(0,0,0,.4); }
 
     .profile-hero {
       display: grid;
@@ -166,7 +168,7 @@
     }
 
     .profile-main { display:grid; grid-template-columns: 190px minmax(0,1fr); align-items:center; gap:26px; min-width:0; }
-    .profile-about { position:relative; z-index:1; padding:20px; border:1px solid rgba(245,217,139,.45); border-radius:18px; background:rgba(24,15,13,.38); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); }
+    .profile-about { position:relative; z-index:1; padding:20px; border:1px solid rgba(255,226,157,.62); border-radius:18px; background:linear-gradient(145deg,rgba(255,255,255,.16),rgba(255,255,255,.055)); box-shadow:inset 0 1px 0 rgba(255,255,255,.22),0 12px 30px rgba(0,0,0,.16); backdrop-filter:blur(26px) saturate(175%); -webkit-backdrop-filter:blur(26px) saturate(175%); }
     .profile-edit-card { max-width:680px; padding:18px 22px; }
     .profile-name-form { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:end; gap:12px; }
     .profile-name-form .btn { min-height:44px; margin:0; }
@@ -344,13 +346,14 @@
     }
 
     .stat-card {
-      background: rgba(18,18,18,.42);
-      border: 1px solid rgba(245,217,139,.28);
-      border-radius: 15px;
-      padding: 19px;
-      min-width: 0;
-      backdrop-filter:blur(12px);
-      -webkit-backdrop-filter:blur(12px);
+      background:linear-gradient(135deg,rgba(255,255,255,.14),rgba(255,255,255,.045));
+      border:1px solid rgba(255,226,157,.48);
+      border-radius:15px;
+      padding:19px;
+      min-width:0;
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.2),0 10px 26px rgba(0,0,0,.16);
+      backdrop-filter:blur(22px) saturate(165%);
+      -webkit-backdrop-filter:blur(22px) saturate(165%);
     }
 
     .stat-label {
@@ -433,10 +436,10 @@
     }
 
     .vip-card {
-      border-color: rgba(214, 173, 85, .42);
-      background:
-        radial-gradient(circle at top right, rgba(214, 173, 85, .13), transparent 40%),
-        linear-gradient(145deg, #1b170e, #101010);
+      border-color:rgba(255,226,157,.58);
+      background:linear-gradient(135deg,rgba(255,255,255,.13),rgba(214,173,85,.07));
+      backdrop-filter:blur(24px) saturate(165%);
+      -webkit-backdrop-filter:blur(24px) saturate(165%);
     }
 
     .vip-status {
@@ -453,8 +456,10 @@
     }
 
     .date-box {
-      background: rgba(0, 0, 0, .20);
-      border: 1px solid var(--border);
+      background:rgba(255,255,255,.085);
+      border:1px solid rgba(255,226,157,.38);
+      backdrop-filter:blur(18px);
+      -webkit-backdrop-filter:blur(18px);
       border-radius: 12px;
       padding: 14px;
       min-width: 0;
@@ -480,17 +485,17 @@
     }
 
     .feature-card {
-      background: linear-gradient(135deg,rgba(20,17,13,.58),rgba(9,10,14,.46));
-      border: 1px solid rgba(245,217,139,.4);
+      background:linear-gradient(135deg,rgba(255,255,255,.14),rgba(255,255,255,.045) 55%,rgba(214,173,85,.07));
+      border:1px solid rgba(255,226,157,.5);
       border-radius: 16px;
       padding: 22px;
       min-width: 0;
-      backdrop-filter:blur(15px) saturate(130%);
-      -webkit-backdrop-filter:blur(15px) saturate(130%);
-      box-shadow:0 12px 30px rgba(0,0,0,.2),inset 0 1px 0 rgba(255,255,255,.07);
+      backdrop-filter:blur(24px) saturate(165%);
+      -webkit-backdrop-filter:blur(24px) saturate(165%);
+      box-shadow:0 12px 30px rgba(0,0,0,.18),inset 0 1px 0 rgba(255,255,255,.22);
       transition:transform .2s ease,border-color .2s ease,background .2s ease;
     }
-    .feature-card:hover { transform:translateY(-3px); border-color:rgba(255,220,140,.72); background:rgba(40,29,16,.58); }
+    .feature-card:hover { transform:translateY(-3px); border-color:rgba(255,220,140,.82); background:linear-gradient(135deg,rgba(255,255,255,.2),rgba(214,173,85,.12)); }
 
     .feature-icon {
       font-size: 25px;
