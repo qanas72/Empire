@@ -356,15 +356,18 @@ const SUPABASE_KEY="sb_publishable_Ig1R3dpAKyBfjIGSUhhlKw_uC-QF0QQ";
 const VIP_PAYMENT_NETWORKS = {
   TRON: {
     label: "USDT TRC20 (TRON)",
-    address: "TZ9PxtbEchvo1RSrTDjLvyeRHK1HPtmMmV"
+    address: "TZ9PxtbEchvo1RSrTDjLvyeRHK1HPtmMmV",
+    tokenContract: "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"
   },
   BSC: {
     label: "USDT BEP20 (BSC)",
-    address: "0xe8D7B16C603Ea5c2B7EEe87e567192Bf651c1DEA"
+    address: "0xe8D7B16C603Ea5c2B7EEe87e567192Bf651c1DEA",
+    tokenContract: "0x55d398326f99059fF775485246999027B3197955"
   },
   TON: {
     label: "USDT TON (Jetton)",
-    address: "UQBGbzaKDO0j_gddN5qguj15BrI6L9_VGcnUT0xP6rGXK7KT"
+    address: "UQBGbzaKDO0j_gddN5qguj15BrI6L9_VGcnUT0xP6rGXK7KT",
+    tokenContract: "EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs"
   }
 };
 
@@ -651,7 +654,9 @@ function openVipPayment(planKey){
     <input class="field" id="vipWallet" readonly value="${VIP_PAYMENT_NETWORKS.TRON.address}">
     <button class="btn btn-gold" id="copyVipWallet" type="button">Copy</button>
    </div>
-   <p class="small-note">Only send USDT using the selected network. The recipient address changes with the network. Crypto transfers are irreversible. Do not send money for testing.</p>
+   <label class="field-label" for="vipTokenContract">USDT token contract / Jetton master</label>
+   <input class="field" id="vipTokenContract" readonly value="${VIP_PAYMENT_NETWORKS.TRON.tokenContract}">
+   <p class="small-note">Only send the USDT token matching this contract on the selected network. On BSC this is the BSC USDT token representation. On TON, verify the Jetton master carefully. Crypto transfers are irreversible. Do not send money for testing.</p>
    <label class="field-label" for="vipTxHash">Transaction Hash (TXID)</label>
    <input class="field" id="vipTxHash" maxlength="150" autocomplete="off" placeholder="Paste your transaction hash">
    <button class="btn btn-gold full" id="submitVipRequest" style="margin-top:17px">Submit VIP Request</button>
@@ -674,12 +679,14 @@ function openVipPayment(planKey){
 
  const networkSelect=document.getElementById("vipNetwork");
  const walletInput=document.getElementById("vipWallet");
+ const tokenContractInput=document.getElementById("vipTokenContract");
  const copyWalletButton=document.getElementById("copyVipWallet");
 
  networkSelect.addEventListener("change",()=>{
   const selected=VIP_PAYMENT_NETWORKS[networkSelect.value];
   if(!selected)return;
   walletInput.value=selected.address;
+  tokenContractInput.value=selected.tokenContract;
   copyWalletButton.textContent="Copy";
  });
 
