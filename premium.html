@@ -360,7 +360,7 @@ const VIP_PAYMENT_NETWORKS = {
     tokenContract: "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"
   },
   BSC: {
-    label: "USDT BEP20 (BSC)",
+    label: "Binance-Peg BSC-USD (BEP20)",
     address: "0xe8D7B16C603Ea5c2B7EEe87e567192Bf651c1DEA",
     tokenContract: "0x55d398326f99059fF775485246999027B3197955"
   },
@@ -646,7 +646,7 @@ function openVipPayment(planKey){
    <label class="field-label" for="vipNetwork">Payment network</label>
    <select class="field" id="vipNetwork">
     <option value="TRON">USDT TRC20 (TRON)</option>
-    <option value="BSC">USDT BEP20 (BSC)</option>
+    <option value="BSC">Binance-Peg BSC-USD (BEP20)</option>
     <option value="TON">USDT TON (Jetton)</option>
    </select>
    <label class="field-label" for="vipWallet">Official payment address</label>
@@ -656,7 +656,7 @@ function openVipPayment(planKey){
    </div>
    <label class="field-label" for="vipTokenContract">USDT token contract / Jetton master</label>
    <input class="field" id="vipTokenContract" readonly value="${VIP_PAYMENT_NETWORKS.TRON.tokenContract}">
-   <p class="small-note">Only send the USDT token matching this contract on the selected network. On BSC this is the BSC USDT token representation. On TON, verify the Jetton master carefully. Crypto transfers are irreversible. Do not send money for testing.</p>
+   <p class="small-note">Only send the USDT token matching this contract on the selected network. On BSC, the accepted asset is Binance-Peg BSC-USD (not native Tether USDt). On TON, verify the Jetton master carefully. Crypto transfers are irreversible. Do not send money for testing.</p>
    <label class="field-label" for="vipTxHash">Transaction Hash (TXID)</label>
    <input class="field" id="vipTxHash" maxlength="150" autocomplete="off" placeholder="Paste your transaction hash">
    <button class="btn btn-gold full" id="submitVipRequest" style="margin-top:17px">Submit VIP Request</button>
