@@ -1204,199 +1204,323 @@ async function watchVideo(videoId){
   }  
 }  
   
-async function openBuy(videoId){
-  const video = videos.find(item => String(item.id) === String(videoId));
-  if(!video){ alert("Video not found."); return; }
-  if(Number(video.price || 0) <= 0){ alert("Invalid video price."); return; }
-
-  const {data:{session}} = await supabaseClient.auth.getSession();
-  if(!session){
-    alert("Please sign in to continue with your purchase.");
-    window.location.href = "login.html";
-    return;
-  }
-
-  document.getElementById("empirePaymentModal")?.remove();
-  const modal = document.createElement("div");
-  modal.id = "empirePaymentModal";
-  modal.style.cssText = "position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.9);display:flex;align-items:center;justify-content:center;padding:16px;overflow:auto";
-  modal.innerHTML = `
-    <div style="width:100%;max-width:480px;background:#101010;color:#fff;border:1px solid rgba(230,189,88,.45);border-radius:18px;padding:22px;font-family:Arial,sans-serif">
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:18px">
-        <h2 style="color:#e6bd58;margin:0">Buy Video</h2>
-        <button id="networkClose" type="button" style="background:none;border:0;color:#aaa;font-size:28px">×</button>
-      </div>
-      <p style="color:#bbb;font-size:14px;margin:0 0 14px">Choose the network you will use to send USDT.</p>
-      <label for="videoPaymentNetwork" style="display:block;color:#aaa;font-size:13px;margin-bottom:7px">Payment network</label>
-      <select id="videoPaymentNetwork" style="width:100%;padding:13px;background:#1a1a1a;color:#fff;border:1px solid #444;border-radius:9px;margin-bottom:15px">
-        <option value="TRON">TRON (TRC20)</option>
-        <option value="BSC">BNB Smart Chain (BEP20)</option>
-        <option value="TON">TON (USDT Jetton)</option>
-      </select>
-      <p style="font-size:12px;color:#e6bd58;line-height:1.6;margin-bottom:16px">Important: send USDT only on the selected network and to the exact address shown in the next step. Sending another token or using another network may result in permanent loss.</p>
-      <button id="createVideoPayment" type="button" style="width:100%;padding:14px;background:#e6bd58;color:#111;border:0;border-radius:10px;font-weight:bold">Continue</button>
-      <p id="createPaymentMessage" style="min-height:20px;margin-top:12px;text-align:center;color:#aaa;font-size:13px"></p>
-    </div>`;
-  document.body.appendChild(modal);
-
-  const close = () => modal.remove();
-  document.getElementById("networkClose").onclick = close;
-  document.getElementById("createVideoPayment").onclick = async () => {
-    const network = document.getElementById("videoPaymentNetwork").value;
-    const button = document.getElementById("createVideoPayment");
-    const message = document.getElementById("createPaymentMessage");
-    button.disabled = true;
-    button.textContent = "Creating request...";
-    message.textContent = "Please wait...";
-    try{
-      const response = await fetch(SUPABASE_URL + "/functions/v1/create-purchase",{
-        method:"POST",
-        headers:{
-          "Authorization":"Bearer " + session.access_token,
-          "apikey":SUPABASE_KEY,
-          "Content-Type":"application/json"
-        },
-        body:JSON.stringify({video_id:videoId,network})
-      });
-      const result = await response.json();
-      if(!response.ok) throw new Error(result.error || "Could not create purchase.");
-      if(result.already_paid){
-        close();
-        alert("You already purchased this video.");
-        await watchVideo(videoId);
-        return;
-      }
-      if(!result.payment_address || !result.purchase_id) throw new Error("Payment details were not returned.");
-      showPaymentModal(videoId,session,result);
-    }catch(error){
-      message.textContent = error.message || "Could not connect to payment system.";
-      button.disabled = false;
-      button.textContent = "Continue";
-    }
-  };
-}
-
-/* PAYMENT MODAL */
-
-function showPaymentModal(videoId, session, result){
-  const network = String(result.network || "").toUpperCase();
-  const networkLabel = result.network_label || network;
-  const paymentAddress = result.payment_address;
-  const tokenContract = result.token_contract || "";
-  const amount = Number(result.amount || 0).toFixed(2);
-  const expiresAt = result.expires_at ? new Date(result.expires_at) : new Date(Date.now() + 30*60*1000);
-
-  document.getElementById("empirePaymentModal")?.remove();
-  const modal = document.createElement("div");
-  modal.id = "empirePaymentModal";
-  modal.style.cssText = "position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.9);display:flex;align-items:center;justify-content:center;padding:16px;overflow:auto";
-  modal.innerHTML = `
-    <div style="width:100%;max-width:540px;max-height:95vh;overflow:auto;background:#101010;color:#fff;border:1px solid rgba(230,189,88,.45);border-radius:18px;padding:22px;font-family:Arial,sans-serif">
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:18px">
-        <h2 style="color:#e6bd58;margin:0">Empire Payment</h2>
-        <button id="paymentClose" type="button" style="background:none;border:0;color:#aaa;font-size:28px">×</button>
-      </div>
-      <div style="background:#1a1a1a;padding:15px;border-radius:12px;margin-bottom:15px">
-        <div style="font-size:13px;color:#aaa">Amount to pay</div>
-        <div style="font-size:27px;font-weight:bold;color:#e6bd58;margin:5px 0">${amount} USDT</div>
-        <div style="font-size:13px;color:#aaa">Network: ${escapeHtml(networkLabel)}</div>
-      </div>
-      <label for="paymentAddress" style="font-size:13px;color:#aaa">Recipient wallet address</label>
-      <div style="display:flex;gap:8px;margin:8px 0 13px">
-        <input id="paymentAddress" readonly style="flex:1;min-width:0;background:#1a1a1a;color:#fff;border:1px solid #333;border-radius:8px;padding:12px">
-        <button id="paymentCopy" type="button" style="background:#e6bd58;color:#111;border:0;border-radius:8px;padding:0 13px;font-weight:bold">Copy</button>
-      </div>
-      <label style="font-size:12px;color:#aaa">USDT token contract / Jetton master</label>
-      <div style="background:#1a1a1a;color:#ddd;border:1px solid #333;border-radius:8px;padding:11px;margin:7px 0 12px;overflow-wrap:anywhere;font-size:12px">${escapeHtml(tokenContract)}</div>
-      <p style="font-size:12px;color:#f0cd75;line-height:1.6;margin-bottom:15px">Send exactly ${amount} USDT using ${escapeHtml(networkLabel)} and the token contract shown above. Do not send native TON, BNB, or TRX. Network fees are paid separately in the network's native coin.</p>
-      <div style="background:#1a1a1a;border-radius:10px;padding:12px;text-align:center;margin-bottom:15px">
-        <div style="font-size:12px;color:#aaa">Payment request expires in</div>
-        <div id="paymentTimer" style="font-size:22px;color:#e6bd58;font-weight:bold;margin-top:4px">30:00</div>
-      </div>
-      <label for="paymentTxid" style="font-size:13px;color:#aaa">Transaction ID (TXID / hash)</label>
-      <input id="paymentTxid" type="text" autocomplete="off" placeholder="${network==="TRON"?"Enter 64-character TRON TXID":network==="BSC"?"Enter BSC transaction hash (0x...)":"Enter TON transaction hash"}" style="display:block;width:100%;margin:8px 0 13px;padding:13px;background:#1a1a1a;color:#fff;border:1px solid #333;border-radius:9px;box-sizing:border-box">
-      <button id="paymentVerify" type="button" style="width:100%;padding:14px;background:#e6bd58;color:#111;border:0;border-radius:10px;font-weight:bold">Verify Payment</button>
-      <p id="paymentMessage" style="min-height:20px;margin-top:12px;text-align:center;color:#aaa;font-size:13px;overflow-wrap:anywhere"></p>
-    </div>`;
-  document.body.appendChild(modal);
-
-  const addressInput = document.getElementById("paymentAddress");
-  const copyButton = document.getElementById("paymentCopy");
-  const closeButton = document.getElementById("paymentClose");
-  const txidInput = document.getElementById("paymentTxid");
-  const verifyButton = document.getElementById("paymentVerify");
-  const message = document.getElementById("paymentMessage");
-  const timer = document.getElementById("paymentTimer");
-  addressInput.value = paymentAddress;
-
-  let timerInterval = null;
-  function closePayment(){
-    if(timerInterval) clearInterval(timerInterval);
-    modal.remove();
-  }
-  closeButton.onclick = closePayment;
-  copyButton.onclick = async () => {
-    try{
-      await navigator.clipboard.writeText(paymentAddress);
-      copyButton.textContent = "Copied!";
-    }catch(error){
-      addressInput.select();
-      try{ document.execCommand("copy"); copyButton.textContent = "Copied!"; }
-      catch(copyError){ message.textContent = "Please copy the address manually."; }
-    }
-    setTimeout(() => { if(copyButton.isConnected) copyButton.textContent = "Copy"; },1800);
-  };
-
-  function updatePaymentTimer(){
-    const remaining = expiresAt.getTime() - Date.now();
-    if(remaining <= 0){
-      timer.textContent = "Expired";
-      verifyButton.disabled = true;
-      message.textContent = "This payment request has expired. Create a new purchase.";
-      if(timerInterval) clearInterval(timerInterval);
-      return;
-    }
-    const totalSeconds = Math.floor(remaining/1000);
-    timer.textContent = String(Math.floor(totalSeconds/60)).padStart(2,"0") + ":" + String(totalSeconds%60).padStart(2,"0");
-  }
-  updatePaymentTimer();
-  timerInterval = setInterval(updatePaymentTimer,1000);
-
-  verifyButton.onclick = async () => {
-    const txid = txidInput.value.trim();
-    if(!txid){ message.textContent = "Please enter the transaction ID."; return; }
-    if(Date.now() >= expiresAt.getTime()){ message.textContent = "This payment request has expired."; return; }
-
-    verifyButton.disabled = true;
-    verifyButton.textContent = "Verifying...";
-    message.textContent = "Checking the blockchain transaction. Please wait...";
-    try{
-      const response = await fetch(SUPABASE_URL + "/functions/v1/verify-payment",{
-        method:"POST",
-        headers:{
-          "Authorization":"Bearer " + session.access_token,
-          "apikey":SUPABASE_KEY,
-          "Content-Type":"application/json"
-        },
-        body:JSON.stringify({purchase_id:result.purchase_id,txid})
-      });
-      const verified = await response.json();
-      if(response.ok && verified.success && verified.status === "paid"){
-        message.textContent = "Payment verified successfully!";
-        if(timerInterval) clearInterval(timerInterval);
-        setTimeout(async () => { closePayment(); await watchVideo(videoId); },900);
-        return;
-      }
-      message.textContent = verified.message || verified.error || "Payment has not been verified yet.";
-    }catch(error){
-      console.error("PAYMENT VERIFICATION ERROR:",error);
-      message.textContent = "Could not connect to the payment system.";
-    }
-    verifyButton.disabled = false;
-    verifyButton.textContent = "Verify Payment";
-  };
-}
-
+async function openBuy(videoId){  
+  const video = videos.find(item => String(item.id) === String(videoId));  
+  
+  if(!video){  
+    alert("Video not found.");  
+    return;  
+  }  
+  
+  if(Number(video.price || 0) <= 0){  
+    alert("Invalid video price.");  
+    return;  
+  }  
+  
+  try{  
+    const {data:{session}} = await supabaseClient.auth.getSession();  
+  
+    if(!session){  
+      alert("Please sign in to continue with your purchase.");  
+      window.location.href = "login.html";  
+      return;  
+    }  
+  
+    const response = await fetch(  
+      SUPABASE_URL + "/functions/v1/create-purchase",  
+      {  
+        method:"POST",  
+        headers:{  
+          "Authorization":"Bearer " + session.access_token,  
+          "apikey":SUPABASE_KEY,  
+          "Content-Type":"application/json"  
+        },  
+        body:JSON.stringify({video_id:videoId})  
+      }  
+    );  
+  
+    const result = await response.json();  
+  
+    if(!response.ok){  
+      alert(result.error || "Could not create purchase.");  
+      return;  
+    }  
+  
+    if(result.already_paid){  
+      alert("You already purchased this video.");  
+      await watchVideo(videoId);  
+      return;  
+    }  
+  
+    if(!result.payment_address){  
+      alert("Payment address is not configured.");  
+      return;  
+    }  
+  
+    showPaymentModal(videoId,session,result);  
+  
+  }catch(error){  
+    console.error("BUY ERROR:",error);  
+    alert("Could not connect to payment system.");  
+  }  
+}  
+    
+/* PAYMENT MODAL */  
+  
+function showPaymentModal(videoId, session, result){  
+  
+  const paymentAddress = result.payment_address;  
+  const amount = Number(result.amount || 0).toFixed(2);  
+  
+  const expiresAt = result.expires_at  
+    ? new Date(result.expires_at)  
+    : new Date(Date.now() + 30 * 60 * 1000);  
+  
+  document.getElementById("empirePaymentModal")?.remove();  
+  
+  const modal = document.createElement("div");  
+  modal.id = "empirePaymentModal";  
+  
+  modal.style.cssText = `  
+    position:fixed;  
+    inset:0;  
+    z-index:99999;  
+    background:rgba(0,0,0,.88);  
+    display:flex;  
+    align-items:center;  
+    justify-content:center;  
+    padding:16px;  
+    overflow:auto;  
+  `;  
+  
+  modal.innerHTML = `  
+    <div style="  
+      width:100%;  
+      max-width:520px;  
+      background:#101010;  
+      color:#fff;  
+      border:1px solid rgba(230,189,88,.45);  
+      border-radius:18px;  
+      padding:22px;  
+      font-family:Arial,sans-serif;  
+    ">  
+  
+      <div style="  
+        display:flex;  
+        justify-content:space-between;  
+        align-items:center;  
+        gap:10px;  
+        margin-bottom:20px;  
+      ">  
+        <h2 style="color:#e6bd58;margin:0">Empire Payment</h2>  
+        <button id="paymentClose" type="button"  
+          style="background:none;border:0;color:#aaa;font-size:28px">  
+          ×  
+        </button>  
+      </div>  
+  
+      <div style="  
+        background:#1a1a1a;  
+        padding:15px;  
+        border-radius:12px;  
+        margin-bottom:16px;  
+      ">  
+        <div style="font-size:13px;color:#aaa">Amount to pay</div>  
+        <div style="font-size:27px;font-weight:bold;color:#e6bd58;margin:5px 0">  
+          ${amount} USDT  
+        </div>  
+        <div style="font-size:13px;color:#aaa">Network: TRON (TRC20)</div>  
+      </div>  
+  
+      <label for="paymentAddress" style="font-size:13px;color:#aaa">  
+        Payment address  
+      </label>  
+  
+      <div style="display:flex;gap:8px;margin:8px 0 15px">  
+        <input id="paymentAddress" readonly  
+          style="  
+            flex:1;min-width:0;background:#1a1a1a;color:#fff;  
+            border:1px solid #333;border-radius:8px;padding:12px;  
+          ">  
+        <button id="paymentCopy" type="button"  
+          style="  
+            background:#e6bd58;color:#111;border:0;border-radius:8px;  
+            padding:0 13px;font-weight:bold;  
+          ">Copy</button>  
+      </div>  
+  
+      <p style="font-size:12px;color:#aaa;margin-bottom:16px">  
+        Send exactly ${amount} USDT on TRON (TRC20). Make sure the network  
+        and amount are correct before sending.  
+      </p>  
+  
+      <div style="  
+        background:#1a1a1a;border-radius:10px;padding:12px;  
+        text-align:center;margin-bottom:16px;  
+      ">  
+        <div style="font-size:12px;color:#aaa">Payment request expires in</div>  
+        <div id="paymentTimer"  
+          style="font-size:22px;color:#e6bd58;font-weight:bold;margin-top:4px">  
+          30:00  
+        </div>  
+      </div>  
+  
+      <label for="paymentTxid" style="font-size:13px;color:#aaa">  
+        Transaction ID (TXID)  
+      </label>  
+  
+      <input id="paymentTxid" type="text" autocomplete="off"  
+        placeholder="Enter your TRON transaction TXID"  
+        style="  
+          display:block;width:100%;margin:8px 0 13px;padding:13px;  
+          background:#1a1a1a;color:#fff;border:1px solid #333;  
+          border-radius:9px;box-sizing:border-box;  
+        ">  
+  
+      <button id="paymentVerify" type="button"  
+        style="  
+          width:100%;padding:14px;background:#e6bd58;color:#111;  
+          border:0;border-radius:10px;font-weight:bold;  
+        ">Verify Payment</button>  
+  
+      <p id="paymentMessage"  
+        style="min-height:20px;margin-top:12px;text-align:center;  
+        color:#aaa;font-size:13px;overflow-wrap:anywhere"></p>  
+  
+    </div>  
+  `;  
+  
+  document.body.appendChild(modal);  
+  
+  const addressInput = document.getElementById("paymentAddress");  
+  const copyButton = document.getElementById("paymentCopy");  
+  const closeButton = document.getElementById("paymentClose");  
+  const txidInput = document.getElementById("paymentTxid");  
+  const verifyButton = document.getElementById("paymentVerify");  
+  const message = document.getElementById("paymentMessage");  
+  const timer = document.getElementById("paymentTimer");  
+  
+  addressInput.value = paymentAddress;  
+  
+  let timerInterval = null;  
+  
+  function closePayment(){  
+    if(timerInterval) clearInterval(timerInterval);  
+    modal.remove();  
+  }  
+  
+  closeButton.onclick = closePayment;  
+  
+  copyButton.onclick = async () => {  
+    try{  
+      await navigator.clipboard.writeText(paymentAddress);  
+      copyButton.textContent = "Copied!";  
+    }catch(error){  
+      addressInput.select();  
+      try{  
+        document.execCommand("copy");  
+        copyButton.textContent = "Copied!";  
+      }catch(copyError){  
+        message.textContent = "Please copy the address manually.";  
+      }  
+    }  
+  
+    setTimeout(() => {  
+      if(copyButton.isConnected) copyButton.textContent = "Copy";  
+    },1800);  
+  };  
+  
+  function updatePaymentTimer(){  
+    const remaining = expiresAt.getTime() - Date.now();  
+  
+    if(remaining <= 0){  
+      timer.textContent = "Expired";  
+      verifyButton.disabled = true;  
+      message.textContent = "This payment request has expired. Create a new purchase.";  
+      if(timerInterval) clearInterval(timerInterval);  
+      return;  
+    }  
+  
+    const totalSeconds = Math.floor(remaining / 1000);  
+    const minutes = Math.floor(totalSeconds / 60);  
+    const seconds = totalSeconds % 60;  
+  
+    timer.textContent =  
+      String(minutes).padStart(2,"0") + ":" +  
+      String(seconds).padStart(2,"0");  
+  }  
+  
+  updatePaymentTimer();  
+  timerInterval = setInterval(updatePaymentTimer,1000);  
+  
+  verifyButton.onclick = async () => {  
+    const txid = txidInput.value.trim();  
+  
+    if(!txid){  
+      message.textContent = "Please enter the transaction TXID.";  
+      return;  
+    }  
+  
+    if(Date.now() >= expiresAt.getTime()){  
+      message.textContent = "This payment request has expired.";  
+      return;  
+    }  
+  
+    verifyButton.disabled = true;  
+    verifyButton.textContent = "Verifying...";  
+    message.textContent = "Checking transaction. Please wait...";  
+  
+    try{  
+      const verifyResponse = await fetch(  
+        SUPABASE_URL + "/functions/v1/verify-payment",  
+        {  
+          method:"POST",  
+          headers:{  
+            "Authorization":"Bearer " + session.access_token,  
+            "apikey":SUPABASE_KEY,  
+            "Content-Type":"application/json"  
+          },  
+          body:JSON.stringify({  
+            purchase_id:result.purchase_id,  
+            txid:txid  
+          })  
+        }  
+      );  
+  
+      const verifyResult = await verifyResponse.json();  
+  
+      if(  
+        verifyResponse.ok &&  
+        verifyResult.success &&  
+        verifyResult.status === "paid"  
+      ){  
+        message.textContent = "Payment verified successfully!";  
+  
+        if(timerInterval) clearInterval(timerInterval);  
+  
+        setTimeout(async () => {  
+          closePayment();  
+          await watchVideo(videoId);  
+        },900);  
+  
+        return;  
+      }  
+  
+      message.textContent =  
+        verifyResult.message ||  
+        verifyResult.error ||  
+        "Payment has not been verified yet.";  
+  
+    }catch(error){  
+      console.error("PAYMENT VERIFICATION ERROR:",error);  
+      message.textContent = "Could not connect to the payment system.";  
+    }  
+  
+    verifyButton.disabled = false;  
+    verifyButton.textContent = "Verify Payment";  
+  };  
+}  
+  
 /* CLOSE VIDEO */  
   
 function closeVideo(){  
