@@ -26,6 +26,17 @@
       box-sizing: border-box;
     }
 
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+      background:
+        linear-gradient(180deg, rgba(0,0,0,.68), rgba(0,0,0,.88)),
+        url("profile-background-desktop.png") center center / cover no-repeat;
+    }
+
     body {
       margin: 0;
       background:
@@ -572,6 +583,12 @@
     }
 
     @media (max-width: 680px) {
+      body::before {
+        background:
+          linear-gradient(180deg, rgba(0,0,0,.68), rgba(0,0,0,.88)),
+          url("profile-background-mobile.png") center center / cover no-repeat;
+      }
+
       .topbar {
         padding: 13px 4%;
       }
