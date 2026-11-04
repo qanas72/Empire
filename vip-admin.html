@@ -138,9 +138,6 @@
   const SUPABASE_KEY =
     "sb_publishable_Ig1R3dpAKyBfjIGSUhhlKw_uC-QF0QQ";
 
-  const ADMIN_ID =
-    "8166f8a9-fdc3-43a4-85c7-53ec1dbbde0e";
-
   const client = window.supabase.createClient(
     SUPABASE_URL,
     SUPABASE_KEY
@@ -165,11 +162,6 @@
     setTimeout(() => {
       location.href = "login.html";
     }, 1500);
-    return;
-  }
-
-  if (session.user.id !== ADMIN_ID) {
-    showMessage("⛔ دسترسی غیرمجاز. این صفحه مخصوص مدیر است.", true);
     return;
   }
 
