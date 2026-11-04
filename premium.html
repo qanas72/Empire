@@ -322,7 +322,7 @@ footer{border-top:1px solid var(--border);padding:26px 0;color:#666;text-align:c
 
    <div class="notice">
     <strong>Payment safety:</strong> Submitting a transaction hash does not prove payment.
-    Verify the exact amount, recipient address, and TRC20 network before submitting.
+    Verify the exact amount, selected network, and recipient address before submitting.
     Do not send money for testing.
    </div>
 
@@ -353,7 +353,20 @@ footer{border-top:1px solid var(--border);padding:26px 0;color:#666;text-align:c
 <script>
 const SUPABASE_URL="https://vubjkwbkuwndkjqfnyom.supabase.co";
 const SUPABASE_KEY="sb_publishable_Ig1R3dpAKyBfjIGSUhhlKw_uC-QF0QQ";
-const VIP_WALLET_ADDRESS="TZ9PxtbEchvo1RSrTDjLvyeRHK1HPtmMmV";
+const VIP_PAYMENT_NETWORKS = {
+  TRON: {
+    label: "USDT TRC20 (TRON)",
+    address: "TZ9PxtbEchvo1RSrTDjLvyeRHK1HPtmMmV"
+  },
+  BSC: {
+    label: "USDT BEP20 (BSC)",
+    address: "0xe8D7B16C603Ea5c2B7EEe87e567192Bf651c1DEA"
+  },
+  TON: {
+    label: "USDT TON (Jetton)",
+    address: "UQBGbzaKDO0j_gddN5qguj15BrI6L9_VGcnUT0xP6rGXK7KT"
+  }
+};
 
 const supabaseClient=window.supabase.createClient(
  SUPABASE_URL,SUPABASE_KEY,
@@ -625,14 +638,20 @@ function openVipPayment(planKey){
    </div>
    <div class="notice" style="margin-top:0">
     Amount to send: <strong>${plan.amount.toFixed(2)} USDT</strong><br>
-    Network: <strong>TRON (TRC20)</strong>
+    Supported networks: <strong>TRON, BSC and TON</strong>
    </div>
+   <label class="field-label" for="vipNetwork">Payment network</label>
+   <select class="field" id="vipNetwork">
+    <option value="TRON">USDT TRC20 (TRON)</option>
+    <option value="BSC">USDT BEP20 (BSC)</option>
+    <option value="TON">USDT TON (Jetton)</option>
+   </select>
    <label class="field-label" for="vipWallet">Official payment address</label>
    <div class="address-row">
-    <input class="field" id="vipWallet" readonly value="${VIP_WALLET_ADDRESS}">
+    <input class="field" id="vipWallet" readonly value="${VIP_PAYMENT_NETWORKS.TRON.address}">
     <button class="btn btn-gold" id="copyVipWallet" type="button">Copy</button>
    </div>
-   <p class="small-note">Check the recipient address and network carefully. Crypto transfers are generally irreversible. Do not send a payment just to test this form.</p>
+   <p class="small-note">Only send USDT using the selected network. The recipient address changes with the network. Crypto transfers are irreversible. Do not send money for testing.</p>
    <label class="field-label" for="vipTxHash">Transaction Hash (TXID)</label>
    <input class="field" id="vipTxHash" maxlength="150" autocomplete="off" placeholder="Paste your transaction hash">
    <button class="btn btn-gold full" id="submitVipRequest" style="margin-top:17px">Submit VIP Request</button>
@@ -653,15 +672,26 @@ function openVipPayment(planKey){
  document.getElementById("backToPlans").addEventListener("click",close);
  backdrop.addEventListener("click",e=>{if(e.target===backdrop)close();});
 
- document.getElementById("copyVipWallet").addEventListener("click",async()=>{
-  const input=document.getElementById("vipWallet");
+ const networkSelect=document.getElementById("vipNetwork");
+ const walletInput=document.getElementById("vipWallet");
+ const copyWalletButton=document.getElementById("copyVipWallet");
+
+ networkSelect.addEventListener("change",()=>{
+  const selected=VIP_PAYMENT_NETWORKS[networkSelect.value];
+  if(!selected)return;
+  walletInput.value=selected.address;
+  copyWalletButton.textContent="Copy";
+ });
+
+ copyWalletButton.addEventListener("click",async()=>{
+  const address=walletInput.value;
   try{
-   await navigator.clipboard.writeText(VIP_WALLET_ADDRESS);
-   document.getElementById("copyVipWallet").textContent="Copied!";
+   await navigator.clipboard.writeText(address);
+   copyWalletButton.textContent="Copied!";
   }catch{
-   input.focus();input.select();
+   walletInput.focus();walletInput.select();
    const ok=document.execCommand("copy");
-   document.getElementById("copyVipWallet").textContent=ok?"Copied!":"Select address";
+   copyWalletButton.textContent=ok?"Copied!":"Select address";
   }
  });
 
@@ -670,9 +700,13 @@ function openVipPayment(planKey){
   const feedback=document.getElementById("vipFeedback");
   const txHash=document.getElementById("vipTxHash").value.trim();
 
-  if(!/^[a-fA-F0-9]{64}$/.test(txHash)){
+  if(
+   txHash.length<20||
+   txHash.length>150||
+   !/^[A-Za-z0-9_+/=-]+$/.test(txHash)
+  ){
    feedback.style.color="#e6a35a";
-   feedback.textContent="Enter a valid 64-character transaction hash. Do not submit a fake or unconfirmed hash.";
+   feedback.textContent="Enter a valid transaction hash for the selected network (20–150 characters).";
    return;
   }
 
@@ -692,7 +726,11 @@ function openVipPayment(planKey){
      "apikey":SUPABASE_KEY,
      "Authorization":"Bearer "+session.access_token
     },
-    body:JSON.stringify({plan:planKey,transaction_hash:txHash})
+    body:JSON.stringify({
+     plan:planKey,
+     network:networkSelect.value,
+     transaction_hash:txHash
+    })
    });
 
    const result=await response.json().catch(()=>({}));
