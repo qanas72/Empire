@@ -62,7 +62,8 @@ Deno.serve(async (req) => {
 
     const body = await req.json().catch(() => ({}));
     const videoId = String(body.video_id || "");
-    const network = String(body.network || "").toUpperCase();
+    // Backward-compatible default keeps the existing TRON-only frontend working during deployment.
+    const network = String(body.network || "TRON").toUpperCase();
     if (!/^[0-9a-f-]{36}$/i.test(videoId)) {
       return Response.json({ error: "Invalid video ID" }, { status: 400, headers: corsHeaders });
     }
