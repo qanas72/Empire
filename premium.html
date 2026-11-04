@@ -815,6 +815,11 @@ async function loadPremiumVideos(){
 
 /* INDIVIDUAL VIDEO PURCHASE FLOW */
 async function openBuy(videoId){
+ const networkChoice=prompt("Choose payment network:\n1 = TRON (TRC20)\n2 = BNB Smart Chain (BEP20)\n3 = TON");
+ if(networkChoice===null)return;
+ const networkMap={"1":"TRON","2":"BSC","3":"TON","TRON":"TRON","BSC":"BSC","TON":"TON"};
+ const selectedNetwork=networkMap[String(networkChoice).trim().toUpperCase()];
+ if(!selectedNetwork){alert("Invalid network selection. Choose 1, 2, or 3.");return;}
  try{
   const session=await getSession();
   if(!session){window.location.href="login.html";return;}
@@ -826,13 +831,18 @@ async function openBuy(videoId){
     "apikey":SUPABASE_KEY,
     "Authorization":"Bearer "+session.access_token
    },
-   body:JSON.stringify({video_id:videoId})
+   body:JSON.stringify({video_id:videoId,network:selectedNetwork})
   });
 
   const result=await response.json();
   if(!response.ok)throw new Error(result.error||"Could not create purchase.");
 
   if(result.already_paid){alert("You already purchased this video.");return;}
+
+  const network=String(result.network||"").toUpperCase();
+  const networkLabel=result.network_label||({TRON:"TRON (TRC20)",BSC:"BNB Smart Chain (BEP20)",TON:"TON"}[network]||network);
+  const assetLabel=network==="BSC"?"Binance-Peg BSC-USD":(network==="TON"?"USDT (TON Jetton)":"USDT (TRC20)");
+  const tokenContract=result.token_contract||"";
 
   const modal=document.createElement("div");
   modal.className="modal-backdrop";
@@ -843,16 +853,17 @@ async function openBuy(videoId){
      <button class="close-btn" id="closeVideoModal" aria-label="Close">×</button>
     </div>
     <div class="notice" style="margin-top:0">
-     Amount: <strong>${Number(result.amount||0).toFixed(2)} USDT</strong><br>
-     Network: <strong>TRON (TRC20)</strong>
+     Amount: <strong>${Number(result.amount||0).toFixed(2)} ${assetLabel}</strong><br>
+     Network: <strong>${escapeHtml(networkLabel)}</strong>
     </div>
+    <div class="feedback">Asset: ${escapeHtml(assetLabel)}<br>Token contract: ${escapeHtml(tokenContract)}</div>
     <label class="field-label" for="videoWallet">Payment Address</label>
     <div class="address-row">
      <input class="field" id="videoWallet" readonly value="${escapeHtml(result.payment_address||"")}">
      <button class="btn btn-gold" id="copyVideoWallet">Copy</button>
     </div>
     <label class="field-label" for="videoTxid">Transaction ID (TXID)</label>
-    <input class="field" id="videoTxid" maxlength="150" placeholder="Paste your TRON TXID">
+    <input class="field" id="videoTxid" maxlength="150" placeholder="Enter transaction hash / ID">
     <button class="btn btn-gold full" id="verifyVideoPayment" style="margin-top:16px">Verify Payment</button>
     <div class="feedback" id="videoStatus" role="status" aria-live="polite">Send the exact amount and enter your transaction hash.</div>
    </div>`;
@@ -894,11 +905,16 @@ async function openBuy(videoId){
     });
 
     const verifyResult=await verifyResponse.json();
-    if(!verifyResponse.ok)throw new Error(verifyResult.error||"Payment verification failed.");
-
-    status.style.color="#65d391";
-    status.textContent="Payment verification returned success.";
-    button.textContent="Verified";
+    if(verifyResult.success===true&&verifyResult.status==="paid"){
+     status.style.color="#65d391";
+     status.textContent="Payment verified successfully. Your video is now unlocked.";
+     button.textContent="Verified";
+     return;
+    }
+    status.style.color="#e6bd58";
+    status.textContent=verifyResult.error||verifyResult.message||"Payment is still pending. Please wait and check again.";
+    button.disabled=false;
+    button.textContent="Verify Payment";
 
    }catch(error){
     status.style.color="#ff7777";
