@@ -1278,7 +1278,11 @@ async function openBuy(videoId){
 function showPaymentModal(videoId, session, result){  
   
   const paymentAddress = result.payment_address;  
-  const amount = Number(result.amount || 0).toFixed(2);  
+  const amount = Number(result.amount || 0).toFixed(2);
+  const network = String(result.network || "").toUpperCase();
+  const networkLabel = result.network_label || ({TRON:"TRON (TRC20)",BSC:"BNB Smart Chain (BEP20)",TON:"TON"}[network] || network);
+  const assetLabel = network === "BSC" ? "Binance-Peg BSC-USD" : (network === "TON" ? "USDT (TON Jetton)" : "USDT (TRC20)");
+  const tokenContract = result.token_contract || "";  
   
   const expiresAt = result.expires_at  
     ? new Date(result.expires_at)  
@@ -1359,7 +1363,7 @@ function showPaymentModal(videoId, session, result){
       </div>  
   
       <p style="font-size:12px;color:#aaa;margin-bottom:16px">  
-        Send exactly ${amount} ${assetLabel} on TRON (TRC20). Make sure the network  
+        Send exactly ${amount} ${assetLabel} on ${networkLabel}. Make sure the network  
         and amount are correct before sending.  
       </p>  
   
