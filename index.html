@@ -41,7 +41,7 @@ body::before{
       rgba(0,0,0,.78),  
       rgba(0,0,0,.93)  
     ),  
-    url("empire-background.png") center/cover no-repeat;  
+    url("empire-background-desktop.png") center/cover no-repeat;  
 }  
   
 a{  
@@ -628,7 +628,11 @@ footer{
   
 /* MOBILE */  
   
-@media(max-width:850px){  
+@media(max-width:850px){
+  body::before{
+    background:linear-gradient(180deg,rgba(0,0,0,.78),rgba(0,0,0,.93)),url("empire-background.png") center/cover no-repeat;
+  }
+  
   .nav{  
     min-height:65px;  
   }  
