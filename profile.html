@@ -167,6 +167,10 @@
 
     .profile-main { display:grid; grid-template-columns: 190px minmax(0,1fr); align-items:center; gap:26px; min-width:0; }
     .profile-about { position:relative; z-index:1; padding:20px; border:1px solid rgba(245,217,139,.45); border-radius:18px; background:rgba(24,15,13,.38); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); }
+    .profile-edit-card { max-width:680px; padding:18px 22px; }
+    .profile-name-form { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:end; gap:12px; }
+    .profile-name-form .btn { min-height:44px; margin:0; }
+    @media(max-width:600px){.profile-name-form{grid-template-columns:1fr}.profile-edit-card{padding:16px}}
     .profile-about h3 { margin:0 0 18px; font-size:19px; }
     .about-row { display:flex; align-items:flex-start; gap:12px; padding:12px 0; border-bottom:1px solid rgba(245,217,139,.2); color:#eee; line-height:1.5; }
     .about-row:last-child { border-bottom:0; }
@@ -823,68 +827,18 @@
       </aside>
     </section>
 
-    <!-- Edit profile -->
-    <section class="card">
-
-      <h2 class="section-title">
-        Edit Profile
-        <small>Personal information</small>
-      </h2>
-
-      <form id="profileForm">
-
-        <div class="form-grid">
-
-          <div class="field">
-            <label for="displayNameInput">Display Name</label>
-            <input
-              id="displayNameInput"
-              type="text"
-              maxlength="50"
-              required
-              placeholder="Your display name"
-            >
-          </div>
-
-          <div class="field">
-            <label for="usernameInput">Username</label>
-            <input
-              id="usernameInput"
-              type="text"
-              readonly
-              aria-readonly="true"
-            >
-            <div class="help-text">
-              Your username is permanent and cannot be changed here.
-            </div>
-          </div>
-
-          <div class="field">
-            <label for="avatarFile">Profile Photo</label>
-            <input
-              id="avatarFile"
-              type="file"
-              accept="image/jpeg,image/png,image/webp"
-            >
-            <div class="help-text">
-              JPG, PNG or WebP. Maximum size: 5 MB.
-            </div>
-          </div>
-
+    <!-- Compact display-name editor -->
+    <section class="card profile-edit-card">
+      <h2 class="section-title">✏️ Edit Display Name</h2>
+      <form id="profileForm" class="profile-name-form">
+        <div class="field">
+          <label for="displayNameInput">Display Name</label>
+          <input id="displayNameInput" type="text" maxlength="50" required placeholder="Your display name">
         </div>
-
-        <div class="form-actions">
-          <button type="submit" class="btn btn-gold" id="saveProfileButton">
-            Save Changes
-          </button>
-
-          <button type="button" class="btn btn-dark" id="uploadPhotoButton">
-            Upload Photo
-          </button>
-        </div>
-
+        <button type="submit" class="btn btn-gold" id="saveProfileButton">Save Name</button>
       </form>
     </section>
+    <input id="avatarFile" type="file" accept="image/jpeg,image/png,image/webp" hidden>
 
     <!-- VIP Membership -->
     <section class="card vip-card">
@@ -1384,7 +1338,6 @@
           data.display_name || data.username || "Empire Member";
 
         $("heroUsername").textContent = data.username || "user";
-        $("usernameInput").value = data.username || "";
 
         showNotice("Your display name was updated successfully.");
       } catch (error) {
@@ -1888,20 +1841,12 @@
     // Event handlers
     $("profileForm").addEventListener("submit", saveProfile);
 
-    $("uploadPhotoButton").addEventListener("click", uploadAvatar);
-
     $("choosePhotoButton").addEventListener("click", () => {
-      $("avatarFile").click();
+      if (!avatarUploadInProgress) $("avatarFile").click();
     });
 
     $("avatarFile").addEventListener("change", () => {
-      const file = $("avatarFile").files?.[0];
-
-      if (file) {
-        $("uploadPhotoButton").textContent = "Upload Selected Photo";
-      } else {
-        $("uploadPhotoButton").textContent = "Upload Photo";
-      }
+      if ($("avatarFile").files?.[0]) uploadAvatar();
     });
 
     $("logoutButton").addEventListener("click", logout);
