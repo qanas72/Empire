@@ -70,7 +70,12 @@ async function verifyBsc(txid: string, amount: string): Promise<boolean> {
   const confirmations = BigInt(latestHex) - BigInt(receipt.blockNumber) + 1n;
   if (confirmations < 15n) return false;
 
-  const expected = decimalToUnits(amount, CONFIG.BSC.decimals);
+  const decimalsHex = await rpc(rpcUrl, "eth_call", [{ to: CONFIG.BSC.token, data: "0x313ce567" }, "latest"]);
+  const tokenDecimals = Number(BigInt(decimalsHex));
+  if (!Number.isInteger(tokenDecimals) || tokenDecimals < 0 || tokenDecimals > 36) {
+    throw new Error("Could not read BSC token decimals");
+  }
+  const expected = decimalToUnits(amount, tokenDecimals);
   const recipientTopic = topicAddress(CONFIG.BSC.recipient);
   for (const log of (receipt.logs || [])) {
     if (String(log.address || "").toLowerCase() !== CONFIG.BSC.token.toLowerCase()) continue;
@@ -82,7 +87,7 @@ async function verifyBsc(txid: string, amount: string): Promise<boolean> {
   return false;
 }
 
-async function verifyTron(txid: string, amount: string): Promise<boolean> {
+async function verifyTron(txid: string, amount: string, createdAt: string): Promise<boolean> {
   if (!/^[0-9a-f]{64}$/i.test(txid)) return false;
   const apiKey = Deno.env.get("TRONGRID_API_KEY");
   if (!apiKey) throw new Error("TRONGRID_API_KEY is not configured");
@@ -90,6 +95,8 @@ async function verifyTron(txid: string, amount: string): Promise<boolean> {
   url.searchParams.set("only_confirmed", "true");
   url.searchParams.set("limit", "200");
   url.searchParams.set("contract_address", CONFIG.TRON.token);
+  url.searchParams.set("only_to", "true");
+  url.searchParams.set("min_timestamp", String(Math.max(0, new Date(createdAt).getTime() - 120000)));
   const response = await fetch(url, { headers: { "TRON-PRO-API-KEY": apiKey } });
   if (!response.ok) throw new Error("TRON transaction lookup failed");
   const payload = await response.json();
@@ -200,7 +207,7 @@ Deno.serve(async (req) => {
 
     const network = String(purchase.network || "").toUpperCase();
     let verified = false;
-    if (network === "TRON") verified = await verifyTron(txid, String(purchase.amount));
+    if (network === "TRON") verified = await verifyTron(txid, String(purchase.amount), String(purchase.created_at));
     else if (network === "BSC") verified = await verifyBsc(txid, String(purchase.amount));
     else if (network === "TON") verified = await verifyTon(txid, String(purchase.amount), String(purchase.created_at));
     else return Response.json({ error: "Unsupported payment network" }, { status: 400, headers: corsHeaders });
