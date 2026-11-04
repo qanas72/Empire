@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>EMPIRE | Publishing</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{--gold:#e8c36b;--bg:#080808;--panel:#141414;--muted:#aaa;--line:#3b321f}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top,#241b0c,#080808 48%);color:#f5f5f5;font-family:Arial,sans-serif;min-height:100vh}
+a{color:inherit;text-decoration:none}.top{padding:16px 5%;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line);background:#090909eF;position:sticky;top:0}
+.brand{font-weight:900;letter-spacing:2px;color:var(--gold);font-size:22px}.nav{display:flex;gap:16px;color:#bbb;font-size:14px}
+main{width:min(850px,92%);margin:32px auto 60px}.intro{margin-bottom:24px}.intro h1{margin:0 0 8px;font-size:32px}.gold{color:var(--gold)}.muted,.hint{color:var(--muted);line-height:1.7;font-size:13px}
+.card,.post{background:linear-gradient(145deg,#191919,#101010);border:1px solid var(--line);border-radius:15px;padding:20px;margin-bottom:18px}
+label{display:block;margin:12px 0 7px;color:#ddd;font-size:13px}textarea,input{width:100%;padding:13px;background:#090909;color:#fff;border:1px solid #383838;border-radius:9px;font:inherit}textarea{min-height:115px;resize:vertical}
+button,.button{border:0;border-radius:9px;padding:11px 16px;background:linear-gradient(135deg,#f2d58a,#bc8c32);color:#17120a;font-weight:800;cursor:pointer;display:inline-block}
+button:disabled{opacity:.5;cursor:not-allowed}.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:14px}.notice{padding:12px;border-radius:9px;margin-bottom:14px;display:none;line-height:1.6}.notice.show{display:block}.error{background:#321616;color:#ffbaba}.success{background:#12301f;color:#b6f3ca}
+.post-head{display:flex;justify-content:space-between;gap:10px;color:var(--muted);font-size:12px;margin-bottom:12px}.post-body{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.8}.post img{width:100%;max-height:520px;object-fit:contain;background:#080808;border-radius:10px;margin-top:12px}.post-actions{display:flex;justify-content:flex-end;margin-top:12px}.report-btn{background:#282020;color:#ffbaba;border:1px solid #633333;padding:8px 12px;font-size:12px}.vip{border-color:#8a6b2e;background:linear-gradient(145deg,#211a0d,#111)}.hidden{display:none!important}
+@media(max-width:560px){.top{padding:13px 4%;align-items:flex-start}.nav{gap:10px;font-size:12px;flex-wrap:wrap;justify-content:flex-end}.intro h1{font-size:27px}.card,.post{padding:15px}}
+</style></head>
+<body>
+<header class="top"><a class="brand" href="index.html">♛ EMPIRE</a><nav class="nav"><a href="index.html">Home</a><a href="profile.html">Profile</a><a href="premium.html">VIP</a></nav></header>
+<main>
+<section class="intro"><h1>Empire <span class="gold">Publishing</span></h1><p class="muted">Share your thoughts and images with the Empire community.</p></section>
+<div id="notice" class="notice"></div>
+<section class="card" id="composer">
+<h2 class="gold">Create a publication</h2>
+<p class="hint" id="loginHint">Sign in to publish text or images. Text and image posts are published immediately.</p>
+<form id="postForm">
+<label for="postText">Your text</label><textarea id="postText" maxlength="5000" placeholder="Write something..."></textarea>
+<label for="postImage">Image (optional)</label><input id="postImage" type="file" accept="image/jpeg,image/png,image/webp">
+<p class="hint">Maximum image size: 5 MB. Do not share illegal, abusive, private or copyrighted material without permission.</p>
+<div class="row"><button id="publishBtn" type="submit">Publish</button></div>
+</form>
+</section>
+<section class="card vip"><h3 class="gold">Video publishing — VIP</h3><p class="hint">Video uploads are available only to active VIP members and remain subject to administrator approval.</p><a class="button" href="vip.html">Open VIP Creator Studio</a></section>
+<h2 class="gold">Community publications</h2><div id="feed" class="muted">Loading publications...</div>
+</main>
+<script>
+const SUPABASE_URL="https://vubjkwbkuwndkjqfnyom.supabase.co";
+const SUPABASE_KEY="sb_publishable_Ig1R3dpAKyBfjIGSUhhlKw_uC-QF0QQ";
+const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+let user=null;
+const $=id=>document.getElementById(id);
+function escapeHTML(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));}
+function notify(message,error=false){$("notice").textContent=message;$("notice").className="notice show "+(error?"error":"success");}
+async function loadFeed(){
+ const {data,error}=await db.from("community_posts").select("id,author_id,author_name,content,image_path,created_at").eq("is_removed",false).order("created_at",{ascending:false}).limit(50);
+ if(error){$("feed").textContent="Could not load publications. Please run publishing-setup.sql in Supabase first.";return;}
+ if(!data.length){$("feed").textContent="No publications yet. Be the first to publish.";return;}
+ const cards=await Promise.all(data.map(async p=>{
+  let image="";
+  if(p.image_path){const {data:u}=db.storage.from("post-images").getPublicUrl(p.image_path);image=u?.publicUrl?'<img src="'+escapeHTML(u.publicUrl)+'" alt="Publication image" loading="lazy">':"";}
+  return '<article class="post"><div class="post-head"><strong>'+escapeHTML(p.author_name||"Empire member")+'</strong><span>'+new Date(p.created_at).toLocaleString()+'</span></div><div class="post-body">'+escapeHTML(p.content||"")+'</div>'+image+'<div class="post-actions"><button class="report-btn" data-report="'+p.id+'">Report publication</button></div></article>';
+ }));
+ $("feed").innerHTML=cards.join("");
+ $("feed").querySelectorAll("[data-report]").forEach(b=>b.addEventListener("click",()=>reportPost(b.dataset.report)));
+}
+async function reportPost(postId){
+ if(!user){notify("Please sign in to report a publication.",true);return;}
+ const reason=prompt("Why are you reporting this publication? (e.g. illegal, abusive, harassment, copyright)");
+ if(!reason||!reason.trim())return;
+ const {error}=await db.from("post_reports").insert({post_id:postId,reporter_id:user.id,reason:reason.trim().slice(0,1000)});
+ if(error){notify(error.code==="23505"?"You have already reported this publication.":error.message,true);return;}
+ notify("Report submitted. The administration will review it.");
+}
+$("postForm").addEventListener("submit",async e=>{
+ e.preventDefault();
+ if(!user){notify("Please sign in before publishing.",true);return;}
+ const content=$("postText").value.trim(),file=$("postImage").files[0];
+ if(!content&&!file){notify("Write text or select an image.",true);return;}
+ if(file&&(!/^image\/(jpeg|png|webp)$/.test(file.type)||file.size>5*1024*1024)){notify("Choose a JPG, PNG or WEBP image up to 5 MB.",true);return;}
+ const btn=$("publishBtn");btn.disabled=true;btn.textContent="Publishing...";
+ try{
+  let image_path=null;
+  if(file){const safe=file.name.normalize("NFKD").replace(/[^a-zA-Z0-9._-]/g,"_").slice(-80)||"image";image_path=user.id+"/"+Date.now()+"-"+safe;
+   const up=await db.storage.from("post-images").upload(image_path,file,{upsert:false,contentType:file.type});if(up.error)throw up.error;}
+  const {data:profile,error:profileError}=await db.from("profiles").select("username,display_name").eq("id",user.id).maybeSingle();
+  if(profileError)throw profileError;
+  const author_name=profile?.display_name||profile?.username||"Empire member";
+  const {error}=await db.from("community_posts").insert({author_id:user.id,author_name,content,image_path});
+  if(error){if(image_path)await db.storage.from("post-images").remove([image_path]);throw error;}
+  $("postForm").reset();notify("Your publication is now live.");await loadFeed();
+ }catch(err){notify(err.message||"Could not publish. Check the Supabase setup.",true);}
+ finally{btn.disabled=false;btn.textContent="Publish";}
+});
+(async()=>{const {data}=await db.auth.getSession();user=data?.session?.user||null;if(!user){$("loginHint").textContent="You can view publications without signing in. Sign in to publish or report.";const a=document.createElement("a");a.href="login.html";a.className="button";a.textContent="Sign in";$("composer").appendChild(a);$("postForm").classList.add("hidden");}await loadFeed();})();
+</script></body></html>
