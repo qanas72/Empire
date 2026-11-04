@@ -138,11 +138,15 @@ async function verifyTon(txid: string, amount: string, createdAt: string): Promi
   const expectedDestination = Address.parse(CONFIG.TON.recipient).toRawString();
   for (const transfer of (payload.jetton_transfers || [])) {
     if (tonHashToHex(String(transfer.transaction_hash || "")) !== wantedHash) continue;
-    if (String(transfer.jetton_master || "").toLowerCase() !== CONFIG.TON.token.toLowerCase()) continue;
-    if (Address.parse(String(transfer.destination)).toRawString() !== expectedDestination) continue;
-    if (String(transfer.amount) !== expectedAmount) continue;
-    if (transfer.transaction_aborted !== false) continue;
-    return true;
+    try {
+      if (Address.parse(String(transfer.jetton_master || "")).toRawString() !== Address.parse(CONFIG.TON.token).toRawString()) continue;
+      if (Address.parse(String(transfer.destination || "")).toRawString() !== expectedDestination) continue;
+      if (String(transfer.amount) !== expectedAmount) continue;
+      if (transfer.transaction_aborted !== false) continue;
+      return true;
+    } catch {
+      continue;
+    }
   }
   return false;
 }
