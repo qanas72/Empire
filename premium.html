@@ -173,21 +173,21 @@ footer{border-top:1px solid var(--border);padding:26px 0;color:#666;text-align:c
  align-items:center;justify-content:center;padding:16px;overflow-y:auto
 }
 .modal-box{
- width:min(460px,100%);max-height:88vh;overflow:auto;background:#111319;
- border:1px solid #ffffff22;border-radius:16px;padding:16px;box-shadow:0 20px 80px #0009
+ width:min(430px,100%);max-height:86vh;overflow:auto;background:#111319;
+ border:1px solid #ffffff22;border-radius:15px;padding:14px;box-shadow:0 20px 80px #0009
 }
 .modal-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px}
-.modal-head h2{font-size:19px}
+.modal-head h2{font-size:18px}
 .close-btn{
  background:#22252c;color:#fff;border:1px solid var(--border);
- border-radius:50%;width:36px;height:36px;font-size:20px;flex-shrink:0
+ border-radius:50%;width:32px;height:32px;font-size:18px;flex-shrink:0
 }
-.field-label{display:block;color:#bbb;font-size:11px;margin:11px 0 6px}
-.field{width:100%;min-width:0;padding:10px;background:#08090d;color:#fff;border:1px solid #ffffff24;border-radius:9px;outline:none}
+.field-label{display:block;color:#bbb;font-size:10px;margin:9px 0 4px}
+.field{width:100%;min-width:0;padding:8px 9px;font-size:13px;background:#08090d;color:#fff;border:1px solid #ffffff24;border-radius:8px;outline:none}
 .field:focus{border-color:var(--gold)}
 .address-row{display:flex;gap:8px}
 .address-row .field{min-width:0}
-.small-note{font-size:11px;color:#888;line-height:1.8;margin-top:10px}
+.small-note{font-size:10px;color:#888;line-height:1.65;margin-top:8px}
 .feedback{font-size:12px;line-height:1.8;margin-top:14px;overflow-wrap:anywhere}
 .toast{
  position:fixed;right:18px;bottom:18px;z-index:10001;
@@ -639,7 +639,7 @@ function openVipPayment(planKey){
     <div><div class="eyebrow">Empire VIP Payment</div><h2 id="vipModalTitle">${escapeHtml(plan.name)}</h2></div>
     <button class="close-btn" id="closeVipModal" aria-label="Close">×</button>
    </div>
-   <div class="notice" style="margin-top:0;padding:11px;font-size:13px">
+   <div class="notice" style="margin-top:0;padding:9px;font-size:12px">
     Amount to send: <strong>${plan.amount.toFixed(2)} USDT</strong><br>
     Supported networks: <strong>TRON, BSC and TON</strong>
    </div>
