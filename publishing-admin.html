@@ -1,14 +1,14 @@
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>EMPIRE | Content Reports</title><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>*{box-sizing:border-box}body{margin:0;background:#090909;color:#f4f4f4;font-family:Arial,sans-serif}.wrap{width:min(1000px,92%);margin:30px auto}.top{padding:16px 4%;border-bottom:1px solid #40341e;display:flex;justify-content:space-between}.gold{color:#e8c36b}a{color:#e8c36b;text-decoration:none}.card{background:#151515;border:1px solid #40341e;border-radius:13px;padding:18px;margin:15px 0}.report{border-bottom:1px solid #333;padding:15px 0}.muted{color:#aaa;font-size:13px;line-height:1.7}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}button{padding:10px 13px;border:0;border-radius:8px;font-weight:bold;cursor:pointer}.remove{background:#6d2525;color:white}.dismiss{background:#cda64e;color:#111}.status{color:#e8c36b}</style></head><body>
-<header class="top"><strong class="gold">♛ EMPIRE — REPORT REVIEW</strong><a href="admin.html">Video Admin</a></header><main class="wrap"><h1>Publication reports</h1><p class="muted">Review user reports. Removing a publication hides it from the public feed; dismissing a report leaves the publication visible.</p><div id="message" class="muted">Verifying administrator access...</div><section id="reports" class="card"></section></main>
+<header class="top"><strong class="gold">♛ EMPIRE — REPORT REVIEW</strong><nav style="display:flex;gap:14px;flex-wrap:wrap"><a href="admin.html">Video Admin</a><a href="vip-admin.html">VIP Admin</a><a href="publishing.html">Publishing</a></nav></header><main class="wrap"><h1>Publication reports</h1><p class="muted">Review user reports. Removing a publication hides it from the public feed; dismissing a report leaves the publication visible.</p><div id="message" class="muted">Verifying administrator access...</div><section id="reports" class="card"></section></main>
 <script>
 const db=window.supabase.createClient("https://vubjkwbkuwndkjqfnyom.supabase.co","sb_publishable_Ig1R3dpAKyBfjIGSUhhlKw_u-CQF0QQ");
 const $=id=>document.getElementById(id);const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
 async function init(){
  const {data,error}=await db.auth.getSession();if(error||!data.session){location.href="login.html";return;}
- const {data:p,error:pe}=await db.from("profiles").select("username,is_active").eq("id",data.session.user.id).maybeSingle();
- if(pe||!p||!p.is_active||p.username!=="qanas"){ $("message").textContent="Admin access denied.";return;}
+ const {data:isAdmin,error:adminError}=await db.rpc("is_admin");
+ if(adminError||isAdmin!==true){ $("message").textContent="Admin access denied.";return;}
  $("message").textContent="Signed in as administrator.";
  await loadReports();
 }

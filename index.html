@@ -810,6 +810,9 @@ font-size: clamp(14px, 2.2vw, 18px);
 letter-spacing: 2px;
 text-shadow: 0 0 12px rgba(90, 170, 255, 0.4);
   }
+
+.community-section{padding:22px 0 38px}.community-feed{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.community-post{min-width:0;background:rgba(15,15,15,.92);border:1px solid rgba(230,189,88,.22);border-radius:16px;padding:18px;box-shadow:0 12px 30px rgba(0,0,0,.22)}.community-post-head{display:flex;justify-content:space-between;gap:12px;color:#aaa;font-size:12px;margin-bottom:12px}.community-post-body{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.75}.community-post img{width:100%;max-height:430px;object-fit:contain;background:#080808;border-radius:11px;margin-top:12px}.community-post-foot{display:flex;justify-content:flex-end;margin-top:12px}.community-post button{background:#282020;color:#ffbaba;border:1px solid #633333;border-radius:8px;padding:8px 12px;cursor:pointer}.community-empty{grid-column:1/-1;text-align:center;color:#aaa;padding:24px;border:1px dashed #444;border-radius:12px}@media(max-width:680px){.community-feed{grid-template-columns:1fr}.community-section{padding:14px 0 28px}}
+
 </style>  </head>  <body>  <header>  
   <div class="container nav"> 
     <a class="brand" href="#home" aria-label="Empire Home">
@@ -819,6 +822,7 @@ text-shadow: 0 0 12px rgba(90, 170, 255, 0.4);
 
 <nav class="links" id="mainLinks">  
   <a href="#home" onclick="closeMenu()">Home</a>  
+  <a href="#community" onclick="closeMenu()">Community</a>  
   <a href="#videos" onclick="closeMenu()">Videos</a>  
   <a href="about.html">About</a>  
 </nav>  
@@ -848,6 +852,14 @@ text-shadow: 0 0 12px rgba(90, 170, 255, 0.4);
   <p>Building Tomorrow’s Civilization.</p>
   <span>A Haven for All.</span>
 </div>
+
+  <section id="community" class="community-section">
+    <div class="container">
+      <div class="section-head"><div><div class="section-label">Community</div><h2>Latest Publications</h2><p>Everything shared by the Empire community, in one place.</p></div><a class="btn btn-dark" href="publishing.html">Create a post</a></div>
+      <div id="communityFeed" class="community-feed"><div class="status">Loading publications...</div></div>
+    </div>
+  </section>
+
   <main id="home">  
   
     <section id="videos">  
@@ -909,14 +921,16 @@ const supabaseClient = window.supabase.createClient(
 );  
   
 let videos = [];  
-let featuredVideo = null;  
+let featuredVideo = null;
+let currentSession = null;  
   
 async function checkAuth(){  
   try{  
     const {data,error} = await supabaseClient.auth.getSession();  
     if(error) throw error;  
   
-    const session = data?.session;  
+    const session = data?.session;
+    currentSession = session || null;  
     const nameElement = document.getElementById("userName");  
   
     if(!session){  
@@ -962,6 +976,32 @@ async function checkAuth(){
   }  
 }  
   
+
+async function loadCommunityFeed(){
+  const box=document.getElementById("communityFeed"); if(!box)return;
+  box.innerHTML='<div class="status">Loading publications...</div>';
+  try{
+    const {data,error}=await supabaseClient.from("community_posts").select("id,author_name,content,image_path,created_at").eq("is_removed",false).order("created_at",{ascending:false}).limit(40);
+    if(error)throw error;
+    if(!data?.length){box.innerHTML='<div class="community-empty">No publications yet. Be the first to share something.</div>';return;}
+    box.innerHTML=data.map(post=>{
+      let image='';
+      if(post.image_path){const {data:u}=supabaseClient.storage.from("post-images").getPublicUrl(post.image_path);if(u?.publicUrl)image='<img src="'+escapeAttribute(u.publicUrl)+'" alt="Community publication" loading="lazy">';}
+      const report=currentSession?'<div class="community-post-foot"><button type="button" onclick="reportCommunityPost(\''+escapeAttribute(post.id)+'\')">Report</button></div>':'';
+      return '<article class="community-post"><div class="community-post-head"><strong>'+escapeHtml(post.author_name||"Empire Member")+'</strong><span>'+new Date(post.created_at).toLocaleString()+'</span></div><div class="community-post-body">'+escapeHtml(post.content||"")+'</div>'+image+report+'</article>';
+    }).join("");
+  }catch(error){console.error("COMMUNITY FEED ERROR:",error);box.innerHTML='<div class="status error">Could not load publications: '+escapeHtml(error.message||"Unknown error")+'</div>';}
+}
+async function reportCommunityPost(postId){
+  if(!currentSession){alert("Please sign in to report a publication.");return;}
+  const reason=prompt("Why are you reporting this publication?");
+  if(reason===null)return;
+  if(!reason.trim()){alert("Please enter a reason.");return;}
+  const {error}=await supabaseClient.from("post_reports").insert({post_id:postId,reporter_id:currentSession.user.id,reason:reason.trim()});
+  if(error){alert(error.code==="23505"?"You have already reported this publication.":error.message);return;}
+  alert("Report submitted. Thank you.");
+}
+
 async function loadVideos(){  
   const grid = document.getElementById("videoGrid");  
   if(!grid) return;  
@@ -1532,7 +1572,7 @@ function escapeAttribute(value){
   
   if(!authenticated) return;  
   
-  await loadVideos();  
+  await Promise.all([loadVideos(),loadCommunityFeed()]);  
 })();  
 </script> 
 </body>  

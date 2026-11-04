@@ -572,9 +572,9 @@ footer{
 
 </header>
 <div style="text-align:center; padding:15px;">
-  <a href="vip-admin.html" class="btn-gold" style="display:inline-block; padding:12px 22px; text-decoration:none; border-radius:8px;">
-    👑 مدیریت VIP
-  </a>
+  <a href="vip-admin.html" class="btn-gold" style="display:inline-block; padding:12px 22px; text-decoration:none; border-radius:8px;">👑 مدیریت VIP</a>
+  <a href="publishing-admin.html" class="btn-gold" style="display:inline-block; padding:12px 22px; text-decoration:none; border-radius:8px; margin:6px;">✍️ مدیریت انتشارات و گزارش‌ها</a>
+  <a href="publishing.html" class="btn-gold" style="display:inline-block; padding:12px 22px; text-decoration:none; border-radius:8px; margin:6px;">مشاهده انتشارات</a>
 </div>
 
 <main>
@@ -986,17 +986,12 @@ async function checkAdmin(){
     }
 
 
-    if(
-      profile.username !== "qanas"
-    ){
+    const { data: isAdmin, error: adminError } =
+      await supabaseClient.rpc("is_admin");
 
-      alert(
-        "Admin access denied."
-      );
-
-      window.location.href =
-        "index.html";
-
+    if (adminError || isAdmin !== true) {
+      alert("Admin access denied.");
+      window.location.href = "index.html";
       return false;
     }
 
