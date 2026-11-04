@@ -124,6 +124,7 @@
     }
 
     .page-heading {
+      display:none;
       margin-bottom: 24px;
     }
 
@@ -401,7 +402,7 @@
       border: 1px solid #353535;
       outline: none;
       color: white;
-      background: #0b0b0b;
+      background: rgba(9,10,14,.38);
     }
 
     .field input:focus {
@@ -410,7 +411,7 @@
 
     .field input[readonly] {
       color: #a8a8a8;
-      background: #151515;
+      background: rgba(30,27,22,.42);
       cursor: not-allowed;
     }
 
@@ -448,7 +449,7 @@
     }
 
     .date-box {
-      background: rgba(0, 0, 0, .22);
+      background: rgba(0, 0, 0, .20);
       border: 1px solid var(--border);
       border-radius: 12px;
       padding: 14px;
@@ -527,8 +528,8 @@
       align-items: center;
       gap: 15px;
       padding: 15px;
-      background: #0b0b0b;
-      border: 1px solid #292929;
+      background: rgba(9,10,14,.38);
+      border: 1px solid rgba(245,217,139,.22);
       border-radius: 12px;
       min-width: 0;
     }
@@ -640,7 +641,7 @@
     @media (max-width: 680px) {
       body::before {
         background:
-          linear-gradient(180deg, rgba(0,0,0,.68), rgba(0,0,0,.88)),
+          linear-gradient(180deg, rgba(0,0,0,.38), rgba(0,0,0,.62)),
           url("profile-background-mobile.png") center center / cover no-repeat;
       }
 
@@ -1180,14 +1181,14 @@
 
       if (url) {
         large.src = url;
-        small.src = url;
+        if (small) small.src = url;
 
         large.onerror = () => {
           large.removeAttribute("src");
         };
 
-        small.onerror = () => {
-          small.removeAttribute("src");
+        if (small) small.onerror = () => {
+          if (small) small.removeAttribute("src");
         };
 
         return;
