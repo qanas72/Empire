@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>EMPIRE | Messages</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{--gold:#e8c36b;--line:#40341f;--muted:#aaa}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:#080808;color:#f5f5f5;font-family:Arial,sans-serif}body:before{content:"";position:fixed;inset:0;z-index:-1;background:linear-gradient(#000b,#000e),url("profile-background-desktop.png") center/cover no-repeat}
+a{color:inherit;text-decoration:none}button,input,textarea{font:inherit}.top{position:sticky;top:0;z-index:10;padding:15px 5%;display:flex;justify-content:space-between;align-items:center;background:#090909ed;border-bottom:1px solid var(--line);backdrop-filter:blur(12px)}.brand{font-size:22px;font-weight:900;letter-spacing:2px;color:var(--gold)}.nav{display:flex;gap:18px;color:#bbb;font-size:14px}
+main{width:min(1180px,94%);margin:28px auto 55px}.heading{margin-bottom:20px}.heading h1{margin:0 0 6px;font-size:clamp(27px,4vw,36px)}.muted{color:var(--muted);font-size:13px;line-height:1.6}
+.layout{display:grid;grid-template-columns:330px minmax(0,1fr);gap:17px;min-height:650px}.panel{background:linear-gradient(145deg,#191919f2,#0d0d0df2);border:1px solid var(--line);border-radius:16px;overflow:hidden;min-width:0}
+.side-head{padding:18px;border-bottom:1px solid #302817}.side-head h2{font-size:17px;margin:0 0 12px;color:var(--gold)}.search{width:100%;padding:12px 13px;background:#090909;color:white;border:1px solid #40341f;border-radius:10px;outline:none}.search:focus,.composer textarea:focus{border-color:var(--gold)}
+.people{max-height:580px;overflow:auto}.person{display:flex;align-items:center;gap:11px;width:100%;padding:13px 15px;background:transparent;border:0;border-bottom:1px solid #25211a;color:white;text-align:left;cursor:pointer}.person:hover,.person.active{background:#d6ad5510}.person.active{box-shadow:inset 3px 0 var(--gold)}.avatar{width:43px;height:43px;flex:0 0 43px;border-radius:50%;object-fit:cover;background:#292929;border:1px solid #a7833c}.person-info{min-width:0;flex:1}.person-name{font-weight:700;overflow-wrap:anywhere}.handle{font-size:11px;color:#999;margin-top:3px}.person-last{font-size:11px;color:#aaa;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:4px}
+.chat{display:flex;flex-direction:column;min-height:650px}.chat-head{display:flex;align-items:center;gap:12px;padding:16px 19px;border-bottom:1px solid #302817;min-height:76px}.chat-head .avatar{width:45px;height:45px}.chat-name{font-weight:800}.chat-status{font-size:11px;color:#aaa;margin-top:4px}.balance{margin-left:auto;text-align:right;font-size:12px;color:var(--gold);white-space:nowrap}.balance small{display:block;color:#999;font-size:10px}
+.thread{flex:1;min-height:400px;max-height:540px;overflow:auto;padding:20px;display:flex;flex-direction:column;gap:12px}.bubble{max-width:min(78%,560px);padding:11px 14px;border-radius:14px;background:#222;border:1px solid #393939;align-self:flex-start;overflow-wrap:anywhere;white-space:pre-wrap;line-height:1.55;font-size:14px}.bubble.mine{align-self:flex-end;background:#3a2e17;border-color:#80642f}.time{display:block;margin-top:6px;font-size:10px;color:#aaa;text-align:right}
+.composer{padding:15px 17px;border-top:1px solid #302817;background:#0b0b0b}.fee-row{display:flex;justify-content:space-between;gap:10px;color:#aaa;font-size:11px;margin-bottom:9px}.fee-row strong{color:var(--gold)}.compose-row{display:flex;gap:10px;align-items:flex-end}.composer textarea{flex:1;min-width:0;resize:vertical;min-height:48px;max-height:130px;padding:12px;background:#151515;color:white;border:1px solid #40341f;border-radius:10px;outline:none}.send{border:0;border-radius:10px;padding:13px 18px;background:linear-gradient(135deg,#f4d98c,#c99b3d);color:#17120a;font-weight:800;cursor:pointer}.send:disabled{opacity:.5;cursor:not-allowed}.notice{display:none;margin:0 0 12px;padding:10px 12px;border-radius:9px;font-size:12px;line-height:1.5}.notice.show{display:block}.notice.error{background:#4a1717;color:#ffc0c0}.notice.success{background:#123a29;color:#a9f0ca}.empty{padding:30px 18px;text-align:center;color:#999;line-height:1.7;font-size:13px}.welcome{margin:auto;max-width:400px;text-align:center;padding:35px;color:#aaa;line-height:1.8}.welcome b{display:block;color:var(--gold);font-size:23px;margin-bottom:8px}.back{display:none;background:none;border:0;color:var(--gold);font-size:22px;padding:3px 8px 3px 0}
+@media(max-width:760px){body:before{background:linear-gradient(#000b,#000e),url("profile-background-mobile.png") center/cover no-repeat}.top{padding:13px 4%;flex-wrap:wrap;gap:10px}.brand{font-size:19px}.nav{width:100%;justify-content:space-between;padding-top:9px;border-top:1px solid #302817;font-size:13px}main{width:100%;margin:18px auto 35px}.heading{padding:0 4%}.layout{display:block;min-height:calc(100vh - 170px)}.side{border-radius:0;border-left:0;border-right:0}.people{max-height:calc(100vh - 330px)}.chat{display:none;border-radius:0;border-left:0;border-right:0;min-height:calc(100vh - 160px)}.chat.mobile-open{display:flex}.side.mobile-hidden{display:none}.thread{max-height:none;min-height:0}.back{display:block}.bubble{max-width:88%}}
+</style>
+</head>
+<body>
+<header class="top"><a class="brand" href="index.html">♛ EMPIRE</a><nav class="nav"><a href="index.html">Home</a><a href="members.html">Members</a><a href="profile.html">My Profile</a></nav></header>
+<main><div class="heading"><h1>Private <span style="color:var(--gold)">Messages</span></h1><p class="muted">Send direct messages to EMPIRE members using your EMPC balance.</p></div>
+<div class="layout"><aside class="panel side" id="side"><div class="side-head"><h2>Members & Chats</h2><input id="search" class="search" type="search" placeholder="Search members..."></div><div class="people" id="people"><div class="empty">Loading members...</div></div></aside>
+<section class="panel chat" id="chat"><div class="welcome"><b>♛ EMPIRE MESSAGES</b>Select a member to start a private conversation.</div></section></div></main>
+<script>
+const SUPABASE_URL="https://vubjkwbkuwndkjqfnyom.supabase.co";
+const SUPABASE_KEY="sb_publishable_Ig1R3dpAKyBfjIGSUhhlKw_uC-QF0QQ";
+const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+const $=id=>document.getElementById(id);
+let me=null, members=[], selected=null, balance=0, vip=false, poller=null;
+function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+function avatar(path){if(!path)return "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23222222'/%3E%3Ctext x='50' y='65' text-anchor='middle' font-size='48' fill='%23e8c36b'%3E%E2%98%BB%3C/text%3E%3C/svg%3E";return db.storage.from("avatars").getPublicUrl(path).data?.publicUrl||"";}
+function fee(){return vip?3:5;}
+function showNotice(message,type="error"){const el=$("msgNotice");el.className="notice show "+type;el.textContent=message;}
+function clearNotice(){$("msgNotice").className="notice";}
+function stamp(v){return new Date(v).toLocaleString([], {month:"short",day:"numeric",hour:"2-digit",minute:"2-digit"});}
+function renderPeople(){const q=$("search").value.trim().toLowerCase();const list=members.filter(m=>(m.display_name+" "+m.username).toLowerCase().includes(q));if(!list.length){$("people").innerHTML='<div class="empty">No members found.</div>';return;}
+$("people").innerHTML=list.map(m=>'<button class="person '+(selected?.id===m.id?"active":"")+'" data-id="'+esc(m.id)+'"><img class="avatar" src="'+esc(avatar(m.avatar_url))+'" alt=""><span class="person-info"><span class="person-name">'+esc(m.display_name||m.username)+'</span><span class="handle">@'+esc(m.username)+'</span></span></button>').join("");
+$("people").querySelectorAll("[data-id]").forEach(b=>b.addEventListener("click",()=>openChat(b.dataset.id)));}
+async function loadWallet(){const {data,error}=await db.from("empire_wallets").select("balance").eq("user_id",me.id).eq("wallet_type","user").maybeSingle();if(error)throw error;balance=Number(data?.balance||0);}
+async function loadVip(){const {data,error}=await db.from("vip_memberships").select("status,expires_at").eq("user_id",me.id).eq("status","active").gt("expires_at",new Date().toISOString()).limit(1);if(error)throw error;vip=!!data?.length;}
+async function openChat(id){selected=members.find(m=>m.id===id);if(!selected)return;renderPeople();$("side").classList.add("mobile-hidden");$("chat").classList.add("mobile-open");await renderChat(true);if(poller)clearInterval(poller);poller=setInterval(()=>{if(selected)renderChat(true).catch(console.error);},12000);}
+async function renderChat(quiet=false){if(!selected)return;const draft=quiet?($("messageInput")?.value||""):"";const other=selected;
+if(!quiet){$("chat").innerHTML='<div class="empty">Loading conversation...</div>';return;}
+const {data,error}=await db.from("empire_messages").select("id,sender_id,receiver_id,content,created_at").or('and(sender_id.eq.'+me.id+',receiver_id.eq.'+other.id+'),and(sender_id.eq.'+other.id+',receiver_id.eq.'+me.id+')').order("created_at",{ascending:true}).limit(300);
+if(error)throw error;
+const rows=data||[];
+$("chat").innerHTML='<div class="chat-head"><button class="back" id="backBtn" aria-label="Back">‹</button><img class="avatar" src="'+esc(avatar(other.avatar_url))+'" alt=""><div><div class="chat-name">'+esc(other.display_name||other.username)+'</div><div class="chat-status">@'+esc(other.username)+'</div></div><div class="balance" id="balanceText">'+balance.toLocaleString()+' EMPC<small>Wallet balance</small></div></div><div class="thread" id="thread">'+(rows.length?rows.map(m=>'<div class="bubble '+(m.sender_id===me.id?"mine":"")+'">'+esc(m.content)+'<span class="time">'+stamp(m.created_at)+'</span></div>').join(""):'<div class="empty">No messages yet. Start the conversation.</div>')+'</div><div class="composer"><div id="msgNotice" class="notice"></div><div class="fee-row"><span>Cost per message</span><strong>'+fee()+' EMPC '+(vip?"(VIP rate)":"")+'</strong></div><div class="compose-row"><textarea id="messageInput" maxlength="5000" placeholder="Write a private message..."></textarea><button class="send" id="sendBtn">Send</button></div></div>';
+$("backBtn").addEventListener("click",()=>{$("chat").classList.remove("mobile-open");$("side").classList.remove("mobile-hidden");selected=null;if(poller)clearInterval(poller);renderPeople();});
+if($("messageInput"))$("messageInput").value=draft;
+$("sendBtn").addEventListener("click",sendMessage);
+$("messageInput").addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendMessage();}});
+const thread=$("thread");thread.scrollTop=thread.scrollHeight;
+}
+async function sendMessage(){const input=$("messageInput"),button=$("sendBtn");const content=input?.value.trim();if(!content)return;if(content.length>5000){showNotice("Message is too long (maximum 5000 characters).");return;}if(balance<fee()){showNotice("Insufficient EMPC balance. You need at least "+fee()+" EMPC.");return;}
+button.disabled=true;button.textContent="Sending...";
+try{const {data,error}=await db.rpc("send_empire_message",{p_receiver_id:selected.id,p_content:content});if(error)throw error;const result=Array.isArray(data)?data[0]:data;if(result?.remaining_balance!==undefined)balance=Number(result.remaining_balance);else await loadWallet();input.value="";await renderChat(true);}
+catch(error){console.error(error);showNotice(error.message||"Message could not be sent.");}
+finally{if($("sendBtn")){$("sendBtn").disabled=false;$("sendBtn").textContent="Send";}if($("balanceText"))$("balanceText").innerHTML=balance.toLocaleString(undefined,{maximumFractionDigits:8})+' EMPC<small>Wallet balance</small>';}
+}
+$("search").addEventListener("input",renderPeople);
+(async()=>{try{const {data,error}=await db.auth.getUser();if(error)throw error;me=data?.user;if(!me){location.href="login.html";return;}
+const [m,w,v]=await Promise.all([
+db.from("public_user_profiles").select("id,username,display_name,avatar_url,membership_type").order("display_name").limit(300),
+loadWallet(),loadVip()]);
+if(m.error)throw m.error;members=(m.data||[]).filter(x=>x.id!==me.id);renderPeople();
+const target=new URLSearchParams(location.search).get("user_id");if(target&&target!==me.id&&members.some(x=>x.id===target))await openChat(target);
+}catch(e){console.error(e);$("people").innerHTML='<div class="empty">Could not load messages. Please sign in and refresh the page.</div>';}})();
+</script></body></html>
