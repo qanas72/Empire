@@ -119,8 +119,8 @@
     <h2>درخواست‌های پرداخت VIP</h2>
 
     <p class="small">
-      قبل از تأیید، تراکنش USDT روی شبکه TRON (TRC20)، مبلغ و
-      آدرس دریافت‌کننده را بررسی کن. ثبت TXID به‌تنهایی اثبات پرداخت نیست.
+      پیش از تأیید، شبکه، مبلغ، توکن USDT و آدرس دریافت‌کننده را در مرورگر رسمی همان شبکه بررسی کن.
+      ثبت TXID به‌تنهایی اثبات پرداخت نیست.
     </p>
 
     <button class="gold" id="refreshBtn">🔄 بارگذاری مجدد</button>
@@ -178,6 +178,24 @@
 
   panel.classList.remove("hidden");
   showMessage("ورود مدیر تأیید شد.");
+
+  const PAYMENT_NETWORKS = {
+    TRON: {
+      label: "USDT TRC20",
+      address: "TZ9PxtbEchvo1RSrTDjLvyeRHK1HPtmMmV",
+      explorer: "https://tronscan.org/#/transaction/"
+    },
+    BSC: {
+      label: "USDT BEP20",
+      address: "0xe8D7B16C603Ea5c2B7EEe87e567192Bf651c1DEA",
+      explorer: "https://bscscan.com/tx/"
+    },
+    TON: {
+      label: "USDT TON Jetton",
+      address: "UQBGbzaKDO0j_gddN5qguj15BrI6L9_VGcnUT0xP6rGXK7KT",
+      explorer: "https://tonviewer.com/transaction/"
+    }
+  };
 
   function addField(card, label, value) {
     const title = document.createElement("div");
@@ -237,7 +255,16 @@
         "مبلغ",
         request.amount + " " + request.currency
       );
-      addField(card, "شبکه", request.network);
+      addField(
+        card,
+        "شبکه",
+        PAYMENT_NETWORKS[request.network]?.label || request.network
+      );
+      addField(
+        card,
+        "آدرس رسمی دریافت برای این شبکه",
+        PAYMENT_NETWORKS[request.network]?.address || "شبکه ناشناخته"
+      );
       addField(card, "TXID تراکنش", request.transaction_hash);
       addField(card, "تاریخ ثبت", request.created_at);
 
@@ -248,12 +275,20 @@
 
       const txLink = document.createElement("a");
       txLink.className = "link dark";
-      txLink.href =
-        "https://tronscan.org/#/transaction/" +
-        encodeURIComponent(request.transaction_hash || "");
-      txLink.target = "_blank";
-      txLink.rel = "noopener noreferrer";
-      txLink.textContent = "بررسی تراکنش در TronScan";
+      const networkConfig = PAYMENT_NETWORKS[request.network];
+      if (networkConfig && request.transaction_hash) {
+        txLink.href =
+          networkConfig.explorer +
+          encodeURIComponent(request.transaction_hash);
+        txLink.target = "_blank";
+        txLink.rel = "noopener noreferrer";
+        txLink.textContent =
+          "بررسی تراکنش در " + networkConfig.label;
+      } else {
+        txLink.href = "#";
+        txLink.textContent = "شبکه یا TXID نامعتبر";
+        txLink.setAttribute("aria-disabled", "true");
+      }
       card.appendChild(txLink);
 
       const approve = document.createElement("button");
