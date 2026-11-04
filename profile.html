@@ -859,6 +859,28 @@
 
     </section>
 
+    <!-- EmpireCoin Wallet -->
+    <section class="card" id="empireWalletSection">
+      <h2 class="section-title">
+        🪙 EmpireCoin Wallet
+        <small>Internal EMPC balance</small>
+      </h2>
+
+      <div class="stat-card" style="margin-bottom:16px;background:linear-gradient(145deg,#211b0d,#111);">
+        <div class="stat-label">AVAILABLE BALANCE</div>
+        <div class="stat-value gold" id="empireWalletBalance" style="font-size:clamp(25px,5vw,36px);">Loading...</div>
+        <div class="help-text">EmpireCoin (EMPC) — internal account balance</div>
+      </div>
+
+      <h3 style="font-size:16px;margin:0 0 12px;">Transaction History</h3>
+      <div id="empireTransactionList" class="list">
+        <div class="loading">Loading EmpireCoin transactions...</div>
+      </div>
+      <p class="help-text" style="margin-top:12px;">
+        This is the internal EMPIRE ledger. It is not a live blockchain wallet balance.
+      </p>
+    </section>
+
     <!-- Rank and EmpireCoin -->
     <section class="feature-grid">
       <a class="feature-card" href="/Empire/publishing.html">
@@ -893,10 +915,9 @@
         <div class="feature-icon">🪙</div>
         <h3>EmpireCoin</h3>
         <p>
-          Your real coin balance will appear here once the secure
-          EmpireCoin ledger is connected. No estimated balance is shown.
+          View your internal EmpireCoin balance and transaction history.
         </p>
-        <span class="coming-soon" id="coinLabel">NOT CONNECTED</span>
+        <a class="coming-soon" id="coinLabel" href="#empireWalletSection">VIEW WALLET</a>
       </div>
 
       <div class="feature-card">
@@ -1250,7 +1271,8 @@
 
       await Promise.all([
         loadMembership(),
-        loadPurchases()
+        loadPurchases(),
+        loadEmpireWallet()
       ]);
     }
 
@@ -1421,6 +1443,90 @@
         button.disabled = false;
         chooseButton.disabled = false;
         button.textContent = "Upload Photo";
+      }
+    }
+
+    async function loadEmpireWallet() {
+      if (!currentUser) return;
+
+      const balanceElement = $("empireWalletBalance");
+      const listElement = $("empireTransactionList");
+
+      balanceElement.textContent = "Loading...";
+      listElement.innerHTML = '<div class="loading">Loading EmpireCoin transactions...</div>';
+
+      try {
+        const { data: wallet, error: walletError } = await supabaseClient
+          .from("empire_wallets")
+          .select("id, balance")
+          .eq("user_id", currentUser.id)
+          .eq("wallet_type", "user")
+          .maybeSingle();
+
+        if (walletError) throw walletError;
+
+        if (!wallet) {
+          balanceElement.textContent = "0 EMPC";
+          listElement.innerHTML = '<div class="empty-state">Your EmpireCoin wallet was not found. Please contact the administrator.</div>';
+          return;
+        }
+
+        const balance = Number(wallet.balance);
+        balanceElement.textContent =
+          (Number.isFinite(balance) ? balance.toLocaleString(undefined, { maximumFractionDigits: 8 }) : "0") + " EMPC";
+
+        const { data: transactions, error: transactionError } = await supabaseClient
+          .from("empire_transactions")
+          .select("id, amount, transaction_type, description, created_at, from_wallet_id, to_wallet_id")
+          .or(`from_wallet_id.eq.${wallet.id},to_wallet_id.eq.${wallet.id}`)
+          .order("created_at", { ascending: false })
+          .limit(30);
+
+        if (transactionError) throw transactionError;
+
+        if (!transactions?.length) {
+          listElement.innerHTML = '<div class="empty-state">No EmpireCoin transactions yet. Your future wallet activity will appear here.</div>';
+          return;
+        }
+
+        const labels = {
+          purchase: "EMPC Purchase",
+          message_fee: "Message Fee",
+          video_fee: "Video Publishing Fee",
+          reward: "Reward",
+          referral_reward: "Referral Reward",
+          vip_reward: "VIP Reward",
+          refund: "Refund",
+          admin_adjustment: "Admin Adjustment",
+          treasury_transfer: "Treasury Transfer"
+        };
+
+        listElement.innerHTML = transactions.map((transaction) => {
+          const incoming = transaction.to_wallet_id === wallet.id;
+          const amount = Number(transaction.amount);
+          const amountText = (incoming ? "+" : "−") +
+            (Number.isFinite(amount) ? amount.toLocaleString(undefined, { maximumFractionDigits: 8 }) : "0") +
+            " EMPC";
+          const title = labels[transaction.transaction_type] || "EmpireCoin Transaction";
+          const description = transaction.description || title;
+
+          return `
+            <div class="list-item">
+              <div class="list-main">
+                <strong>${escapeHTML(title)}</strong>
+                <small>${escapeHTML(description)}</small>
+                <small>${escapeHTML(formatDate(transaction.created_at))}</small>
+              </div>
+              <div class="list-side">
+                <strong class="${incoming ? "status-active" : "status-failed"}">${escapeHTML(amountText)}</strong>
+              </div>
+            </div>
+          `;
+        }).join("");
+      } catch (error) {
+        console.error("EmpireCoin wallet load error:", error);
+        balanceElement.textContent = "Unavailable";
+        listElement.innerHTML = '<div class="empty-state">EmpireCoin wallet information could not be loaded. Please refresh the page.</div>';
       }
     }
 
