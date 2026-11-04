@@ -1204,7 +1204,15 @@ async function watchVideo(videoId){
   }  
 }  
   
-async function openBuy(videoId){  
+async function openBuy(videoId){
+  const networkChoice = prompt("Choose payment network:\n1 = TRON (TRC20)\n2 = BNB Smart Chain (BEP20)\n3 = TON");
+  if(networkChoice === null) return;
+  const networkMap = {"1":"TRON","2":"BSC","3":"TON","TRON":"TRON","BSC":"BSC","TON":"TON"};
+  const selectedNetwork = networkMap[String(networkChoice).trim().toUpperCase()];
+  if(!selectedNetwork){
+    alert("Invalid network selection. Please choose 1, 2, or 3.");
+    return;
+  }  
   const video = videos.find(item => String(item.id) === String(videoId));  
   
   if(!video){  
@@ -1235,7 +1243,7 @@ async function openBuy(videoId){
           "apikey":SUPABASE_KEY,  
           "Content-Type":"application/json"  
         },  
-        body:JSON.stringify({video_id:videoId})  
+        body:JSON.stringify({video_id:videoId,network:selectedNetwork})  
       }  
     );  
   
@@ -1327,11 +1335,12 @@ function showPaymentModal(videoId, session, result){
       ">  
         <div style="font-size:13px;color:#aaa">Amount to pay</div>  
         <div style="font-size:27px;font-weight:bold;color:#e6bd58;margin:5px 0">  
-          ${amount} USDT  
+          ${amount} ${assetLabel}  
         </div>  
-        <div style="font-size:13px;color:#aaa">Network: TRON (TRC20)</div>  
+        <div style="font-size:13px;color:#aaa">Network: ${networkLabel}</div>  
       </div>  
   
+      <div style="font-size:12px;color:#aaa;margin:0 0 12px">Asset: ${assetLabel}${tokenContract ? `<br>Token contract: ${tokenContract}` : ""}</div>
       <label for="paymentAddress" style="font-size:13px;color:#aaa">  
         Payment address  
       </label>  
@@ -1350,7 +1359,7 @@ function showPaymentModal(videoId, session, result){
       </div>  
   
       <p style="font-size:12px;color:#aaa;margin-bottom:16px">  
-        Send exactly ${amount} USDT on TRON (TRC20). Make sure the network  
+        Send exactly ${amount} ${assetLabel} on TRON (TRC20). Make sure the network  
         and amount are correct before sending.  
       </p>  
   
@@ -1370,7 +1379,7 @@ function showPaymentModal(videoId, session, result){
       </label>  
   
       <input id="paymentTxid" type="text" autocomplete="off"  
-        placeholder="Enter your TRON transaction TXID"  
+        placeholder="Enter transaction hash / ID"  
         style="  
           display:block;width:100%;margin:8px 0 13px;padding:13px;  
           background:#1a1a1a;color:#fff;border:1px solid #333;  
