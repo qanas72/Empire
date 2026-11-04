@@ -37,8 +37,8 @@ async function load(){
  if(!user){$("profile").innerHTML='<div class="empty">This profile is unavailable or private. <a class="gold" href="members.html">Browse members</a>.</div>';$("posts").textContent="No public profile."; $("videos").textContent="No public profile.";return;}
  document.title="EMPIRE | "+user.display_name;
  async function refreshMemberPresence(){const {data:p,error:presenceError}=await db.from("user_presence").select("last_seen").eq("user_id",user.id).maybeSingle();if(presenceError){$("memberPresence").textContent="Status unavailable";return;}const online=!!p&&new Date(p.last_seen).getTime()>Date.now()-120000;$("memberPresence").innerHTML='<i class="presence-dot '+(online?"online":"")+'"></i>'+(online?"Online":"Offline");}
- await refreshMemberPresence();setInterval(refreshMemberPresence,60000);
  $("profile").innerHTML='<img class="avatar" src="'+avatar(user.avatar_url)+'" alt="Profile photo"><div><h1 class="name">'+esc(user.display_name)+'</h1><div class="username">@'+esc(user.username)+'</div><span class="badge '+(user.membership_type==="VIP"?"":"regular")+'">'+(user.membership_type==="VIP"?"♛ VIP Member":"Regular Member")+'</span><div class="meta">Member since '+date(user.created_at)+'</div><div id="memberPresence" class="presence"><i class="presence-dot"></i>Checking status...</div></div>';
+ await refreshMemberPresence();setInterval(refreshMemberPresence,60000);
  const [postsResult,videosResult]=await Promise.all([
   db.from("community_posts").select("id,content,image_path,created_at").eq("author_id",user.id).eq("is_removed",false).order("created_at",{ascending:false}).limit(50),
   db.from("videos").select("id,title,description,thumbnail_url,created_at").eq("creator_id",user.id).eq("approval_status","approved").order("created_at",{ascending:false}).limit(50)
