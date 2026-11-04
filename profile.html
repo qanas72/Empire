@@ -1196,11 +1196,31 @@
       if (!path) return null;
       if (/^https?:\/\//i.test(path)) return path;
 
-      // The avatars bucket is also used as a public bucket by the feed and
-      // messaging pages. Use the same public URL strategy here.
-      const objectPath = String(path).replace(/^avatars\//i, "");
-      const { data } = supabaseClient.storage.from("avatars").getPublicUrl(objectPath);
-      return data?.publicUrl || null;
+      const rawPath = String(path).replace(/^\/+/, "");
+      const objectPaths = [...new Set([
+        rawPath.replace(/^avatars\//i, ""),
+        rawPath
+      ])];
+
+      // Try a signed URL first (works with private buckets), then public URL.
+      for (const objectPath of objectPaths) {
+        try {
+          const { data, error } = await withProfileTimeout(
+            supabaseClient.storage.from("avatars").createSignedUrl(objectPath, 3600),
+            "Profile photo request",
+            8000
+          );
+          if (!error && data?.signedUrl) return data.signedUrl;
+        } catch (error) {
+          console.warn("Signed avatar URL attempt failed:", error.message);
+        }
+
+        const { data: publicData } = supabaseClient.storage
+          .from("avatars")
+          .getPublicUrl(objectPath);
+        if (publicData?.publicUrl) return publicData.publicUrl;
+      }
+      return null;
     }
 
     function withProfileTimeout(promise, label, milliseconds = 12000) {
@@ -1282,6 +1302,19 @@
       }
 
       currentUser = authData.user;
+
+      // Never leave the VIP badge in its initial loading state indefinitely.
+      setTimeout(() => {
+        const badge = $("vipBadge");
+        if (badge && badge.textContent.includes("Checking VIP")) {
+          badge.textContent = "♛ VIP check timed out";
+          badge.className = "badge gray";
+          $("accountType").textContent = "Status unavailable";
+          const description = $("vipDescription");
+          if (description) description.textContent =
+            "The VIP status request did not finish. Please try again later.";
+        }
+      }, 15000);
 
       // Use the Auth account creation timestamp immediately as a reliable fallback.
       $("memberSince").textContent = formatDate(currentUser.created_at);
@@ -1594,6 +1627,9 @@
 
       const description = $("vipDescription");
 
+      $("vipBadge").textContent = "♛ Checking VIP...";
+      $("vipBadge").className = "badge gray";
+
       try {
         const { data, error } = await withProfileTimeout(
           supabaseClient
@@ -1681,7 +1717,7 @@
         $("accountType").textContent = "Status unavailable";
         $("vipPlanLabel").textContent = "Could not check status";
 
-        description.textContent =
+        if (description) description.textContent =
           "VIP status could not be checked. Please refresh the page or try again later.";
       }
     }
