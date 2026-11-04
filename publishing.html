@@ -19,9 +19,26 @@ button:disabled{opacity:.5;cursor:not-allowed}.row{display:flex;gap:10px;flex-wr
 
 .report-modal{position:fixed;inset:0;z-index:1000;display:none;align-items:center;justify-content:center;padding:18px;background:#000b;backdrop-filter:blur(5px)}.report-modal.open{display:flex}.report-dialog{width:min(100%,460px);padding:24px;border:1px solid #8a6b2e;border-radius:18px;background:linear-gradient(145deg,#211a0d,#101010);box-shadow:0 22px 70px #000b}.report-dialog h2{margin:0 0 8px;color:var(--gold)}.report-dialog p{color:var(--muted);font-size:13px;line-height:1.6}.report-dialog textarea{min-height:110px}.report-dialog .row{justify-content:flex-end}.secondary-btn{background:#292929;color:#eee;border:1px solid #555}.report-dialog button{min-width:104px}
 @media(max-width:560px){body::before{background:linear-gradient(180deg,rgba(0,0,0,.76),rgba(0,0,0,.92)),url("empire-background.png") center/cover no-repeat}.top{align-items:center;gap:12px;flex-wrap:wrap}.brand{font-size:20px;white-space:nowrap}.nav{width:100%;justify-content:space-between;gap:8px;padding-top:8px;border-top:1px solid #302817;font-size:13px}.top{position:sticky}.report-dialog{padding:20px}.intro h1{font-size:25px}}
+
+/* Shared Empire crown and wordmark — match the public homepage */
+.brand-mark{
+ display:inline-block;font-size:30px;margin-right:8px;
+ filter:drop-shadow(0 0 4px #ffd700) drop-shadow(0 0 9px rgba(255,40,160,.8)) drop-shadow(0 0 14px rgba(80,180,255,.65));
+ transform:perspective(300px) rotateY(-12deg);
+ animation:crownGlow 3s ease-in-out infinite alternate;
+}
+.brand-name{
+ color:#ffe39a;font-weight:900;letter-spacing:1px;
+ text-shadow:0 0 5px rgba(255,215,0,.8),0 0 12px rgba(255,70,170,.35);
+}
+@keyframes crownGlow{
+ from{filter:drop-shadow(0 0 4px #ffd700) drop-shadow(0 0 7px rgba(255,40,160,.5));transform:perspective(300px) rotateY(-12deg) translateY(0)}
+ to{filter:drop-shadow(0 0 8px #ffd700) drop-shadow(0 0 13px rgba(255,40,160,.9)) drop-shadow(0 0 17px rgba(80,180,255,.7));transform:perspective(300px) rotateY(12deg) translateY(-2px)}
+}
+@media(max-width:600px){.brand-mark{font-size:27px}.brand-name{letter-spacing:.7px}}
 </style></head>
 <body>
-<header class="top"><a class="brand" href="index.html">♛ EMPIRE</a><nav class="nav"><a href="index.html">Home</a><a href="members.html">Members</a><a href="profile.html">Profile</a><a href="premium.html">VIP</a></nav></header>
+<header class="top"><a class="brand" href="index.html" aria-label="Empire Home"><span class="brand-mark" aria-hidden="true">👑</span><span class="brand-name">𝑬𝒎𝒑𝒊𝒓𝒆</span></a><nav class="nav"><a href="index.html">Home</a><a href="members.html">Members</a><a href="profile.html">Profile</a><a href="premium.html">VIP</a></nav></header>
 <main>
 <section class="intro"><h1>Empire <span class="gold">Publishing</span></h1><p class="muted">Share your thoughts and images with the Empire community.</p></section>
 <div id="notice" class="notice"></div>
