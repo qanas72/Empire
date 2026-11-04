@@ -33,6 +33,15 @@ main{width:min(1180px,94%);margin:28px auto 55px}.heading{margin-bottom:20px}.he
  to{filter:drop-shadow(0 0 8px #ffd700) drop-shadow(0 0 13px rgba(255,40,160,.9)) drop-shadow(0 0 17px rgba(80,180,255,.7));transform:perspective(300px) rotateY(12deg) translateY(-2px)}
 }
 @media(max-width:600px){.brand-mark{font-size:27px}.brand-name{letter-spacing:.7px}}
+
+/* EMPIRE avatar image preview */
+.empire-avatar-zoom{cursor:zoom-in!important}
+.empire-avatar-lightbox{position:fixed;inset:0;z-index:99999;display:none;align-items:center;justify-content:center;padding:22px;background:rgba(0,0,0,.88);backdrop-filter:blur(5px)}
+.empire-avatar-lightbox.is-open{display:flex}
+.empire-avatar-lightbox img{display:block;max-width:min(88vw,620px);max-height:82vh;width:auto;height:auto;object-fit:contain;border-radius:16px;border:2px solid #d6ad55;box-shadow:0 18px 70px #000;animation:empireAvatarPop .18s ease-out}
+.empire-avatar-lightbox button{position:absolute;top:18px;right:18px;width:42px;height:42px;border:1px solid #d6ad55;border-radius:50%;background:#17130c;color:#f5d98d;font-size:28px;line-height:1;cursor:pointer}
+@keyframes empireAvatarPop{from{transform:scale(.88);opacity:.4}to{transform:scale(1);opacity:1}}
+@media(prefers-reduced-motion:reduce){.empire-avatar-lightbox img{animation:none}}
 </style>
 </head>
 <body>
@@ -95,4 +104,23 @@ loadWallet(),loadVip()]);
 if(m.error)throw m.error;members=(m.data||[]).filter(x=>x.id!==me.id);renderPeople();
 const target=new URLSearchParams(location.search).get("user_id");if(target&&target!==me.id&&members.some(x=>x.id===target))await openChat(target);
 }catch(e){console.error(e);$("people").innerHTML='<div class="empty">Could not load messages. Please sign in and refresh the page.</div>';}})();
+
+/* Click any profile avatar to view it larger; tap outside or close to dismiss. */
+(function installEmpireAvatarPreview(){
+  if(document.getElementById("empireAvatarLightbox"))return;
+  const box=document.createElement("div");box.id="empireAvatarLightbox";box.className="empire-avatar-lightbox";box.setAttribute("role","dialog");box.setAttribute("aria-modal","true");box.setAttribute("aria-label","Profile photo preview");
+  box.innerHTML='<button type="button" aria-label="Close photo preview">&times;</button><img alt="Profile photo enlarged">';
+  document.body.appendChild(box);
+  const preview=box.querySelector("img");
+  function close(){box.classList.remove("is-open");preview.removeAttribute("src");}
+  box.addEventListener("click",e=>{if(e.target===box||e.target.tagName==="BUTTON")close();});
+  document.addEventListener("keydown",e=>{if(e.key==="Escape"&&box.classList.contains("is-open"))close();});
+  document.addEventListener("click",e=>{
+    const img=e.target.closest('img.avatar,img.avatar-large,img.avatar-small,img.community-author-avatar,img.post-author-avatar,.community-author img,.post-author img,.chat-head img.avatar');
+    if(!img||!img.src||img.src.startsWith("data:"))return;
+    e.preventDefault();e.stopPropagation();
+    preview.src=img.currentSrc||img.src;box.classList.add("is-open");
+  },true);
+  document.querySelectorAll('img.avatar,img.avatar-large,img.avatar-small,.community-author img,.post-author img,.chat-head img.avatar').forEach(img=>img.classList.add("empire-avatar-zoom"));
+})();
 </script></body></html>
