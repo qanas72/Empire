@@ -1319,7 +1319,7 @@ function showPaymentModal(videoId, session, result){
   const paymentAddress = result.payment_address;  
   const amount = Number(result.amount || 0).toFixed(2);
   const network = String(result.network || "").toUpperCase();
-  const networkLabel = result.network_label || ({TRON:"TRON (TRC20)",BSC:"BNB Smart Chain (BEP20)",TON:"TON"}[network] || network);
+  const networkLabel = ({TRON:"TRON (TRC20)",BSC:"BNB Smart Chain (BEP20)",TON:"TON"}[network] || result.network_label || network);
   const assetLabel = network === "BSC" ? "Binance-Peg BSC-USD" : (network === "TON" ? "USDT (TON Jetton)" : "USDT (TRC20)");
   const tokenContract = result.token_contract || "";  
   
@@ -1347,12 +1347,12 @@ function showPaymentModal(videoId, session, result){
   modal.innerHTML = `  
     <div style="  
       width:100%;  
-      max-width:520px;  
+      max-width:460px;  
       background:#101010;  
       color:#fff;  
       border:1px solid rgba(230,189,88,.45);  
-      border-radius:18px;  
-      padding:22px;  
+      border-radius:16px;  
+      padding:16px;  
       font-family:Arial,sans-serif;  
     ">  
   
@@ -1361,9 +1361,9 @@ function showPaymentModal(videoId, session, result){
         justify-content:space-between;  
         align-items:center;  
         gap:10px;  
-        margin-bottom:20px;  
+        margin-bottom:12px;  
       ">  
-        <h2 style="color:#e6bd58;margin:0">Empire Payment</h2>  
+        <h2 style="color:#e6bd58;margin:0;font-size:20px">Empire Payment</h2>  
         <button id="paymentClose" type="button"  
           style="background:none;border:0;color:#aaa;font-size:28px">  
           ×  
@@ -1372,47 +1372,47 @@ function showPaymentModal(videoId, session, result){
   
       <div style="  
         background:#1a1a1a;  
-        padding:15px;  
-        border-radius:12px;  
-        margin-bottom:16px;  
+        padding:11px;  
+        border-radius:10px;  
+        margin-bottom:10px;  
       ">  
         <div style="font-size:13px;color:#aaa">Amount to pay</div>  
-        <div style="font-size:27px;font-weight:bold;color:#e6bd58;margin:5px 0">  
+        <div style="font-size:22px;font-weight:bold;color:#e6bd58;margin:5px 0">  
           ${amount} ${assetLabel}  
         </div>  
         <div style="font-size:13px;color:#aaa">Network: ${networkLabel}</div>  
       </div>  
   
-      <div style="font-size:12px;color:#aaa;margin:0 0 12px">Asset: ${assetLabel}${tokenContract ? `<br>Token contract: ${tokenContract}` : ""}</div>
-      <label for="paymentAddress" style="font-size:13px;color:#aaa">  
+      <div style="font-size:11px;color:#999;margin:0 0 8px;overflow-wrap:anywhere">${tokenContract ? `Token contract: ${tokenContract}` : ""}</div>
+      <label for="paymentAddress" style="font-size:12px;color:#aaa">  
         Payment address  
       </label>  
   
-      <div style="display:flex;gap:8px;margin:8px 0 15px">  
+      <div style="display:flex;gap:8px;margin:6px 0 10px">  
         <input id="paymentAddress" readonly  
           style="  
             flex:1;min-width:0;background:#1a1a1a;color:#fff;  
-            border:1px solid #333;border-radius:8px;padding:12px;  
+            border:1px solid #333;border-radius:8px;padding:9px;  
           ">  
         <button id="paymentCopy" type="button"  
           style="  
             background:#e6bd58;color:#111;border:0;border-radius:8px;  
-            padding:0 13px;font-weight:bold;  
+            padding:0 11px;font-weight:bold;  
           ">Copy</button>  
       </div>  
   
-      <p style="font-size:12px;color:#aaa;margin-bottom:16px">  
+      <p style="font-size:11px;color:#aaa;margin-bottom:10px">  
         Send exactly ${amount} ${assetLabel} on ${networkLabel}. Make sure the network  
         and amount are correct before sending.  
       </p>  
   
       <div style="  
-        background:#1a1a1a;border-radius:10px;padding:12px;  
-        text-align:center;margin-bottom:16px;  
+        background:#1a1a1a;border-radius:9px;padding:9px;  
+        text-align:center;margin-bottom:10px;  
       ">  
         <div style="font-size:12px;color:#aaa">Payment request expires in</div>  
         <div id="paymentTimer"  
-          style="font-size:22px;color:#e6bd58;font-weight:bold;margin-top:4px">  
+          style="font-size:19px;color:#e6bd58;font-weight:bold;margin-top:4px">  
           30:00  
         </div>  
       </div>  
@@ -1424,19 +1424,19 @@ function showPaymentModal(videoId, session, result){
       <input id="paymentTxid" type="text" autocomplete="off"  
         placeholder="Enter transaction hash / ID"  
         style="  
-          display:block;width:100%;margin:8px 0 13px;padding:13px;  
+          display:block;width:100%;margin:6px 0 10px;padding:10px;  
           background:#1a1a1a;color:#fff;border:1px solid #333;  
           border-radius:9px;box-sizing:border-box;  
         ">  
   
       <button id="paymentVerify" type="button"  
         style="  
-          width:100%;padding:14px;background:#e6bd58;color:#111;  
+          width:100%;padding:11px;background:#e6bd58;color:#111;  
           border:0;border-radius:10px;font-weight:bold;  
         ">Verify Payment</button>  
   
       <p id="paymentMessage"  
-        style="min-height:20px;margin-top:12px;text-align:center;  
+        style="min-height:16px;margin-top:8px;text-align:center;  
         color:#aaa;font-size:13px;overflow-wrap:anywhere"></p>  
   
     </div>  
