@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>EMPIRE | Member Profile</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{--gold:#e8c36b;--bg:#080808;--panel:#151515;--muted:#aaa;--line:#3b321f;--green:#47d18c}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:#080808;color:#f5f5f5;font-family:Arial,sans-serif}body:before{content:"";position:fixed;inset:0;z-index:-1;background:linear-gradient(#000b,#000e),url("profile-background-desktop.png") center/cover no-repeat}
+a{color:inherit;text-decoration:none}.top{position:sticky;top:0;z-index:5;padding:16px 5%;display:flex;justify-content:space-between;align-items:center;background:#090909ed;border-bottom:1px solid var(--line)}.brand{font-size:22px;font-weight:900;letter-spacing:2px;color:var(--gold)}.nav{display:flex;gap:18px;color:#bbb;font-size:14px}
+main{width:min(900px,92%);margin:34px auto 60px}.card{padding:24px;margin-bottom:20px;border:1px solid var(--line);border-radius:18px;background:linear-gradient(145deg,#191919,#101010)}.hero{display:flex;align-items:center;gap:24px}.avatar{width:116px;height:116px;flex:0 0 116px;border-radius:50%;object-fit:cover;background:#292929;border:3px solid var(--gold);box-shadow:0 0 0 7px #d6ad5517}.name{font-size:clamp(23px,4vw,34px);margin:0 0 7px;overflow-wrap:anywhere}.username,.muted{color:var(--muted)}.badge{display:inline-block;margin:9px 7px 0 0;padding:7px 12px;border:1px solid #80642f;border-radius:30px;color:var(--gold);font-size:12px;background:#d6ad5512}.badge.regular{border-color:#555;color:#bbb;background:#fff1}.meta{margin-top:12px;color:#999;font-size:13px}.section-title{font-size:20px;color:var(--gold);margin:0 0 16px}.post,.video{padding:17px 0;border-top:1px solid #302817}.post:first-of-type,.video:first-of-type{border-top:0}.post-date{font-size:12px;color:#999;margin-bottom:8px}.post-text{white-space:pre-wrap;line-height:1.8;overflow-wrap:anywhere}.post img{width:100%;max-height:520px;object-fit:contain;border-radius:10px;margin-top:12px;background:#080808}.video-title{font-weight:700}.video-desc{color:#aaa;font-size:13px;line-height:1.7;margin-top:6px}.empty,.loading{padding:22px;text-align:center;color:#999;border:1px dashed #383838;border-radius:12px;line-height:1.7}.error{color:#ffaaaa}.gold{color:var(--gold)}
+@media(max-width:600px){body:before{background:linear-gradient(#000b,#000e),url("profile-background-mobile.png") center/cover no-repeat}.top{padding:13px 4%;flex-wrap:wrap;gap:10px}.brand{font-size:19px}.nav{width:100%;justify-content:space-between;padding-top:9px;border-top:1px solid #302817;font-size:13px}.card{padding:17px}.hero{flex-direction:column;text-align:center}.avatar{width:104px;height:104px;flex-basis:104px}}
+</style>
+</head>
+<body>
+<header class="top"><a class="brand" href="index.html">♛ EMPIRE</a><nav class="nav"><a href="index.html">Home</a><a href="members.html">Members</a><a href="publishing.html">Publishing</a><a href="profile.html">My Profile</a></nav></header>
+<main>
+<section class="card hero" id="profile"><div class="loading">Loading member profile...</div></section>
+<section class="card"><h2 class="section-title">Publications</h2><div id="posts" class="loading">Loading publications...</div></section>
+<section class="card"><h2 class="section-title">Approved Videos</h2><div id="videos" class="loading">Loading videos...</div></section>
+</main>
+<script>
+const SUPABASE_URL="https://vubjkwbkuwndkjqfnyom.supabase.co";
+const SUPABASE_KEY="sb_publishable_Ig1R3dpAKyBfjIGSUhhlKw_uC-QF0QQ";
+const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+const $=id=>document.getElementById(id);
+function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+function date(v){return v?new Date(v).toLocaleDateString(undefined,{year:"numeric",month:"short",day:"numeric"}):"—";}
+function avatar(url){return url?esc(url):"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'%3E%3Crect width='120' height='120' fill='%23222222'/%3E%3Ctext x='60' y='76' text-anchor='middle' font-size='58' fill='%23e8c36b'%3E%E2%98%BB%3C/text%3E%3C/svg%3E";}
+async function load(){
+ const username=new URLSearchParams(location.search).get("username");
+ if(!username){$("profile").innerHTML='<div class="empty">No member was selected. <a class="gold" href="members.html">Browse members</a>.</div>';return;}
+ const {data:user,error}=await db.from("public_user_profiles").select("id,username,display_name,avatar_url,created_at,membership_type,active_vip_plan").eq("username",username).maybeSingle();
+ if(error)throw error;
+ if(!user){$("profile").innerHTML='<div class="empty">This profile is unavailable or private. <a class="gold" href="members.html">Browse members</a>.</div>';$("posts").textContent="No public profile."; $("videos").textContent="No public profile.";return;}
+ document.title="EMPIRE | "+user.display_name;
+ $("profile").innerHTML='<img class="avatar" src="'+avatar(user.avatar_url)+'" alt="Profile photo"><div><h1 class="name">'+esc(user.display_name)+'</h1><div class="username">@'+esc(user.username)+'</div><span class="badge '+(user.membership_type==="VIP"?"":"regular")+'">'+(user.membership_type==="VIP"?"♛ VIP Member":"Regular Member")+'</span><div class="meta">Member since '+date(user.created_at)+'</div></div>';
+ const [postsResult,videosResult]=await Promise.all([
+  db.from("community_posts").select("id,content,image_path,created_at").eq("author_id",user.id).eq("is_removed",false).order("created_at",{ascending:false}).limit(50),
+  db.from("videos").select("id,title,description,thumbnail_url,created_at").eq("creator_id",user.id).eq("approval_status","approved").order("created_at",{ascending:false}).limit(50)
+ ]);
+ if(postsResult.error)throw postsResult.error;
+ if(videosResult.error)throw videosResult.error;
+ const posts=postsResult.data||[];
+ if(!posts.length)$("posts").innerHTML='<div class="empty">No public publications yet.</div>';
+ else $("posts").innerHTML=posts.map(p=>{let img="";if(p.image_path){const {data:u}=db.storage.from("post-images").getPublicUrl(p.image_path);if(u?.publicUrl)img='<img src="'+esc(u.publicUrl)+'" alt="Publication image" loading="lazy">';}return '<article class="post"><div class="post-date">'+date(p.created_at)+' · <span class="gold">Published</span></div><div class="post-text">'+esc(p.content||"")+'</div>'+img+'</article>';}).join("");
+ const videos=videosResult.data||[];
+ if(!videos.length)$("videos").innerHTML='<div class="empty">No approved videos yet.</div>';
+ else $("videos").innerHTML=videos.map(v=>'<article class="video"><div class="post-date">'+date(v.created_at)+' · <span class="gold">Approved / Published</span></div><div class="video-title">'+esc(v.title||"Untitled video")+'</div><div class="video-desc">'+esc(v.description||"")+'</div></article>').join("");
+}
+load().catch(e=>{console.error(e);$("profile").innerHTML='<div class="empty error">Could not load this profile. Please try again later.</div>';});
+</script>
+</body></html>
