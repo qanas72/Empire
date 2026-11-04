@@ -206,13 +206,16 @@
     }
 
     .avatar-large-wrap {
-      width: 152px;
-      height: 152px;
-      padding: 5px;
+      width: 174px;
+      height: 174px;
+      padding: 6px;
       border-radius: 50%;
-      background: linear-gradient(135deg, #fff0b4, #b78325, #f7df91);
-      box-shadow: 0 0 32px rgba(214, 173, 85, .18);
+      background: linear-gradient(145deg, #fff2bd, #b78325 48%, #f7df91);
+      box-shadow: 0 0 0 8px rgba(214,173,85,.07), 0 14px 38px rgba(0,0,0,.48), 0 0 34px rgba(214,173,85,.2);
+      position: relative;
     }
+    .avatar-large-wrap::after { content:"♛"; position:absolute; right:-7px; bottom:5px; width:38px; height:38px; display:grid; place-items:center; border-radius:50%; color:#17120a; background:linear-gradient(145deg,#fff0b4,#c99b3d); border:3px solid #111; font-size:19px; }
+    .avatar-large { border:3px solid #101010; }
 
     .avatar-large {
       width: 100%;
@@ -674,6 +677,7 @@
     <nav class="nav-links">
       <a href="/Empire/index.html#home">Home</a>
       <a href="/Empire/premium.html">Premium</a>
+      <a href="/Empire/publishing.html">Publishing</a>
       <a href="/Empire/profile.html">Profile</a>
     </nav>
   </header>
@@ -862,6 +866,16 @@
         <h3>Empire Publishing</h3>
         <p>Publish text and images, explore community publications and report content that breaks the rules.</p>
         <span class="coming-soon">OPEN PUBLISHING</span>
+      </a>
+
+      <a class="feature-card" href="/Empire/premium.html">
+        <div class="feature-icon">♛</div><h3>Premium Membership</h3>
+        <p>Explore membership plans and premium benefits.</p><span class="coming-soon">EXPLORE PREMIUM</span>
+      </a>
+
+      <a class="feature-card" id="vipCreatorCard" href="/Empire/vip.html" style="display:none">
+        <div class="feature-icon">🎬</div><h3>VIP Video Publishing</h3>
+        <p>Upload videos and follow their review status.</p><span class="coming-soon">VIP CREATOR STUDIO</span>
       </a>
 
 
@@ -1463,6 +1477,7 @@
           formatDate(membership.expires_at);
 
         if (isActive) {
+          $("vipCreatorCard").style.display = "block";
           $("vipBadge").textContent = "♛ VIP Active";
           $("vipBadge").className = "badge";
           $("accountType").textContent = "VIP Member";
@@ -1471,6 +1486,7 @@
             `Your ${planName} membership is active. ` +
             `It expires on ${formatDate(membership.expires_at)}.`;
         } else if (status === "pending") {
+          $("vipCreatorCard").style.display = "none";
           $("vipBadge").textContent = "♛ VIP Pending";
           $("vipBadge").className = "badge gray";
           $("accountType").textContent = "Regular Member";
@@ -1479,6 +1495,7 @@
             "Your VIP membership is pending approval. VIP privileges " +
             "will be available when the membership is activated.";
         } else {
+          $("vipCreatorCard").style.display = "none";
           $("vipBadge").textContent = "♛ VIP Inactive";
           $("vipBadge").className = "badge gray";
           $("accountType").textContent = "Regular Member";
@@ -1488,6 +1505,7 @@
             : `Your membership status is ${status || "inactive"}.`;
         }
       } catch (error) {
+        $("vipCreatorCard").style.display = "none";
         console.error("Membership load error:", error);
 
         $("vipBadge").textContent = "♛ VIP Status";
