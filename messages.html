@@ -42,6 +42,17 @@ main{width:min(1180px,94%);margin:28px auto 55px}.heading{margin-bottom:20px}.he
 .empire-avatar-lightbox button{position:absolute;top:18px;right:18px;width:42px;height:42px;border:1px solid #d6ad55;border-radius:50%;background:#17130c;color:#f5d98d;font-size:28px;line-height:1;cursor:pointer}
 @keyframes empireAvatarPop{from{transform:scale(.88);opacity:.4}to{transform:scale(1);opacity:1}}
 @media(prefers-reduced-motion:reduce){.empire-avatar-lightbox img{animation:none}}
+
+/* EMPIRE unified transparent cards — gold outline only */
+:is(.card,.panel,.box,.vip-card,.feature-box,.feature-card,.stat-card,.profile-about,.date-box,.list-item,.video-row,.video-info,.access-box,.form-section,.status-box,.video-item,.post){
+  background:transparent!important;
+  background-image:none!important;
+  border:1px solid rgba(245,217,139,.82)!important;
+  box-shadow:none!important;
+  backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;
+}
+
 </style>
 </head>
 <body>
