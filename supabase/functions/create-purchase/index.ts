@@ -17,7 +17,7 @@ const NETWORKS = {
     payment_address: "0xe8D7B16C603Ea5c2B7EEe87e567192Bf651c1DEA",
     token_contract: "0x55d398326f99059fF775485246999027B3197955",
     token_decimals: 18,
-    label: "BNB Smart Chain (BEP20)",
+    label: "Binance-Peg BSC-USD (BEP20)",
   },
   TON: {
     payment_address: "UQBGbzaKDO0j_gddN5qguj15BrI6L9_VGcnUT0xP6rGXK7KT",
@@ -149,7 +149,7 @@ Deno.serve(async (req) => {
         user_id: userId,
         video_id: videoId,
         amount,
-        currency: "USDT",
+        currency: network === "BSC" ? "BSC-USD" : "USDT",
         network,
         provider: "direct_usdt",
         status: "pending",
