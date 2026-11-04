@@ -1194,24 +1194,23 @@
 
     async function getSignedAvatar(path) {
       if (!path) return null;
+      if (/^https?:\/\//i.test(path)) return path;
 
-      if (/^https?:\/\//i.test(path)) {
-        return path;
-      }
-
-      // Accept both a storage object path and the older "avatars/<path>" format.
+      // The avatars bucket is also used as a public bucket by the feed and
+      // messaging pages. Use the same public URL strategy here.
       const objectPath = String(path).replace(/^avatars\//i, "");
-      const { data, error } = await supabaseClient
-        .storage
-        .from("avatars")
-        .createSignedUrl(objectPath, 3600);
+      const { data } = supabaseClient.storage.from("avatars").getPublicUrl(objectPath);
+      return data?.publicUrl || null;
+    }
 
-      if (error) {
-        console.warn("Could not sign avatar URL:", error.message);
-        return null;
-      }
-
-      return data?.signedUrl || null;
+    function withProfileTimeout(promise, label, milliseconds = 12000) {
+      let timer;
+      return Promise.race([
+        promise,
+        new Promise((_, reject) => {
+          timer = setTimeout(() => reject(new Error(label + " timed out")), milliseconds);
+        })
+      ]).finally(() => clearTimeout(timer));
     }
 
     async function loadAvatar(profile) {
@@ -1596,12 +1595,15 @@
       const description = $("vipDescription");
 
       try {
-        const { data, error } = await supabaseClient
-          .from("vip_memberships")
-          .select("plan, starts_at, expires_at, status, created_at")
-          .eq("user_id", currentUser.id)
-          .order("created_at", { ascending: false })
-          .limit(1);
+        const { data, error } = await withProfileTimeout(
+          supabaseClient
+            .from("vip_memberships")
+            .select("plan, starts_at, expires_at, status, created_at")
+            .eq("user_id", currentUser.id)
+            .order("created_at", { ascending: false })
+            .limit(1),
+          "VIP membership check"
+        );
 
         if (error) throw error;
 
@@ -1674,12 +1676,13 @@
         $("vipCreatorCard").style.display = "none";
         console.error("Membership load error:", error);
 
-        $("vipBadge").textContent = "♛ VIP Status";
+        $("vipBadge").textContent = "♛ VIP status unavailable";
         $("vipBadge").className = "badge gray";
-        $("vipPlanLabel").textContent = "Unavailable";
+        $("accountType").textContent = "Status unavailable";
+        $("vipPlanLabel").textContent = "Could not check status";
 
         description.textContent =
-          "Membership information could not be loaded.";
+          "VIP status could not be checked. Please refresh the page or try again later.";
       }
     }
 
