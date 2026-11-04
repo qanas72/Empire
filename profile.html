@@ -759,6 +759,31 @@
 }
 @media(max-width:600px){.brand-mark{font-size:27px}.brand-name{letter-spacing:.7px}}
 
+
+/* Minimal transparent profile cards: gold outline only */
+.card,.profile-about,.stat-card,.feature-card,.date-box,.list-item{
+  background:transparent!important;
+  background-image:none!important;
+  border:1px solid rgba(245,217,139,.78)!important;
+  box-shadow:none!important;
+  backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;
+}
+.profile-social-tabs{
+  display:flex;flex-wrap:wrap;justify-content:center;gap:10px;
+  margin:2px 0 24px;
+}
+.profile-social-tabs span{
+  display:inline-flex;align-items:center;justify-content:center;
+  padding:9px 17px;min-height:40px;border:1px solid rgba(245,217,139,.9);
+  border-radius:999px;background:transparent;color:#f5d98b;
+  font-size:13px;font-weight:700;text-shadow:0 1px 8px rgba(0,0,0,.85);
+}
+@media(max-width:600px){
+ .profile-social-tabs{gap:8px;margin-bottom:19px}
+ .profile-social-tabs span{padding:8px 12px;min-height:37px;font-size:12px}
+}
+
 /* EMPIRE avatar image preview */
 .empire-avatar-zoom{cursor:zoom-in!important}
 .empire-avatar-lightbox{position:fixed;inset:0;z-index:99999;display:none;align-items:center;justify-content:center;padding:22px;background:rgba(0,0,0,.88);backdrop-filter:blur(5px)}
@@ -831,6 +856,13 @@
         </div>
       </aside>
     </section>
+
+    <nav class="profile-social-tabs" aria-label="Profile sections">
+      <span>👥 Followers</span>
+      <span>🤝 Friends</span>
+      <span>❤️ Likes</span>
+      <span>👤 About Me</span>
+    </nav>
 
     <!-- Compact display-name editor -->
     <section class="card profile-edit-card">
