@@ -1185,8 +1185,11 @@
         return;
       }
 
-      large.removeAttribute("src");
-      small.removeAttribute("src");
+      if (large) {
+        large.removeAttribute("src");
+        large.alt = "Profile photo";
+      }
+      if (small) small.removeAttribute("src");
     }
 
     async function getSignedAvatar(path) {
@@ -1196,10 +1199,12 @@
         return path;
       }
 
+      // Accept both a storage object path and the older "avatars/<path>" format.
+      const objectPath = String(path).replace(/^avatars\//i, "");
       const { data, error } = await supabaseClient
         .storage
         .from("avatars")
-        .createSignedUrl(path, 3600);
+        .createSignedUrl(objectPath, 3600);
 
       if (error) {
         console.warn("Could not sign avatar URL:", error.message);
@@ -1785,6 +1790,10 @@
     }
 
     async function logout() {
+      // Ask before signing out; cancelling leaves the current session untouched.
+      const confirmed = window.confirm("Are you sure you want to log out?");
+      if (!confirmed) return;
+
       const button = $("logoutButton");
 
       button.disabled = true;
