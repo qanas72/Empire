@@ -84,16 +84,39 @@
     }
 
     .nav-links {
-      display: flex;
+      display: grid;
+      grid-template-columns: repeat(3, auto);
       align-items: center;
-      gap: 18px;
-      font-size: 14px;
+      justify-content: end;
+      gap: 8px 10px;
+      font-size: 13px;
       color: var(--muted);
     }
 
-    .nav-links a:hover {
-      color: var(--gold-light);
+    .nav-links a, .nav-links button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      min-height: 36px;
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      background: rgba(255,255,255,.035);
+      color: inherit;
+      white-space: nowrap;
+      cursor: pointer;
+      font: inherit;
     }
+
+    .nav-links a:hover, .nav-links button:hover {
+      color: var(--gold-light);
+      border-color: var(--gold);
+      background: rgba(214,173,85,.09);
+    }
+
+    .nav-links .nav-secondary { grid-column: 1 / -1; display:flex; justify-content:flex-end; gap:10px; }
+    .nav-links .nav-logout { color:#ffb7b7; border-color:rgba(255,100,100,.3); }
 
     .page {
       width: min(1120px, 92%);
@@ -700,12 +723,14 @@
   <header class="topbar">
     <a class="brand" href="/Empire/index.html#home" aria-label="Empire Home"><span class="brand-mark" aria-hidden="true">👑</span><span class="brand-name">𝑬𝒎𝒑𝒊𝒓𝒆</span></a>
 
-    <nav class="nav-links">
-      <a href="/Empire/index.html#home">Home</a>
-      <a href="/Empire/premium.html">Premium</a>
-      <a href="/Empire/publishing.html">Publishing</a>
-      <a href="/Empire/messages.html">Messages</a>
-      <a href="/Empire/profile.html">Profile</a>
+    <nav class="nav-links" aria-label="Main navigation">
+      <a href="/Empire/index.html#home">🏡 Home</a>
+      <a href="/Empire/publishing.html">📝 Publishing</a>
+      <a href="/Empire/premium.html">👑 Premium</a>
+      <div class="nav-secondary">
+        <a href="/Empire/messages.html">💬 Messaging</a>
+        <button type="button" class="nav-logout" onclick="document.getElementById('logoutButton').click()">🚪 Logout</button>
+      </div>
     </nav>
   </header>
 
