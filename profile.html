@@ -1279,6 +1279,14 @@
 
       currentUser = authData.user;
 
+      // Use the Auth account creation timestamp immediately as a reliable fallback.
+      $("memberSince").textContent = formatDate(currentUser.created_at);
+
+      // Load the wallet independently so profile/avatar requests cannot leave it stuck.
+      loadEmpireWallet().catch((error) => {
+        console.error("EmpireCoin wallet startup error:", error);
+      });
+
       const { data, error } = await supabaseClient
         .from("profiles")
         .select("*")
@@ -1317,14 +1325,14 @@
       $("accountStatus").className =
         data.is_active === false ? "badge gray" : "badge green";
 
-      $("memberSince").textContent = formatDate(data.created_at);
+      // Prefer the profile timestamp, falling back to the Auth account timestamp.
+      $("memberSince").textContent = formatDate(data.created_at || currentUser.created_at);
 
-      await loadAvatar(data);
-
-      await Promise.all([
+      // These sections load independently; a slow avatar must not block account data.
+      loadAvatar(data).catch((error) => console.warn("Avatar loading error:", error));
+      await Promise.allSettled([
         loadMembership(),
-        loadPurchases(),
-        loadEmpireWallet()
+        loadPurchases()
       ]);
     }
 
