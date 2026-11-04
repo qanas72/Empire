@@ -14,7 +14,7 @@ main{width:min(850px,92%);margin:32px auto 60px}.intro{margin-bottom:24px}.intro
 label{display:block;margin:12px 0 7px;color:#ddd;font-size:13px}textarea,input{width:100%;padding:13px;background:#090909;color:#fff;border:1px solid #383838;border-radius:9px;font:inherit}textarea{min-height:115px;resize:vertical}
 button,.button{border:0;border-radius:9px;padding:11px 16px;background:linear-gradient(135deg,#f2d58a,#bc8c32);color:#17120a;font-weight:800;cursor:pointer;display:inline-block}
 button:disabled{opacity:.5;cursor:not-allowed}.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:14px}.notice{padding:12px;border-radius:9px;margin-bottom:14px;display:none;line-height:1.6}.notice.show{display:block}.error{background:#321616;color:#ffbaba}.success{background:#12301f;color:#b6f3ca}
-.post-head{display:flex;justify-content:space-between;align-items:center;gap:10px;color:var(--muted);font-size:12px;margin-bottom:12px}.post-author{display:flex;align-items:center;gap:9px;min-width:0}.post-author a{display:flex;align-items:center;gap:9px;min-width:0}.post-author img{width:38px;height:38px;flex:0 0 38px;border-radius:50%;object-fit:cover;border:2px solid var(--gold);background:#222}.post-author-name{font-weight:800;color:var(--gold);overflow-wrap:anywhere}.post-admin{display:flex;align-items:center;gap:8px;color:var(--gold);font-weight:800}.post-admin-mark{width:38px;height:38px;display:grid;place-items:center;border:1px solid #80642f;border-radius:50%;background:#211a0d}.post-body{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.8}.post img{width:100%;max-height:520px;object-fit:contain;background:#080808;border-radius:10px;margin-top:12px}.post-actions{display:flex;justify-content:flex-end;margin-top:12px}.report-btn{background:#282020;color:#ffbaba;border:1px solid #633333;padding:8px 12px;font-size:12px}.vip{border-color:#8a6b2e;background:linear-gradient(145deg,#211a0d,#111)}.hidden{display:none!important}
+.post-head{display:flex;justify-content:space-between;align-items:center;gap:10px;color:var(--muted);font-size:12px;margin-bottom:12px}.post-author{display:flex;align-items:center;gap:9px;min-width:0}.post-author a,.post-author-fallback{display:flex;align-items:center;gap:9px;min-width:0}.post-author img{width:42px;height:42px;flex:0 0 42px;border-radius:50%;object-fit:cover;border:2px solid var(--gold);background:#222;box-shadow:0 0 0 3px #e8c36b18}.post-author-name{font-weight:800;color:var(--gold);overflow-wrap:anywhere}.post-admin{display:flex;align-items:center;gap:8px;color:var(--gold);font-weight:800}.post-admin-mark{width:38px;height:38px;display:grid;place-items:center;border:1px solid #80642f;border-radius:50%;background:#211a0d}.post-body{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.8}.post img{width:100%;max-height:520px;object-fit:contain;background:#080808;border-radius:10px;margin-top:12px}.post-actions{display:flex;justify-content:flex-end;margin-top:12px}.report-btn{background:#282020;color:#ffbaba;border:1px solid #633333;padding:8px 12px;font-size:12px}.vip{border-color:#8a6b2e;background:linear-gradient(145deg,#211a0d,#111)}.hidden{display:none!important}
 @media(max-width:560px){.top{padding:13px 4%;align-items:flex-start}.nav{gap:10px;font-size:12px;flex-wrap:wrap;justify-content:flex-end}.intro h1{font-size:27px}.card,.post{padding:15px}}
 
 .report-modal{position:fixed;inset:0;z-index:1000;display:none;align-items:center;justify-content:center;padding:18px;background:#000b;backdrop-filter:blur(5px)}.report-modal.open{display:flex}.report-dialog{width:min(100%,460px);padding:24px;border:1px solid #8a6b2e;border-radius:18px;background:linear-gradient(145deg,#211a0d,#101010);box-shadow:0 22px 70px #000b}.report-dialog h2{margin:0 0 8px;color:var(--gold)}.report-dialog p{color:var(--muted);font-size:13px;line-height:1.6}.report-dialog textarea{min-height:110px}.report-dialog .row{justify-content:flex-end}.secondary-btn{background:#292929;color:#eee;border:1px solid #555}.report-dialog button{min-width:104px}
@@ -69,20 +69,27 @@ async function loadFeed(){
  if(error){$("feed").textContent="Could not load publications. Please run publishing-setup.sql in Supabase first.";return;}
  if(!data.length){$("feed").textContent="No publications yet. Be the first to publish.";return;}
  const authorIds=[...new Set(data.map(p=>p.author_id).filter(Boolean))];
- const {data:authors,error:authorsError}=authorIds.length?await db.from("public_user_profiles").select("id,username,display_name,avatar_url").in("id",authorIds):{data:[],error:null};
- if(authorsError)throw authorsError;
- const authorMap=new Map((authors||[]).map(a=>[a.id,a]));
- const fallbackAvatar="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 80'%3E%3Crect width='80' height='80' fill='%23222222'/%3E%3Ctext x='40' y='52' text-anchor='middle' font-size='38' fill='%23e8c36b'%3E%E2%98%BB%3C/text%3E%3C/svg%3E";
- const cards=await Promise.all(data.map(async p=>{
-  let image="";
-  if(p.image_path){const {data:u}=db.storage.from("post-images").getPublicUrl(p.image_path);image=u?.publicUrl?'<img src="'+escapeHTML(u.publicUrl)+'" alt="Publication image" loading="lazy">':"";}
-  const author=authorMap.get(p.author_id);
-  const avatarUrl=author?.avatar_url?db.storage.from("avatars").getPublicUrl(author.avatar_url).data?.publicUrl:null;
-  const ownProfile=!!user&&user.id===p.author_id;
-  const authorHtml=author?'<a href="'+(ownProfile?"profile.html":"user-profile.html?username="+encodeURIComponent(author.username))+'"><img src="'+escapeHTML(avatarUrl||fallbackAvatar)+'" alt=""><span class="post-author-name">'+escapeHTML(author.display_name||author.username)+'</span></a>':'<div class="post-admin"><span class="post-admin-mark">♛</span><span>EMPIRE Administration</span></div>';
-  return '<article class="post"><div class="post-head"><div class="post-author">'+authorHtml+'</div><span>'+new Date(p.created_at).toLocaleString()+'</span></div><div class="post-body">'+escapeHTML(p.content||"")+'</div>'+image+'<div class="post-actions"><button class="report-btn" data-report="'+p.id+'">Report publication</button></div></article>';
- }));
- $("feed").innerHTML=cards.join("");
+  const {data:authors,error:authorsError}=authorIds.length?await db.from("public_user_profiles").select("id,username,display_name,avatar_url").in("id",authorIds):{data:[],error:null};
+  if(authorsError)console.warn("Could not load public author profiles:",authorsError.message);
+  const authorMap=new Map((authors||[]).map(a=>[a.id,a]));
+  const adminIds=new Set(["8166f8a9-fdc3-43a4-85c7-53ec1dbbde0e","7c5f5c13-b106-4c7c-9bd5-9339576bfe7a"]);
+  const fallbackAvatar="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 80'%3E%3Crect width='80' height='80' fill='%23222222'/%3E%3Ctext x='40' y='52' text-anchor='middle' font-size='38' fill='%23e8c36b'%3E%E2%98%BB%3C/text%3E%3C/svg%3E";
+  const cards=await Promise.all(data.map(async p=>{
+   let image="";
+   if(p.image_path){const {data:u}=db.storage.from("post-images").getPublicUrl(p.image_path);image=u?.publicUrl?'<img src="'+escapeHTML(u.publicUrl)+'" alt="Publication image" loading="lazy">':"";}
+   const author=authorMap.get(p.author_id);
+   const ownProfile=!!user&&user.id===p.author_id;
+   let authorHtml="";
+   if(adminIds.has(p.author_id)) authorHtml='<div class="post-admin"><span class="post-admin-mark">♛</span><span>EMPIRE Administration</span></div>';
+   else {
+    const displayName=author?.display_name||author?.username||p.author_name||"Empire Member";
+    const avatarUrl=author?.avatar_url?db.storage.from("avatars").getPublicUrl(author.avatar_url).data?.publicUrl:null;
+    const content='<img src="'+escapeHTML(avatarUrl||fallbackAvatar)+'" alt="Profile photo" loading="lazy" onerror="this.onerror=null;this.src=\''+fallbackAvatar+'\'"><span class="post-author-name">'+escapeHTML(displayName)+'</span>';
+    authorHtml=author?.username?'<a href="'+(ownProfile?"profile.html":"user-profile.html?username="+encodeURIComponent(author.username))+'">'+content+'</a>':'<div class="post-author-fallback">'+content+'</div>';
+   }
+   return '<article class="post"><div class="post-head"><div class="post-author">'+authorHtml+'</div><span>'+new Date(p.created_at).toLocaleString()+'</span></div><div class="post-body">'+escapeHTML(p.content||"")+'</div>'+image+'<div class="post-actions"><button class="report-btn" data-report="'+p.id+'">Report publication</button></div></article>';
+  }));
+  $("feed").innerHTML=cards.join("");
  $("feed").querySelectorAll("[data-report]").forEach(b=>b.addEventListener("click",()=>reportPost(b.dataset.report)));
 }
 let selectedReportPost=null;
