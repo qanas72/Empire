@@ -13,7 +13,7 @@ main{width:min(900px,92%);margin:34px auto 60px}.card{padding:24px;margin-bottom
 </style>
 </head>
 <body>
-<header class="top"><a class="brand" href="index.html">♛ EMPIRE</a><nav class="nav"><a href="index.html">Home</a><a href="members.html">Members</a><a href="publishing.html">Publishing</a><a href="profile.html">My Profile</a></nav></header>
+<header class="top"><a class="brand" href="index.html">♛ EMPIRE</a><nav class="nav"><a href="index.html">Home</a><a href="members.html">Members</a><a href="publishing.html">Publishing</a><a href="messages.html">Messages</a><a href="profile.html">My Profile</a></nav></header>
 <main>
 <section class="card hero" id="profile"><div class="loading">Loading member profile...</div></section>
 <section class="card"><h2 class="section-title">Publications</h2><div id="posts" class="loading">Loading publications...</div></section>
@@ -40,7 +40,7 @@ async function load(){
  if(currentUserId&&currentUserId===user.id){location.replace("profile.html");return;}
  document.title="EMPIRE | "+user.display_name;
  async function refreshMemberPresence(){const {data:p,error:presenceError}=await db.from("user_presence").select("last_seen").eq("user_id",user.id).maybeSingle();if(presenceError){$("memberPresence").textContent="Status unavailable";return;}const online=!!p&&new Date(p.last_seen).getTime()>Date.now()-120000;$("memberPresence").innerHTML='<i class="presence-dot '+(online?"online":"")+'"></i>'+(online?"Online":"Offline");}
- $("profile").innerHTML='<img class="avatar" src="'+avatar(user.avatar_url?db.storage.from("avatars").getPublicUrl(user.avatar_url).data?.publicUrl:null)+'" alt="Profile photo"><div><h1 class="name">'+esc(user.display_name)+'</h1><div class="username">@'+esc(user.username)+'</div><span class="badge '+(user.membership_type==="VIP"?"":"regular")+'">'+(user.membership_type==="VIP"?"♛ VIP Member":"Regular Member")+'</span><div class="meta">Member since '+date(user.created_at)+'</div><div id="memberPresence" class="presence"><i class="presence-dot"></i>Checking status...</div></div>';
+ $("profile").innerHTML='<img class="avatar" src="'+avatar(user.avatar_url?db.storage.from("avatars").getPublicUrl(user.avatar_url).data?.publicUrl:null)+'" alt="Profile photo"><div><h1 class="name">'+esc(user.display_name)+'</h1><div class="username">@'+esc(user.username)+'</div><span class="badge '+(user.membership_type==="VIP"?"":"regular")+'">'+(user.membership_type==="VIP"?"♛ VIP Member":"Regular Member")+'</span><div class="meta">Member since '+date(user.created_at)+'</div><div style="margin-top:15px"><a class="badge" style="display:inline-block" href="messages.html?user_id='+encodeURIComponent(user.id)+'">✉ Send Message</a></div><div id="memberPresence" class="presence"><i class="presence-dot"></i>Checking status...</div></div>';
  await refreshMemberPresence();setInterval(refreshMemberPresence,60000);
  const [postsResult,videosResult]=await Promise.all([
   db.from("community_posts").select("id,content,image_path,created_at").eq("author_id",user.id).eq("is_removed",false).order("created_at",{ascending:false}).limit(50),
