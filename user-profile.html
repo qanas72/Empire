@@ -10,10 +10,27 @@
 a{color:inherit;text-decoration:none}.top{position:sticky;top:0;z-index:5;padding:16px 5%;display:flex;justify-content:space-between;align-items:center;background:#090909ed;border-bottom:1px solid var(--line)}.brand{font-size:22px;font-weight:900;letter-spacing:2px;color:var(--gold)}.nav{display:flex;gap:18px;color:#bbb;font-size:14px}
 main{width:min(900px,92%);margin:34px auto 60px}.card{padding:24px;margin-bottom:20px;border:1px solid var(--line);border-radius:18px;background:linear-gradient(145deg,#191919,#101010)}.hero{display:flex;align-items:center;gap:24px}.avatar{width:116px;height:116px;flex:0 0 116px;border-radius:50%;object-fit:cover;background:#292929;border:3px solid var(--gold);box-shadow:0 0 0 7px #d6ad5517}.name{font-size:clamp(23px,4vw,34px);margin:0 0 7px;overflow-wrap:anywhere}.username,.muted{color:var(--muted)}.badge{display:inline-block;margin:9px 7px 0 0;padding:7px 12px;border:1px solid #80642f;border-radius:30px;color:var(--gold);font-size:12px;background:#d6ad5512}.badge.regular{border-color:#555;color:#bbb;background:#fff1}.meta{margin-top:12px;color:#999;font-size:13px}.section-title{font-size:20px;color:var(--gold);margin:0 0 16px}.post,.video{padding:17px 0;border-top:1px solid #302817}.post:first-of-type,.video:first-of-type{border-top:0}.post-date{font-size:12px;color:#999;margin-bottom:8px}.post-text{white-space:pre-wrap;line-height:1.8;overflow-wrap:anywhere}.post img{width:100%;max-height:520px;object-fit:contain;border-radius:10px;margin-top:12px;background:#080808}.video-title{font-weight:700}.video-desc{color:#aaa;font-size:13px;line-height:1.7;margin-top:6px}.empty,.loading{padding:22px;text-align:center;color:#999;border:1px dashed #383838;border-radius:12px;line-height:1.7}.error{color:#ffaaaa}.gold{color:var(--gold)}.presence{display:inline-flex;align-items:center;gap:7px;margin-top:12px;color:#aaa;font-size:13px}.presence-dot{width:9px;height:9px;border-radius:50%;background:#777;display:inline-block}.presence-dot.online{background:#35d486;box-shadow:0 0 8px #35d48688}
 @media(max-width:600px){body:before{background:linear-gradient(#000b,#000e),url("profile-background-mobile.png") center/cover no-repeat}.top{padding:13px 4%;flex-wrap:wrap;gap:10px}.brand{font-size:19px}.nav{width:100%;justify-content:space-between;padding-top:9px;border-top:1px solid #302817;font-size:13px}.card{padding:17px}.hero{flex-direction:column;text-align:center}.avatar{width:104px;height:104px;flex-basis:104px}}
+
+/* Shared Empire crown and wordmark — match the public homepage */
+.brand-mark{
+ display:inline-block;font-size:30px;margin-right:8px;
+ filter:drop-shadow(0 0 4px #ffd700) drop-shadow(0 0 9px rgba(255,40,160,.8)) drop-shadow(0 0 14px rgba(80,180,255,.65));
+ transform:perspective(300px) rotateY(-12deg);
+ animation:crownGlow 3s ease-in-out infinite alternate;
+}
+.brand-name{
+ color:#ffe39a;font-weight:900;letter-spacing:1px;
+ text-shadow:0 0 5px rgba(255,215,0,.8),0 0 12px rgba(255,70,170,.35);
+}
+@keyframes crownGlow{
+ from{filter:drop-shadow(0 0 4px #ffd700) drop-shadow(0 0 7px rgba(255,40,160,.5));transform:perspective(300px) rotateY(-12deg) translateY(0)}
+ to{filter:drop-shadow(0 0 8px #ffd700) drop-shadow(0 0 13px rgba(255,40,160,.9)) drop-shadow(0 0 17px rgba(80,180,255,.7));transform:perspective(300px) rotateY(12deg) translateY(-2px)}
+}
+@media(max-width:600px){.brand-mark{font-size:27px}.brand-name{letter-spacing:.7px}}
 </style>
 </head>
 <body>
-<header class="top"><a class="brand" href="index.html">♛ EMPIRE</a><nav class="nav"><a href="index.html">Home</a><a href="members.html">Members</a><a href="publishing.html">Publishing</a><a href="messages.html">Messages</a><a href="profile.html">My Profile</a></nav></header>
+<header class="top"><a class="brand" href="index.html" aria-label="Empire Home"><span class="brand-mark" aria-hidden="true">👑</span><span class="brand-name">𝑬𝒎𝒑𝒊𝒓𝒆</span></a><nav class="nav"><a href="index.html">Home</a><a href="members.html">Members</a><a href="publishing.html">Publishing</a><a href="messages.html">Messages</a><a href="profile.html">My Profile</a></nav></header>
 <main>
 <section class="card hero" id="profile"><div class="loading">Loading member profile...</div></section>
 <section class="card"><h2 class="section-title">Publications</h2><div id="posts" class="loading">Loading publications...</div></section>
