@@ -822,6 +822,59 @@
     .warning-notification-count{display:inline-flex;align-items:center;justify-content:center;min-width:19px;height:19px;padding:0 5px;border-radius:99px;background:#b32626;color:#fff;font-size:11px;font-weight:900}
     .warning-notification-count[hidden]{display:none!important}
 
+
+    /* Compact, transparent profile navigation */
+    .topbar{
+      position:relative!important;
+      top:auto!important;
+      z-index:20;
+      min-height:0!important;
+      padding:5px 0!important;
+      margin:0 auto!important;
+      background:transparent!important;
+      background-color:transparent!important;
+      border:0!important;
+      border-bottom:0!important;
+      box-shadow:none!important;
+      backdrop-filter:none!important;
+      -webkit-backdrop-filter:none!important;
+    }
+    .nav-links{
+      display:flex!important;
+      flex-wrap:wrap!important;
+      align-items:center!important;
+      justify-content:center!important;
+      gap:2px 5px!important;
+      padding:0!important;
+      margin:0!important;
+      background:transparent!important;
+      border:0!important;
+      box-shadow:none!important;
+    }
+    .nav-links a,.nav-links button{
+      min-height:28px!important;
+      padding:3px 6px!important;
+      font-size:12px!important;
+      line-height:1.2!important;
+      background:transparent!important;
+      border:0!important;
+      border-radius:0!important;
+      box-shadow:none!important;
+    }
+    .nav-links a:hover,.nav-links button:hover{
+      background:transparent!important;
+      text-decoration:underline;
+    }
+    .nav-links .nav-secondary{display:contents!important}
+    .page{margin-top:10px!important}
+    @media(max-width:640px){
+      .topbar{padding:2px 0!important}
+      .brand{display:none!important}
+      .nav-links{gap:0 3px!important}
+      .nav-links a,.nav-links button{min-height:25px!important;padding:2px 4px!important;font-size:11px!important}
+      .page{margin-top:7px!important}
+    }
+
 </style>
 </head>
 
