@@ -707,9 +707,9 @@ footer{
     <h2>🏦 EMPIRE Treasury Wallet</h2>
     <p style="color:#888;font-size:13px;margin:-8px 0 18px">Live internal ledger overview. USD figures are estimates calculated from the current EMPC reference price.</p>
     <div class="form-grid">
-      <div class="field"><label>🏦 Treasury wallet balance</label><div id="treasuryBalance" style="font-size:25px;font-weight:900;color:#f1c75a">Loading...</div></div>
-      <div class="field"><label>👥 EMPC held in member wallets</label><div id="memberWalletTotal" style="font-size:25px;font-weight:900">Loading...</div></div>
-      <div class="field"><label>🪙 Total internal EMPC supply (all wallets)</label><div id="totalEmpcSupply" style="font-size:25px;font-weight:900">Loading...</div></div>
+      <div class="field"><label>🏦 Treasury wallet balance</label><div id="treasuryBalance" style="font-size:25px;font-weight:900;color:#f1c75a">Loading...</div><div id="treasuryUsdValue" style="font-size:16px;font-weight:800;color:#f1c75a;margin-top:5px">Loading USD value...</div></div>
+      <div class="field"><label>👥 EMPC held in member wallets</label><div id="memberWalletTotal" style="font-size:25px;font-weight:900">Loading...</div><div id="memberWalletUsdValue" style="font-size:16px;font-weight:800;color:#f1c75a;margin-top:5px">Loading USD value...</div></div>
+      <div class="field"><label>🪙 Total internal EMPC supply (all wallets)</label><div id="totalEmpcSupply" style="font-size:25px;font-weight:900">Loading...</div><div id="totalEmpcSupplyUsdValue" style="font-size:16px;font-weight:800;color:#f1c75a;margin-top:5px">Loading USD value...</div></div>
       <div class="field"><label>💵 Estimated total value (USD)</label><div id="totalEmpcUsd" style="font-size:25px;font-weight:900;color:#f1c75a">Loading...</div></div>
       <div class="field full"><label>Current EMPC reference price</label><div id="treasuryEmpcPrice" style="font-size:16px">Loading...</div></div>
     </div>
@@ -1221,13 +1221,16 @@ async function loadTreasuryWallet(){
     document.getElementById("treasuryBalance").textContent=fmt(treasury)+" EMPC";
     document.getElementById("memberWalletTotal").textContent=fmt(members)+" EMPC";
     document.getElementById("totalEmpcSupply").textContent=fmt(total)+" EMPC";
+    document.getElementById("treasuryUsdValue").textContent=price>0?"≈ $"+fmt(treasury*price)+" USD":"USD value unavailable";
+    document.getElementById("memberWalletUsdValue").textContent=price>0?"≈ $"+fmt(members*price)+" USD":"USD value unavailable";
+    document.getElementById("totalEmpcSupplyUsdValue").textContent=price>0?"≈ $"+fmt(total*price)+" USD":"USD value unavailable";
     document.getElementById("totalEmpcUsd").textContent=price>0?"$"+fmt(total*price):"Price unavailable";
     document.getElementById("treasuryEmpcPrice").textContent=price>0?"1 EMPC = $"+price.toFixed(8)+" USD":"Reference price not set";
     if(status){status.textContent="Treasury wallet data updated.";status.className="status show success";}
   }catch(error){
     console.error("TREASURY WALLET LOAD ERROR:",error);
     if(status){status.textContent="Could not load treasury wallet: "+(error.message||"Unknown error");status.className="status show error";}
-    ["treasuryBalance","memberWalletTotal","totalEmpcSupply","totalEmpcUsd","treasuryEmpcPrice"].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent="Unavailable";});
+    ["treasuryBalance","memberWalletTotal","totalEmpcSupply","treasuryUsdValue","memberWalletUsdValue","totalEmpcSupplyUsdValue","totalEmpcUsd","treasuryEmpcPrice"].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent="Unavailable";});
   }finally{if(button)button.disabled=false;}
 }
 
