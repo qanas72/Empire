@@ -621,6 +621,27 @@ footer{
   </div>
 
 
+
+  <!-- ECONOMIC SETTINGS -->
+  <section class="panel" id="economicSettingsPanel">
+    <h2>⚙️ EMPIRE Economic Settings</h2>
+    <p style="color:#888;font-size:13px;margin:-8px 0 18px">Update EMPC price and platform fees. Changes are recorded in the admin audit log.</p>
+    <div class="form-grid">
+      <div class="field"><label for="setting_empc_usd_price">💰 EMPC display price (USD)</label><input id="setting_empc_usd_price" type="number" min="0.00000001" max="1000000" step="0.00000001"></div>
+      <div class="field"><label for="setting_message_fee_regular">✉️ Regular message fee (EMPC)</label><input id="setting_message_fee_regular" type="number" min="0" max="1000000000" step="0.00000001"></div>
+      <div class="field"><label for="setting_message_fee_vip">👑 VIP message fee (EMPC)</label><input id="setting_message_fee_vip" type="number" min="0" max="1000000000" step="0.00000001"></div>
+      <div class="field"><label for="setting_video_publish_fee">🎬 Video publishing fee (EMPC)</label><input id="setting_video_publish_fee" type="number" min="0" max="1000000000" step="0.00000001"></div>
+      <div class="field"><label for="setting_exchange_min_holding">🔒 Minimum holding for exchange eligibility (EMPC)</label><input id="setting_exchange_min_holding" type="number" min="0" max="1000000000" step="0.00000001"></div>
+      <div class="field"><label for="setting_exchange_holding_months">📅 Required holding period (months)</label><input id="setting_exchange_holding_months" type="number" min="1" max="1200" step="1"></div>
+    </div>
+    <div class="actions">
+      <button class="btn btn-gold" id="saveEconomicSettingsBtn" onclick="saveEconomicSettings()">💾 Save Economic Settings</button>
+      <button class="btn btn-dark" onclick="loadEconomicSettings()">↻ Reload</button>
+    </div>
+    <div class="status" id="economicSettingsStatus"></div>
+    <p style="color:#777;font-size:11px;margin-top:12px">These are internal EMPC platform settings, not a live market price or a guarantee of exchange, withdrawal, or profit. Saving settings does not change wallet balances.</p>
+  </section>
+
   <!-- UPLOAD -->
 
   <section class="panel">
@@ -1054,6 +1075,94 @@ async function checkAdmin(){
 /* =========================================================
    FREE / PAID UI
    ========================================================= */
+
+/* =========================================================
+   ECONOMIC SETTINGS
+   ========================================================= */
+const ECONOMIC_SETTING_KEYS = [
+  "empc_usd_price",
+  "message_fee_regular",
+  "message_fee_vip",
+  "video_publish_fee",
+  "exchange_min_holding",
+  "exchange_holding_months"
+];
+
+async function loadEconomicSettings(){
+  const status = document.getElementById("economicSettingsStatus");
+  try{
+    status.className = "status";
+    status.textContent = "";
+    const { data, error } = await supabaseClient
+      .from("empire_economic_settings")
+      .select("setting_key,setting_value")
+      .in("setting_key", ECONOMIC_SETTING_KEYS);
+    if(error) throw error;
+    const values = Object.fromEntries((data || []).map(row => [row.setting_key, row.setting_value]));
+    for(const key of ECONOMIC_SETTING_KEYS){
+      const input = document.getElementById("setting_" + key);
+      if(input && values[key] !== undefined) input.value = values[key];
+    }
+    status.textContent = "Economic settings loaded.";
+    status.className = "status show success";
+  }catch(error){
+    console.error("ECONOMIC SETTINGS LOAD ERROR:", error);
+    status.textContent = "Could not load settings: " + (error.message || "Unknown error");
+    status.className = "status show error";
+  }
+}
+
+async function saveEconomicSettings(){
+  const button = document.getElementById("saveEconomicSettingsBtn");
+  const status = document.getElementById("economicSettingsStatus");
+  const values = {};
+  for(const key of ECONOMIC_SETTING_KEYS){
+    const input = document.getElementById("setting_" + key);
+    const value = Number(input.value);
+    if(input.value.trim() === "" || !Number.isFinite(value) || value < 0){
+      status.textContent = "Enter a valid non-negative value for every setting.";
+      status.className = "status show error";
+      input.focus();
+      return;
+    }
+    if(key === "empc_usd_price" && value <= 0){
+      status.textContent = "EMPC display price must be greater than zero.";
+      status.className = "status show error";
+      input.focus();
+      return;
+    }
+    if(key === "exchange_holding_months" && (!Number.isInteger(value) || value < 1)){
+      status.textContent = "Holding period must be a whole number of months.";
+      status.className = "status show error";
+      input.focus();
+      return;
+    }
+    values[key] = value;
+  }
+  button.disabled = true;
+  button.textContent = "Saving...";
+  status.textContent = "Saving settings...";
+  status.className = "status show";
+  try{
+    for(const key of ECONOMIC_SETTING_KEYS){
+      const { error } = await supabaseClient.rpc("admin_update_empc_setting", {
+        p_key: key,
+        p_value: values[key]
+      });
+      if(error) throw new Error(key + ": " + error.message);
+    }
+    status.textContent = "All economic settings saved successfully. Wallet balances were not changed.";
+    status.className = "status show success";
+  }catch(error){
+    console.error("ECONOMIC SETTINGS SAVE ERROR:", error);
+    status.textContent = "Save failed: " + (error.message || "Unknown error") + ". Reload settings before retrying.";
+    status.className = "status show error";
+  }finally{
+    button.disabled = false;
+    button.textContent = "💾 Save Economic Settings";
+  }
+}
+
 
 function updatePriceVisibility(){
 
@@ -2049,6 +2158,8 @@ async function logout(){
   if(isAdmin){
 
     updatePriceVisibility();
+
+    await loadEconomicSettings();
 
     await loadVideos();
 
