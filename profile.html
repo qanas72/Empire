@@ -1392,8 +1392,10 @@
 
     function publicAvatarUrl(path) {
       if (!path) return "";
-      if (/^https?:\\/\\//i.test(path)) return path;
-      const clean = String(path).replace(/^\\/+/, "").replace(/^avatars\\//i, "");
+      if (String(path).startsWith("http://") || String(path).startsWith("https://")) return path;
+      let clean = String(path);
+      while (clean.startsWith("/")) clean = clean.slice(1);
+      if (clean.startsWith("avatars/")) clean = clean.slice(8);
       return supabaseClient.storage.from("avatars").getPublicUrl(clean).data?.publicUrl || "";
     }
 
