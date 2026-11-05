@@ -88,6 +88,11 @@ async function loadFeed(){
  const {data,error}=await db.from("community_posts").select("id,author_id,author_name,content,image_path,image_paths,created_at").eq("is_removed",false).order("created_at",{ascending:false}).limit(50);
  if(error){$("feed").textContent="Could not load publications. Please run publishing-setup.sql in Supabase first.";return;}
  if(!data.length){$("feed").textContent="No publications yet. Be the first to publish.";return;}
+ const postIds=data.map(p=>p.id);
+  const {data:reactionRows,error:reactionError}=await db.from("community_post_reactions").select("post_id,user_id,reaction").in("post_id",postIds);
+  if(reactionError)throw reactionError;
+  const reactionMap=new Map();
+  (reactionRows||[]).forEach(r=>{if(!reactionMap.has(r.post_id))reactionMap.set(r.post_id,{likes:0,dislikes:0,mine:null});const x=reactionMap.get(r.post_id);if(r.reaction==="like")x.likes++;else x.dislikes++;if(user&&r.user_id===user.id)x.mine=r.reaction;});
  const authorIds=[...new Set(data.map(p=>p.author_id).filter(Boolean))];
   const {data:authors,error:authorsError}=authorIds.length?await db.from("public_user_profiles").select("id,username,display_name,avatar_url").in("id",authorIds):{data:[],error:null};
   if(authorsError)console.warn("Could not load public author profiles:",authorsError.message);
@@ -108,10 +113,19 @@ async function loadFeed(){
     const content='<img src="'+escapeHTML(avatarUrl||fallbackAvatar)+'" alt="Profile photo" loading="lazy" onerror="this.onerror=null;this.src=\''+fallbackAvatar+'\'"><span class="post-author-name">'+escapeHTML(displayName)+'</span>';
     authorHtml=author?.username?'<a href="'+(ownProfile?"profile.html":"user-profile.html?username="+encodeURIComponent(author.username))+'">'+content+'</a>':'<div class="post-author-fallback">'+content+'</div>';
    }
-   return '<article class="post"><div class="post-head"><div class="post-author">'+authorHtml+'</div><span>'+new Date(p.created_at).toLocaleString()+'</span></div><div class="post-body">'+escapeHTML(p.content||"")+'</div>'+image+'<div class="post-actions"><button class="report-btn" data-report="'+p.id+'">Report publication</button></div></article>';
+   const stats=reactionMap.get(p.id)||{likes:0,dislikes:0,mine:null};
+   const canReact=!!user&&user.id!==p.author_id;
+   const actions='<div class="post-actions">'+(canReact?'<button type="button" class="reaction-btn" data-react="like" data-post="'+p.id+'">👍 Like ('+stats.likes+')</button><button type="button" class="reaction-btn" data-react="dislike" data-post="'+p.id+'">👎 Dislike ('+stats.dislikes+')</button>':'<span>👍 '+stats.likes+' · 👎 '+stats.dislikes+'</span>')+' <button class="report-btn" data-report="'+p.id+'">Report publication</button></div>';
+   return '<article class="post"><div class="post-head"><div class="post-author">'+authorHtml+'</div><span>'+new Date(p.created_at).toLocaleString()+'</span></div><div class="post-body">'+escapeHTML(p.content||"")+'</div>'+image+actions+'</article>';
   }));
   $("feed").innerHTML=cards.join("");
  $("feed").querySelectorAll("[data-report]").forEach(b=>b.addEventListener("click",()=>reportPost(b.dataset.report)));
+ $("feed").querySelectorAll("[data-react]").forEach(b=>b.addEventListener("click",async()=>{
+  b.disabled=true;
+  try{const {data,error}=await db.rpc("toggle_community_post_reaction",{p_post_id:b.dataset.post,p_reaction:b.dataset.react});if(error)throw error;const result=Array.isArray(data)?data[0]:data;if(result?.rewarded)notify("Like received. 1 EMPC reward sent to the publication owner.");await loadFeed();}
+  catch(error){notify(error.message||"Reaction could not be saved.",true);}
+  finally{b.disabled=false;}
+ }));
 }
 let selectedReportPost=null;
 function closeReportModal(){$("reportModal").classList.remove("open");$("reportForm").reset();selectedReportPost=null;}
