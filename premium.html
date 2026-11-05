@@ -466,9 +466,15 @@ async function loadUser(){
 }
 
 async function logout(){
+ const confirmed=window.confirm("Are you sure you want to log out of EMPIRE?");
+ if(!confirmed)return;
  if(statusTimer)clearInterval(statusTimer);
  if(countdownTimer)clearInterval(countdownTimer);
- await supabaseClient.auth.signOut();
+ const {error}=await supabaseClient.auth.signOut();
+ if(error){
+  alert("Could not log out. Please try again.");
+  return;
+ }
  window.location.href="login.html";
 }
 
