@@ -854,6 +854,7 @@
             <img id="avatarLarge" class="avatar-large" alt="" aria-hidden="true" loading="eager" decoding="async">
           </div>
           <div class="avatar-actions">
+            <button type="button" class="btn btn-dark" id="viewProfilePhotoButton" title="View profile photo" aria-label="View profile photo">🖼️</button>
             <button type="button" class="btn btn-gold" id="choosePhotoButton">📷 Change photo</button>
             <a class="btn btn-dark" id="viewPublicProfileButton" href="members.html">🌐 View public profile</a>
           </div>
@@ -2113,6 +2114,14 @@
   box.innerHTML='<button type="button" aria-label="Close photo preview">&times;</button><img alt="Profile photo enlarged">';
   document.body.appendChild(box);
   const preview=box.querySelector("img");
+  const photoButton=document.getElementById("viewProfilePhotoButton");
+  photoButton?.addEventListener("click",()=>{
+    const avatar=document.getElementById("avatarLarge");
+    const source=avatar?.dataset.avatarUrl;
+    if(!source)return;
+    preview.src=source;
+    box.classList.add("is-open");
+  });
   function close(){box.classList.remove("is-open");preview.removeAttribute("src");}
   box.addEventListener("click",e=>{if(e.target===box||e.target.tagName==="BUTTON")close();});
   document.addEventListener("keydown",e=>{if(e.key==="Escape"&&box.classList.contains("is-open"))close();});
