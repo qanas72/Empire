@@ -854,7 +854,6 @@
             <img id="avatarLarge" class="avatar-large" alt="" aria-hidden="true" loading="eager" decoding="async">
           </div>
           <div class="avatar-actions">
-            <button type="button" class="btn btn-dark" id="viewPhotoButton" disabled>👁️ View profile photo</button>
             <button type="button" class="btn btn-gold" id="choosePhotoButton">📷 Change photo</button>
             <a class="btn btn-dark" id="viewPublicProfileButton" href="members.html">🌐 View public profile</a>
           </div>
@@ -1235,11 +1234,9 @@
       if (!avatar) return;
 
       avatar.dataset.avatarLoaded = "false";
-      const viewButton = $("viewPhotoButton");
       if (!url) {
         avatar.removeAttribute("src");
         avatar.removeAttribute("data-avatar-url");
-        if (viewButton) viewButton.disabled = true;
         return;
       }
 
@@ -1253,7 +1250,6 @@
       };
       avatar.dataset.avatarUrl = String(url);
       avatar.src = String(url);
-      if (viewButton) viewButton.disabled = false;
     }
 
     function avatarImageLoads(url) {
@@ -2097,21 +2093,6 @@
 
     $("choosePhotoButton").addEventListener("click", () => {
       if (!avatarUploadInProgress) $("avatarFile").click();
-    });
-
-    $("viewPhotoButton").addEventListener("click", () => {
-      const avatar = $("avatarLarge");
-      const source = avatar?.dataset.avatarUrl;
-      if (!source) {
-        showNotice("No profile photo has been uploaded yet.", "error");
-        return;
-      }
-      const preview = document.querySelector("#empireAvatarLightbox img");
-      const lightbox = $("empireAvatarLightbox");
-      if (preview && lightbox) {
-        preview.src = source;
-        lightbox.classList.add("is-open");
-      }
     });
 
     $("avatarFile").addEventListener("change", () => {
