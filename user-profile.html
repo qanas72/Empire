@@ -47,6 +47,7 @@ main{width:min(900px,92%);margin:34px auto 60px}.card{padding:24px;margin-bottom
   -webkit-backdrop-filter:none!important;
 }
 
+.follow-stats{display:flex;gap:18px;margin-top:14px;color:#bbb;font-size:13px}.follow-stats strong{color:var(--gold);font-size:16px}.profile-actions{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:13px}.action-btn{border:1px solid #80642f;border-radius:9px;padding:9px 15px;background:#d6ad5518;color:var(--gold);font-weight:700;cursor:pointer}.action-btn:disabled{opacity:.6;cursor:wait}.follow-btn.is-following{background:#242424;border-color:#555;color:#ddd}.follow-btn.follow-back{background:linear-gradient(135deg,#f4d98c,#c99b3d);color:#17120a}@media(max-width:600px){.follow-stats,.profile-actions{justify-content:center}}
 </style>
 </head>
 <body>
@@ -92,9 +93,38 @@ async function load(){
  const isOwnProfile=!!(currentUserId&&currentUserId===user.id);
  if(isOwnProfile&&!previewMode&&!adminMode){location.replace("profile.html");return;}
  document.title="EMPIRE | "+user.display_name;
- async function refreshMemberPresence(){const {data:p,error:presenceError}=await db.from("user_presence").select("last_seen").eq("user_id",user.id).maybeSingle();if(presenceError){$("memberPresence").textContent="Status unavailable";return;}const online=!!p&&new Date(p.last_seen).getTime()>Date.now()-120000;$("memberPresence").innerHTML='<i class="presence-dot '+(online?"online":"")+'"></i>'+(online?"Online":"Offline");}
- $("profile").innerHTML='<img class="avatar" src="'+avatar(user.avatar_url?db.storage.from("avatars").getPublicUrl(user.avatar_url).data?.publicUrl:null)+'" alt="Profile photo"><div><h1 class="name">'+esc(user.display_name||user.username)+'</h1><div class="username">@'+esc(user.username)+'</div><span class="badge '+(user.membership_type==="VIP"?"":"regular")+'">'+(user.membership_type==="VIP"?"♛ VIP Member":"Regular Member")+'</span>'+(adminMode?'<span class="badge">'+(user.is_active===false?"Inactive":"Active")+'</span>':'')+'<div class="meta">Member since '+date(user.created_at)+'</div><div style="margin-top:15px"><a class="badge" style="display:inline-block" href="'+(adminMode?"admin.html":isOwnProfile?"profile.html":"messages.html?user_id="+encodeURIComponent(user.id))+'">'+(adminMode?"← Return to Emperor Panel":isOwnProfile?"← Back to My Profile":"✉ Send Message")+'</a></div><div id="memberPresence" class="presence"><i class="presence-dot"></i>Checking status...</div></div>';
- await refreshMemberPresence();setInterval(refreshMemberPresence,60000);
+ async function loadFollowData(){
+ const [followers,following,alreadyFollowing,followedByTarget]=await Promise.all([
+  db.from("user_follows").select("follower_id",{count:"exact",head:true}).eq("following_id",user.id),
+  db.from("user_follows").select("following_id",{count:"exact",head:true}).eq("follower_id",user.id),
+  currentUserId?db.from("user_follows").select("follower_id").eq("follower_id",currentUserId).eq("following_id",user.id).maybeSingle():Promise.resolve({data:null,error:null}),
+  currentUserId?db.from("user_follows").select("follower_id").eq("follower_id",user.id).eq("following_id",currentUserId).maybeSingle():Promise.resolve({data:null,error:null})
+ ]);
+ for(const result of [followers,following,alreadyFollowing,followedByTarget])if(result.error)throw result.error;
+ $("followerCount").textContent=followers.count||0;
+ $("followingCount").textContent=following.count||0;
+ const button=$("followButton");
+ if(button){
+  button.disabled=false;
+  button.dataset.following=alreadyFollowing.data?"1":"0";
+  button.textContent=alreadyFollowing.data?"Following":followedByTarget.data?"Follow back":"Follow";
+  button.className="action-btn follow-btn"+(alreadyFollowing.data?" is-following":followedByTarget.data?" follow-back":"");
+ }
+}
+async function toggleFollow(){
+ const button=$("followButton");if(!button||!currentUserId)return;
+ button.disabled=true;
+ const isFollowing=button.dataset.following==="1";
+ const result=isFollowing
+  ?await db.from("user_follows").delete().eq("follower_id",currentUserId).eq("following_id",user.id)
+  :await db.from("user_follows").insert({follower_id:currentUserId,following_id:user.id});
+ if(result.error){alert("Could not update follow status: "+result.error.message);button.disabled=false;return;}
+ await loadFollowData();
+}
+$("followButton")?.addEventListener("click",toggleFollow);
+async function refreshMemberPresence(){const {data:p,error:presenceError}=await db.from("user_presence").select("last_seen").eq("user_id",user.id).maybeSingle();if(presenceError){$("memberPresence").textContent="Status unavailable";return;}const online=!!p&&new Date(p.last_seen).getTime()>Date.now()-120000;$("memberPresence").innerHTML='<i class="presence-dot '+(online?"online":"")+'"></i>'+(online?"Online":"Offline");}
+ $("profile").innerHTML='<img class="avatar" src="'+avatar(user.avatar_url?db.storage.from("avatars").getPublicUrl(user.avatar_url).data?.publicUrl:null)+'" alt="Profile photo"><div><h1 class="name">'+esc(user.display_name||user.username)+'</h1><div class="username">@'+esc(user.username)+'</div><span class="badge '+(user.membership_type==="VIP"?"":"regular")+'">'+(user.membership_type==="VIP"?"♛ VIP Member":"Regular Member")+'</span>'+(adminMode?'<span class="badge">'+(user.is_active===false?"Inactive":"Active")+'</span>':'')+'<div class="meta">Member since '+date(user.created_at)+'</div><div class="follow-stats"><span><strong id="followerCount">0</strong> Followers</span><span><strong id="followingCount">0</strong> Following</span></div><div class="profile-actions">'+(!adminMode&&!isOwnProfile&&currentUserId?'<button type="button" class="action-btn follow-btn" id="followButton" disabled>Loading...</button>':'')+(adminMode?'<a class="badge" style="display:inline-block" href="admin.html">← Return to Emperor Panel</a>':isOwnProfile?'<a class="badge" style="display:inline-block" href="profile.html">← Back to My Profile</a>':currentUserId?'<a class="badge" style="display:inline-block" href="messages.html?user_id='+encodeURIComponent(user.id)+'">✉ Send Message</a>':'<a class="badge" style="display:inline-block" href="login.html">Sign in to connect</a>')+'</div><div id="memberPresence" class="presence"><i class="presence-dot"></i>Checking status...</div></div>';
+ await Promise.all([refreshMemberPresence(),loadFollowData()]);setInterval(refreshMemberPresence,60000);
  let postsQuery=db.from("community_posts").select("id,content,image_path,image_paths,created_at,is_removed").eq("author_id",user.id).order("created_at",{ascending:false}).limit(100);
  let videosQuery=db.from("videos").select("id,title,description,thumbnail_url,created_at,approval_status").eq("creator_id",user.id).order("created_at",{ascending:false}).limit(100);
  if(!adminMode){postsQuery=postsQuery.eq("is_removed",false);videosQuery=videosQuery.eq("approval_status","approved");}
