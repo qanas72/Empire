@@ -235,7 +235,7 @@ alter table public.empire_raffle_winners enable row level security;
 drop policy if exists "Public read open and completed raffles" on public.empire_raffles;
 create policy "Public read open and completed raffles" on public.empire_raffles for select using(status in ('open','completed') or public.is_admin());
 drop policy if exists "Users read raffle participant totals" on public.empire_raffle_entries;
-create policy "Users read raffle participant totals" on public.empire_raffle_entries for select to authenticated using(true);
+create policy "Users read raffle participant totals" on public.empire_raffle_entries for select using(true);
 drop policy if exists "Public read raffle winners" on public.empire_raffle_winners;
 create policy "Public read raffle winners" on public.empire_raffle_winners for select using(true);
 revoke all on public.empire_raffles,public.empire_raffle_entries,public.empire_raffle_winners from public,anon,authenticated;
