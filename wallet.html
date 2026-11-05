@@ -137,7 +137,10 @@ $("createOrderBtn").addEventListener("click",async()=>{
  finally{btn.disabled=false;btn.textContent="Create Purchase Order";}
 });
 $("copyAddressBtn").addEventListener("click",()=>copyText($("payAddress").textContent));
-$("copyTokenBtn").addEventListener("click",()=>copyText($("payToken").textContent));
+$("openContractInfo").addEventListener("click",()=> $("contractInfoModal").classList.add("show"));
+$("closeContractInfo").addEventListener("click",()=> $("contractInfoModal").classList.remove("show"));
+$("contractInfoModal").addEventListener("click",event=>{if(event.target===$("contractInfoModal"))$("contractInfoModal").classList.remove("show")});
+document.addEventListener("keydown",event=>{if(event.key==="Escape")$("contractInfoModal").classList.remove("show")});
 $("verifyPaymentBtn").addEventListener("click",async()=>{
  if(!activePurchaseOrder?.order_id){notice("Create a purchase order first.");return;}
  const txid=$("txHash").value.trim();
