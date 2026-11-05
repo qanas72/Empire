@@ -94,6 +94,7 @@ async function load(){
  if(isOwnProfile&&!previewMode&&!adminMode){location.replace("profile.html");return;}
  document.title="EMPIRE | "+user.display_name;
  async function loadFollowData(){
+ if(!currentUserId){$("followerCount").textContent="—";$("followingCount").textContent="—";return;}
  const [followers,following,alreadyFollowing,followedByTarget]=await Promise.all([
   db.from("user_follows").select("follower_id",{count:"exact",head:true}).eq("following_id",user.id),
   db.from("user_follows").select("following_id",{count:"exact",head:true}).eq("follower_id",user.id),
