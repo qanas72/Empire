@@ -977,6 +977,14 @@ async function checkAuth(){
       alert("Your account is currently inactive.");  
       window.location.href = "login.html";  
       return false;  
+    }
+
+    // Claim the verified-signup reward once; the database enforces idempotency.
+    try {
+      const {error: rewardError} = await supabaseClient.rpc("claim_empire_signup_reward");
+      if (rewardError) console.warn("Signup reward not claimed:", rewardError.message);
+    } catch (rewardError) {
+      console.warn("Signup reward claim unavailable:", rewardError);
     }  
   
     if(nameElement){  
