@@ -356,14 +356,14 @@
           id="signupUsername"
           type="text"
           required
-          minlength="3"
-          maxlength="30"
+          minlength="5"
+          maxlength="13"
           autocomplete="username"
           placeholder="Choose a username"
         >
 
         <div class="hint">
-          3–30 characters. Letters, numbers, underscore and dot are recommended.
+          5–13 characters. Letters, numbers, underscore and dot are allowed.
         </div>
 
 
@@ -375,7 +375,8 @@
           id="signupDisplayName"
           type="text"
           required
-          maxlength="60"
+          minlength="5"
+          maxlength="15"
           placeholder="Your display name"
         >
 
@@ -833,16 +834,28 @@
           // VALIDATION
           // ======================================
 
-          if (username.length < 3) {
+          if (username.length < 5 || username.length > 13) {
             throw new Error(
-              "Username must be at least 3 characters."
+              "Username must be between 5 and 13 characters."
+            );
+          }
+
+          if (displayName.length < 5 || displayName.length > 15) {
+            throw new Error(
+              "Display name must be between 5 and 15 characters."
             );
           }
 
 
-          if (password.length < 6) {
+          if (password.length < 8) {
             throw new Error(
-              "Password must be at least 6 characters."
+              "Password must be at least 8 characters."
+            );
+          }
+
+          if (!/\\p{L}/u.test(password) || !/\\d/.test(password) || !/[^\\p{L}\\p{N}\\s]/u.test(password)) {
+            throw new Error(
+              "Password must contain at least one letter, one number, and one symbol (for example £, ¥, $, or ¢)."
             );
           }
 
@@ -874,6 +887,22 @@
 
           }
 
+
+          // Check public usernames before creating the auth account.
+          const { data: matchingUsers, error: usernameCheckError } = await supabase
+            .from("public_user_profiles")
+            .select("id")
+            .ilike("username", username)
+            .limit(1);
+
+          if (usernameCheckError) {
+            console.error("USERNAME CHECK ERROR:", usernameCheckError);
+            throw new Error("Could not verify username availability. Please try again.");
+          }
+
+          if (matchingUsers && matchingUsers.length > 0) {
+            throw new Error("This username is already taken. Please choose another username.");
+          }
 
           showMessage(
             "Creating your account..."
@@ -937,6 +966,14 @@
               "Account could not be created."
             );
 
+          }
+
+          // Supabase may return an empty identities array for an existing email
+          // instead of exposing an email-already-registered error.
+          if (Array.isArray(data.user.identities) && data.user.identities.length === 0) {
+            throw new Error(
+              "This email address is already registered. Please sign in instead."
+            );
           }
 
 
