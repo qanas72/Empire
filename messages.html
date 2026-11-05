@@ -65,11 +65,12 @@ const SUPABASE_URL="https://vubjkwbkuwndkjqfnyom.supabase.co";
 const SUPABASE_KEY="sb_publishable_Ig1R3dpAKyBfjIGSUhhlKw_uC-QF0QQ";
 const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 const $=id=>document.getElementById(id);
-let me=null, members=[], selected=null, balance=0, vip=false, poller=null;
+let me=null, members=[], selected=null, balance=0, vip=false, poller=null, messageFeeRegular=5, messageFeeVip=3;
 function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
 const fallbackAvatar="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23222222'/%3E%3Ctext x='50' y='65' text-anchor='middle' font-size='48' fill='%23e8c36b'%3E%E2%98%BB%3C/text%3E%3C/svg%3E";
 function avatar(path){if(!path)return fallbackAvatar;return db.storage.from("avatars").getPublicUrl(path).data?.publicUrl||fallbackAvatar;}
-function fee(){return vip?3:5;}
+function fee(){return vip?messageFeeVip:messageFeeRegular;}
+async function loadEconomicSettings(){const {data,error}=await db.from("empire_economic_settings").select("setting_key,setting_value").in("setting_key",["message_fee_regular","message_fee_vip"]);if(error)throw error;(data||[]).forEach(row=>{const value=Number(row.setting_value);if(!Number.isFinite(value)||value<0)return;if(row.setting_key==="message_fee_regular")messageFeeRegular=value;if(row.setting_key==="message_fee_vip")messageFeeVip=value;});}
 function showNotice(message,type="error"){const el=$("msgNotice");el.className="notice show "+type;el.textContent=message;}
 function clearNotice(){$("msgNotice").className="notice";}
 function stamp(v){return new Date(v).toLocaleString([], {month:"short",day:"numeric",hour:"2-digit",minute:"2-digit"});}
