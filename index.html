@@ -1002,6 +1002,11 @@ async function loadCommunityFeed(){
     const {data,error}=await supabaseClient.from("community_posts").select("id,author_id,author_name,content,image_path,created_at").eq("is_removed",false).order("created_at",{ascending:false}).limit(40);
     if(error)throw error;
     if(!data?.length){box.innerHTML='<div class="community-empty">No publications yet. Be the first to share something.</div>';return;}
+    const postIds=data.map(p=>p.id);
+    const {data:reactionRows,error:reactionError}=await supabaseClient.from("community_post_reactions").select("post_id,user_id,reaction").in("post_id",postIds);
+    if(reactionError)throw reactionError;
+    const reactionMap=new Map();
+    (reactionRows||[]).forEach(r=>{if(!reactionMap.has(r.post_id))reactionMap.set(r.post_id,{likes:0,dislikes:0,mine:null});const x=reactionMap.get(r.post_id);if(r.reaction==="like")x.likes++;else x.dislikes++;if(currentSession&&r.user_id===currentSession.user.id)x.mine=r.reaction;});
     const authorIds=[...new Set(data.map(p=>p.author_id).filter(Boolean))];
     const {data:authors,error:authorsError}=authorIds.length?await supabaseClient.from("public_user_profiles").select("id,username,display_name,avatar_url").in("id",authorIds):{data:[],error:null};
     if(authorsError)console.warn("Could not load public author profiles:",authorsError.message);
@@ -1021,9 +1026,17 @@ async function loadCommunityFeed(){
         const content='<img src="'+escapeAttribute(avatarUrl||fallbackAvatar)+'" alt="Profile photo" loading="lazy" onerror="this.onerror=null;this.src=\''+fallbackAvatar+'\'"><span class="community-author-name">'+escapeHtml(displayName)+'</span>';
         authorHtml=author?.username?'<a href="'+(ownProfile?"profile.html":"user-profile.html?username="+encodeURIComponent(author.username))+'">'+content+'</a>':'<div class="community-author-fallback">'+content+'</div>';
       }
-      const report=currentSession?'<div class="community-post-foot"><button type="button" onclick="reportCommunityPost(\''+escapeAttribute(post.id)+'\')">Report</button></div>':'';
-      return '<article class="community-post"><div class="community-post-head"><div class="community-author">'+authorHtml+'</div><span>'+new Date(post.created_at).toLocaleString()+'</span></div><div class="community-post-body">'+escapeHtml(post.content||"")+'</div>'+image+report+'</article>';
+      const stats=reactionMap.get(post.id)||{likes:0,dislikes:0,mine:null};
+      const canReact=!!currentSession&&currentSession.user.id!==post.author_id;
+      const actions='<div class="community-post-foot">'+(canReact?'<button type="button" data-react="like" data-post="'+post.id+'">👍 Like ('+stats.likes+')</button><button type="button" data-react="dislike" data-post="'+post.id+'">👎 Dislike ('+stats.dislikes+')</button>':'<span>👍 '+stats.likes+' · 👎 '+stats.dislikes+'</span>')+report+'</div>';
+      return '<article class="community-post"><div class="community-post-head"><div class="community-author">'+authorHtml+'</div><span>'+new Date(post.created_at).toLocaleString()+'</span></div><div class="community-post-body">'+escapeHtml(post.content||"")+'</div>'+image+actions+'</article>';
     }).join("");
+    box.querySelectorAll("[data-react]").forEach(button=>button.addEventListener("click",async()=>{
+      button.disabled=true;
+      try{const {data,error}=await supabaseClient.rpc("toggle_community_post_reaction",{p_post_id:button.dataset.post,p_reaction:button.dataset.react});if(error)throw error;const result=Array.isArray(data)?data[0]:data;if(result?.rewarded)alert("A like reward has been sent to the publication owner.");await loadCommunityFeed();}
+      catch(error){alert(error.message||"Reaction could not be saved.");}
+      finally{button.disabled=false;}
+    }));
   }catch(error){console.error("COMMUNITY FEED ERROR:",error);box.innerHTML='<div class="status error">Could not load publications: '+escapeHtml(error.message||"Unknown error")+'</div>';}
 }
 async function reportCommunityPost(postId){
