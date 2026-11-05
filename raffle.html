@@ -27,7 +27,7 @@ async function loadRaffles(){
   if(!rows?.length){root.innerHTML='<div class="card"><h2>No active raffles</h2><p class="muted">New EMPIRE raffles will appear here when administrators publish them.</p></div>';return;}
   const {data:{user}}=await db.auth.getUser();
   const ids=rows.map(r=>r.id);
-  const {data:entries,error:entryError}=await db.from("empire_raffle_entries").select("raffle_id,user_id").in("raffle_id",ids);if(entryError)throw entryError;
+  const {data:entryData,error:entryError}=await db.rpc("get_empire_raffle_public_data",{p_raffle_ids:ids});if(entryError)throw entryError;
   const {data:winners,error:winnerError}=await db.from("empire_raffle_winners").select("raffle_id,user_id,prize_rank,prize_description").in("raffle_id",ids);if(winnerError)throw winnerError;
   const userIds=[...new Set((winners||[]).map(w=>w.user_id))];let names={};
   if(userIds.length){const {data:profiles}=await db.from("public_user_profiles").select("id,username,display_name").in("id",userIds);(profiles||[]).forEach(p=>names[p.id]=p.display_name||p.username||"Member");}
