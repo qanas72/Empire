@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Empire | Wallet</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{--gold:#e4bf69;--gold2:#fff0b8;--bg:#090909;--muted:#aaa;--line:rgba(245,217,139,.42);--green:#65d69a;--red:#ff8585}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:linear-gradient(180deg,#090909e8,#090909f2),url("profile-background-desktop.png") center/cover fixed;color:#f5f5f5;font:15px Arial,sans-serif}
+a{color:inherit;text-decoration:none}.top{position:sticky;top:0;z-index:5;display:flex;justify-content:space-between;align-items:center;gap:12px;padding:13px 5%;background:#080808df;border-bottom:1px solid var(--line);backdrop-filter:blur(12px)}
+.brand{font-size:21px;font-weight:900;letter-spacing:1px;color:var(--gold2)}.nav{display:flex;gap:8px;flex-wrap:wrap}.nav a{padding:8px 11px;border:1px solid var(--line);border-radius:9px;font-size:12px;color:#ddd}
+main{width:min(900px,92%);margin:30px auto 55px}.heading{margin-bottom:20px}.eyebrow{font-size:10px;letter-spacing:2px;color:var(--gold);font-weight:800}.heading h1{margin:7px 0;font-size:clamp(26px,5vw,38px)}.heading p{margin:0;color:var(--muted);font-size:13px;line-height:1.6}
+.panel{border:1px solid var(--line);border-radius:14px;padding:17px;margin:13px 0;background:rgba(10,10,10,.55)}.balance{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center}.label{font-size:11px;color:var(--muted);letter-spacing:.7px}.amount{font-size:clamp(27px,6vw,42px);font-weight:900;color:var(--gold2);margin:7px 0;overflow-wrap:anywhere}.sub{font-size:12px;color:var(--muted);line-height:1.6}.chip{display:inline-block;border:1px solid var(--line);border-radius:20px;padding:7px 10px;color:var(--gold2);font-size:11px}
+.metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:14px}.metric{border:1px solid rgba(245,217,139,.25);border-radius:10px;padding:11px}.metric strong{display:block;margin-top:5px;font-size:16px;overflow-wrap:anywhere}
+.section-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}.section-head h2{font-size:17px;margin:0}.section-head small{font-size:11px;color:var(--muted)}
+.tx-list{display:grid;gap:8px}.tx{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;border:1px solid rgba(245,217,139,.22);border-radius:10px;padding:11px}.tx strong{font-size:13px}.tx small{display:block;color:var(--muted);font-size:11px;line-height:1.5;margin-top:4px;overflow-wrap:anywhere}.tx-amount{font-weight:800;font-size:13px;white-space:nowrap}.in{color:var(--green)}.out{color:var(--red)}.empty,.loading{padding:18px;text-align:center;border:1px dashed #554a32;border-radius:10px;color:var(--muted);font-size:13px;line-height:1.6}
+.notice{display:none;padding:11px;border-radius:9px;margin-bottom:12px;font-size:13px}.notice.show{display:block}.notice.error{color:#ffbaba;border:1px solid #8c4444}.notice.ok{color:#b7f4d0;border:1px solid #367a55}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:13px}.btn{display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--line);border-radius:9px;padding:9px 12px;background:#17130c;color:var(--gold2);font-weight:700;font-size:12px}
+footer{text-align:center;color:#777;border-top:1px solid #292929;padding:20px;font-size:11px}
+@media(max-width:560px){.top{align-items:flex-start;flex-direction:column}.nav{width:100%}.nav a{flex:1;text-align:center;padding:8px 5px}.panel{padding:13px}.balance{grid-template-columns:1fr}.balance .chip{justify-self:start}.metrics{gap:8px}}
+</style>
+</head>
+<body>
+<header class="top"><a class="brand" href="index.html">♛ EMPIRE</a><nav class="nav"><a href="profile.html">👤 Profile</a><a href="premium.html">👑 Premium</a><a href="messages.html">💬 Messages</a><a href="#" id="logoutLink">↪ Logout</a></nav></header>
+<main>
+<div class="heading"><div class="eyebrow">EMPIRE FINANCIAL CENTER</div><h1>♛ EmpireCoin Wallet</h1><p>View your internal EMPC balance and recorded wallet activity in one place.</p></div>
+<div id="notice" class="notice"></div>
+<section class="panel">
+ <div class="balance"><div><div class="label">AVAILABLE BALANCE</div><div class="amount" id="balance">Loading…</div><div class="sub">Your recorded internal EmpireCoin balance</div></div><span class="chip">🪙 EMPC WALLET</span></div>
+ <div class="metrics"><div class="metric"><div class="label">PLATFORM DISPLAY PRICE</div><strong id="unitPrice">Loading…</strong><div class="sub">Per 1 EMPC</div></div><div class="metric"><div class="label">ESTIMATED DISPLAY VALUE</div><strong id="estimatedValue">—</strong><div class="sub">Calculation only; not cash value or a withdrawal quote</div></div></div>
+</section>
+<section class="panel">
+ <div class="section-head"><h2>📜 Transaction History</h2><small>Latest 30 records</small></div>
+ <div id="transactions" class="tx-list"><div class="loading">Loading wallet history…</div></div>
+</section>
+<section class="panel">
+ <div class="section-head"><h2>🔐 Wallet Information</h2></div>
+ <p class="sub">This wallet currently records EMPC inside the EMPIRE platform. It is not a connected blockchain wallet. The displayed USD estimate uses the platform's configured reference price and does not represent a guaranteed market price, cash balance, exchange, or withdrawal value.</p>
+ <div class="actions"><a class="btn" href="profile.html">← Back to Profile</a></div>
+</section>
+</main>
+<footer>© <span id="year"></span> EMPIRE. All rights reserved.</footer>
+<script>
+const SUPABASE_URL="https://vubjkwbkuwndkjqfnyom.supabase.co";
+const SUPABASE_KEY="sb_publishable_Ig1R3dpAKyBfjIGSUhhlKw_uC-QF0QQ";
+const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+const $=id=>document.getElementById(id);
+$("year").textContent=new Date().getFullYear();
+const fmt=n=>Number(n).toLocaleString(undefined,{maximumFractionDigits:8});
+const date=v=>{const d=new Date(v);return Number.isNaN(d.getTime())?"Date unavailable":d.toLocaleString();};
+const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
+function notice(message,type="error"){$("notice").textContent=message;$("notice").className="notice show "+type;}
+async function init(){
+ const {data:auth,error:authError}=await db.auth.getUser();
+ if(authError||!auth?.user){location.href="login.html";return;}
+ $("transactions").innerHTML='<div class="loading">Loading wallet history…</div>';
+ try{
+  const {data:wallet,error}=await db.from("empire_wallets").select("id,balance").eq("user_id",auth.user.id).eq("wallet_type","user").maybeSingle();
+  if(error)throw error;
+  if(!wallet){$("balance").textContent="Wallet unavailable";$("transactions").innerHTML='<div class="empty">Your EMPC wallet was not found. Please contact support.</div>';return;}
+  const balance=Number(wallet.balance);
+  $("balance").textContent=fmt(balance)+" EMPC";
+  const {data:setting,error:priceError}=await db.from("empire_economic_settings").select("setting_value").eq("setting_key","empc_usd_price").maybeSingle();
+  if(priceError)throw priceError;
+  const price=Number(setting?.setting_value);
+  if(Number.isFinite(price)&&price>=0){
+   $("unitPrice").textContent="$"+price.toFixed(8);
+   $("estimatedValue").textContent="$"+(balance*price).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+  }else{$("unitPrice").textContent="Not set";$("estimatedValue").textContent="Unavailable";}
+  const {data:rows,error:txError}=await db.from("empire_transactions").select("id,amount,transaction_type,description,created_at,from_wallet_id,to_wallet_id").or("from_wallet_id.eq."+wallet.id+",to_wallet_id.eq."+wallet.id).order("created_at",{ascending:false}).limit(30);
+  if(txError)throw txError;
+  if(!rows?.length){$("transactions").innerHTML='<div class="empty">No transactions yet. Your wallet activity will appear here.</div>';return;}
+  const names={purchase:"EMPC Purchase",message_fee:"Message Fee",video_fee:"Video Publishing Fee",reward:"Reward",referral_reward:"Referral Reward",vip_reward:"VIP Reward",refund:"Refund",admin_adjustment:"Account Adjustment",treasury_transfer:"Treasury Transfer"};
+  $("transactions").innerHTML=rows.map(row=>{
+   const incoming=row.to_wallet_id===wallet.id;
+   const amount=(incoming?"+":"−")+fmt(row.amount)+" EMPC";
+   const title=names[row.transaction_type]||"Wallet Transaction";
+   return '<article class="tx"><div><strong>'+esc(title)+'</strong><small>'+esc(row.description||title)+'</small><small>'+esc(date(row.created_at))+'</small></div><div class="tx-amount '+(incoming?"in":"out")+'">'+esc(amount)+'</div></article>';
+  }).join("");
+ }catch(error){console.error("Wallet load failed:",error);$("balance").textContent="Unavailable";$("transactions").innerHTML='<div class="empty">Wallet information could not be loaded. Please refresh and try again.</div>';notice("Wallet information could not be loaded.");}
+}
+$("logoutLink").addEventListener("click",async e=>{e.preventDefault();await db.auth.signOut();location.href="login.html";});
+init();
+</script>
+</body>
+</html>
