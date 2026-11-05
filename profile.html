@@ -1029,6 +1029,14 @@
 
     </section>
 
+    <!-- Official account warnings -->
+    <section class="card" id="accountWarningsCard">
+      <h2 class="section-title">⚠️ Account Warnings <small id="warningCount">Your notices from EMPIRE administrators</small></h2>
+      <div id="accountWarningsList" class="list">
+        <div class="loading">Loading account notices...</div>
+      </div>
+    </section>
+
     <!-- Purchase history -->
     <section class="card">
 
@@ -1379,6 +1387,8 @@
 
       // Load independent account sections immediately after authentication.
       // VIP membership and purchases do not depend on the profiles row.
+      loadAccountWarnings().catch((error) => console.warn("Account warnings startup error:", error));
+
       loadEmpireWallet().catch((error) => {
         console.error("EmpireCoin wallet startup error:", error);
       });
@@ -1812,6 +1822,66 @@
       }
     }
 
+    async function loadAccountWarnings() {
+      if (!currentUser) return;
+      const container = $("accountWarningsList");
+      const count = $("warningCount");
+      container.innerHTML = '<div class="loading">Loading account notices...</div>';
+      try {
+        const { data, error } = await supabaseClient
+          .from("user_warnings")
+          .select("id,message,created_at,read_at")
+          .eq("user_id", currentUser.id)
+          .order("created_at", { ascending: false })
+          .limit(50);
+        if (error) throw error;
+        const warnings = data || [];
+        const unread = warnings.filter(item => !item.read_at).length;
+        count.textContent = unread
+          ? unread + " unread · " + warnings.length + " total"
+          : warnings.length + " total · You are up to date";
+        if (!warnings.length) {
+          container.innerHTML = '<div class="empty-state">You have no account warnings. Any official notice from EMPIRE administrators will appear here.</div>';
+          return;
+        }
+        container.innerHTML = warnings.map(item => `
+          <article class="list-item" style="border-left:3px solid ${item.read_at ? '#66552f' : '#d6ad55'};margin:10px 0;padding:14px">
+            <div class="list-main" style="min-width:0">
+              <strong>${item.read_at ? 'Administrator notice' : '⚠️ New administrator warning'}</strong>
+              <small>${escapeHTML(formatDate(item.created_at))}</small>
+              <p style="white-space:pre-wrap;overflow-wrap:anywhere;margin-top:9px">${escapeHTML(item.message)}</p>
+            </div>
+            ${item.read_at ? '<span class="status-text">READ</span>' : `<button type="button" class="btn btn-gold" data-warning-read="${escapeHTML(item.id)}">Mark as read</button>`}
+          </article>
+        `).join("");
+      } catch (error) {
+        console.error("Account warnings error:", error);
+        container.innerHTML = '<div class="empty-state">Account notices could not be loaded: ' + escapeHTML(error.message || "Please refresh the page.") + '</div>';
+        count.textContent = "Unavailable";
+      }
+    }
+
+    async function markAccountWarningRead(id, button) {
+      if (!currentUser || !id) return;
+      button.disabled = true;
+      button.textContent = "Saving...";
+      try {
+        const { error } = await supabaseClient
+          .from("user_warnings")
+          .update({ read_at: new Date().toISOString() })
+          .eq("id", id)
+          .eq("user_id", currentUser.id)
+          .is("read_at", null);
+        if (error) throw error;
+        await loadAccountWarnings();
+      } catch (error) {
+        console.error("Mark warning read error:", error);
+        showNotice(error.message || "Could not mark this notice as read.", "error");
+        button.disabled = false;
+        button.textContent = "Mark as read";
+      }
+    }
+
     async function loadPurchases() {
       if (!currentUser) return;
 
@@ -2018,6 +2088,11 @@
     }
 
     // Event handlers
+    $("accountWarningsList").addEventListener("click", (event) => {
+      const button = event.target.closest("[data-warning-read]");
+      if (button) markAccountWarningRead(button.dataset.warningRead, button);
+    });
+
     $("profileForm").addEventListener("submit", saveProfile);
 
     $("choosePhotoButton").addEventListener("click", () => {
