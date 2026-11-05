@@ -1303,18 +1303,22 @@
       const image = $("avatarLarge");
       if (!image || !currentUser) return;
 
-      // Try each real Storage URL and verify that the image can load before
-      // assigning it to the visible profile avatar.
+      // The avatar object is confirmed public. Assign its public URL directly
+      // to the page image instead of pre-testing it with a detached Image().
       const savedPath = profile?.avatar_url ? String(profile.avatar_url).trim() : "";
       if (savedPath) {
-        const candidates = await getAvatarCandidates(savedPath);
-        for (const url of candidates) {
-          if (await avatarImageLoads(url)) {
-            setAvatar(url);
-            return;
-          }
+        const objectPath = savedPath
+          .replace(/^\\/+/, "")
+          .replace(/^avatars\\//i, "");
+        const { data, error } = supabaseClient.storage
+          .from("avatars")
+          .getPublicUrl(objectPath);
+
+        if (!error && data?.publicUrl) {
+          setAvatar(data.publicUrl);
+          return;
         }
-        console.warn("Saved profile avatar could not be loaded; checking the user's avatar folder.");
+        console.warn("Could not create public avatar URL:", error?.message || "URL unavailable");
       }
 
       // Fallback: locate the newest image in this user's avatars folder.
@@ -1335,19 +1339,19 @@
 
         for (const file of files) {
           const path = currentUser.id + "/" + file.name;
-          const candidates = await getAvatarCandidates(path);
-          for (const url of candidates) {
-            if (await avatarImageLoads(url)) {
-              setAvatar(url);
-              return;
-            }
+          const { data: publicData } = supabaseClient.storage
+            .from("avatars")
+            .getPublicUrl(path);
+          if (publicData?.publicUrl) {
+            setAvatar(publicData.publicUrl);
+            return;
           }
         }
       } catch (error) {
         console.warn("Avatar storage fallback failed:", error.message);
       }
 
-      console.error("No loadable profile avatar was found for this account.");
+      console.error("No profile avatar path could be displayed for this account.");
       setAvatar(null);
     }
     function withProfileTimeout(promise, label, milliseconds = 12000) {
