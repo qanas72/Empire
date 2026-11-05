@@ -47,13 +47,20 @@ main{width:min(900px,92%);margin:34px auto 60px}.card{padding:24px;margin-bottom
   -webkit-backdrop-filter:none!important;
 }
 
-.follow-stats{display:flex;gap:18px;margin-top:14px;color:#bbb;font-size:13px}.follow-stats strong{color:var(--gold);font-size:16px}.profile-actions{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:13px}.action-btn{border:1px solid #80642f;border-radius:9px;padding:9px 15px;background:#d6ad5518;color:var(--gold);font-weight:700;cursor:pointer}.action-btn:disabled{opacity:.6;cursor:wait}.follow-btn.is-following{background:#242424;border-color:#555;color:#ddd}.follow-btn.follow-back{background:linear-gradient(135deg,#f4d98c,#c99b3d);color:#17120a}@media(max-width:600px){.follow-stats,.profile-actions{justify-content:center}}
+.follow-stats{display:flex;gap:18px;margin-top:14px;color:#bbb;font-size:13px}.follow-stats strong{color:var(--gold);font-size:16px}.profile-actions{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:13px}.action-btn{border:1px solid #80642f;border-radius:9px;padding:9px 15px;background:#d6ad5518;color:var(--gold);font-weight:700;cursor:pointer}.action-btn:disabled{opacity:.6;cursor:wait}.follow-btn.is-following{background:#242424;border-color:#555;color:#ddd}.follow-btn.follow-back{background:linear-gradient(135deg,#f4d98c,#c99b3d);color:#17120a}
+.friend-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px}
+.friend-card{display:flex;align-items:center;gap:10px;padding:10px;border:1px solid rgba(245,217,139,.35);border-radius:12px;min-width:0}
+.friend-card img{width:44px;height:44px;border-radius:50%;object-fit:cover;border:1px solid var(--gold)}
+.friend-card strong{display:block;overflow-wrap:anywhere}.friend-card small{color:var(--muted)}
+@media(max-width:600px){.follow-stats,.profile-actions{justify-content:center}}
 </style>
 </head>
 <body>
 <header class="top"><a class="brand" href="index.html" aria-label="Empire Home"><span class="brand-mark" aria-hidden="true">👑</span><span class="brand-name">𝑬𝒎𝒑𝒊𝒓𝒆</span></a><nav class="nav"><a href="index.html">Home</a><a href="members.html">Members</a><a href="publishing.html">Publishing</a><a href="messages.html">Messages</a><a href="profile.html">My Profile</a></nav></header>
 <main>
 <section class="card hero" id="profile"><div class="loading">Loading member profile...</div></section>
+<section class="card" id="publicBioCard"><h2 class="section-title">👤 Bio</h2><div id="publicBio" class="muted" style="white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.8">No Bio added yet.</div></section>
+<section class="card" id="publicFriendsCard"><h2 class="section-title">🤝 Friends <small id="publicFriendsCount"></small></h2><div id="publicFriends" class="loading">Loading friends...</div></section>
 <section class="card"><h2 class="section-title">Publications</h2><div id="posts" class="loading">Loading publications...</div></section>
 <section class="card"><h2 class="section-title">Approved Videos</h2><div id="videos" class="loading">Loading videos...</div></section>
 </main>
@@ -85,7 +92,7 @@ async function load(){
   const member=(directory||[]).find(p=>(p.username||"").toLowerCase()===username.toLowerCase());
   if(member)user={id:member.user_id,...member};
  }else{
-  const {data:publicUser,error}=await db.from("public_user_profiles").select("id,username,display_name,avatar_url,created_at,membership_type,active_vip_plan").eq("username",username).maybeSingle();
+  const {data:publicUser,error}=await db.from("public_user_profiles").select("id,username,display_name,avatar_url,created_at,membership_type,active_vip_plan,bio").eq("username",username).maybeSingle();
   if(error)throw error;
   user=publicUser;
  }
@@ -125,7 +132,36 @@ async function toggleFollow(){
 async function refreshMemberPresence(){const {data:p,error:presenceError}=await db.from("user_presence").select("last_seen").eq("user_id",user.id).maybeSingle();if(presenceError){$("memberPresence").textContent="Status unavailable";return;}const online=!!p&&new Date(p.last_seen).getTime()>Date.now()-120000;$("memberPresence").innerHTML='<i class="presence-dot '+(online?"online":"")+'"></i>'+(online?"Online":"Offline");}
  $("profile").innerHTML='<img class="avatar" src="'+avatar(user.avatar_url?db.storage.from("avatars").getPublicUrl(user.avatar_url).data?.publicUrl:null)+'" alt="Profile photo"><div><h1 class="name">'+esc(user.display_name||user.username)+'</h1><div class="username">@'+esc(user.username)+'</div><span class="badge '+(user.membership_type==="VIP"?"":"regular")+'">'+(user.membership_type==="VIP"?"♛ VIP Member":"Regular Member")+'</span>'+(adminMode?'<span class="badge">'+(user.is_active===false?"Inactive":"Active")+'</span>':'')+'<div class="meta">Member since '+date(user.created_at)+'</div><div class="follow-stats"><span><strong id="followerCount">0</strong> Followers</span><span><strong id="followingCount">0</strong> Following</span></div><div class="profile-actions">'+(!adminMode&&!isOwnProfile&&currentUserId?'<button type="button" class="action-btn follow-btn" id="followButton" disabled>Loading...</button>':'')+(adminMode?'<a class="badge" style="display:inline-block" href="admin.html">← Return to Emperor Panel</a>':isOwnProfile?'<a class="badge" style="display:inline-block" href="profile.html">← Back to My Profile</a>':currentUserId?'<a class="badge" style="display:inline-block" href="messages.html?user_id='+encodeURIComponent(user.id)+'">✉ Send Message</a>':'<a class="badge" style="display:inline-block" href="login.html">Sign in to connect</a>')+'</div><div id="memberPresence" class="presence"><i class="presence-dot"></i>Checking status...</div></div>';
  $("followButton")?.addEventListener("click",toggleFollow);
+ $("publicBio").textContent=user.bio||"No Bio added yet.";
  await Promise.all([refreshMemberPresence(),loadFollowData()]);setInterval(refreshMemberPresence,60000);
+
+ async function loadPublicFriends(){
+  const box=$("publicFriends");
+  try{
+   const [followersResult,followingResult]=await Promise.all([
+    db.from("user_follows").select("follower_id").eq("following_id",user.id),
+    db.from("user_follows").select("following_id").eq("follower_id",user.id)
+   ]);
+   if(followersResult.error)throw followersResult.error;
+   if(followingResult.error)throw followingResult.error;
+   const followerIds=(followersResult.data||[]).map(x=>x.follower_id);
+   const followingIds=(followingResult.data||[]).map(x=>x.following_id);
+   const friendIds=followerIds.filter(id=>followingIds.includes(id));
+   $("publicFriendsCount").textContent=friendIds.length;
+   if(!friendIds.length){box.innerHTML='<div class="empty">No friends to display yet.</div>';return;}
+   const {data:friends,error}=await db.from("public_user_profiles")
+    .select("id,username,display_name,avatar_url,membership_type")
+    .in("id",friendIds);
+   if(error)throw error;
+   box.innerHTML=(friends||[]).map(friend=>{
+    const photo=friend.avatar_url?db.storage.from("avatars").getPublicUrl(String(friend.avatar_url).replace(/^\\/+/, "").replace(/^avatars\\//i,"")).data?.publicUrl:"";
+    return '<a class="friend-card" href="user-profile.html?username='+encodeURIComponent(friend.username)+'">'+
+     (photo?'<img src="'+esc(photo)+'" alt="" loading="lazy">':'<span>👤</span>')+
+     '<span><strong>'+esc(friend.display_name||friend.username)+'</strong><small>@'+esc(friend.username)+' · '+esc(friend.membership_type||"Member")+'</small></span></a>';
+   }).join("")||'<div class="empty">No public friends to display.</div>';
+  }catch(error){console.error("Public friends error:",error);box.innerHTML='<div class="empty error">Friends could not be loaded.</div>';}
+ }
+ await loadPublicFriends();
  let postsQuery=db.from("community_posts").select("id,content,image_path,image_paths,created_at,is_removed").eq("author_id",user.id).order("created_at",{ascending:false}).limit(100);
  let videosQuery=db.from("videos").select("id,title,description,thumbnail_url,created_at,approval_status").eq("creator_id",user.id).order("created_at",{ascending:false}).limit(100);
  if(!adminMode){postsQuery=postsQuery.eq("is_removed",false);videosQuery=videosQuery.eq("approval_status","approved");}
