@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Empire — Admin</title>
+<title>EMPIRE — Emperor Panel</title>
 
 <style>
 *{
@@ -150,6 +150,43 @@ h1{
 .panel h2{
   font-size:21px;
   margin-bottom:18px;
+}
+
+/* COMPACT ECONOMIC SETTINGS */
+.economic-settings-panel{
+  padding:16px 18px;
+  margin-bottom:16px;
+  border-radius:12px;
+}
+.economic-settings-panel h2{
+  font-size:17px;
+  margin-bottom:12px;
+}
+.economic-settings-panel .form-grid{
+  gap:11px 14px;
+}
+.economic-settings-panel .field{
+  gap:5px;
+}
+.economic-settings-panel label{
+  font-size:12px;
+}
+.economic-settings-panel input{
+  padding:9px 11px;
+  border-radius:8px;
+  font-size:13px;
+}
+.economic-settings-panel .actions{
+  margin-top:12px;
+  gap:8px;
+}
+.economic-settings-panel .btn{
+  padding:8px 12px;
+  font-size:12px;
+}
+.economic-settings-panel .status{
+  margin-top:8px;
+  font-size:12px;
 }
 
 .form-grid{
@@ -630,13 +667,13 @@ footer{
   <div class="page-title">
 
     <div class="eyebrow">
-      Empire Control Center
+      THE EMPEROR'S COMMAND
     </div>
 
-    <h1>Admin Panel</h1>
+    <h1>Emperor Panel</h1>
 
     <p>
-      Upload and manage your private video library.
+      Govern the EMPIRE platform, oversee its content, and manage its treasury and operations.
     </p>
 
   </div>
@@ -644,8 +681,8 @@ footer{
 
 
   <!-- ECONOMIC SETTINGS -->
-  <section class="panel" id="economicSettingsPanel">
-    <h2>⚙️ EMPIRE Economic Settings</h2>
+  <section class="panel economic-settings-panel" id="economicSettingsPanel">
+    <h2>⚙️ EMPIRE Treasury &amp; Economic Settings</h2>
     <p style="color:#888;font-size:13px;margin:-8px 0 18px">Update EMPC price and platform fees. Changes are recorded in the admin audit log.</p>
     <div class="form-grid">
       <div class="field"><label for="setting_empc_usd_price">💰 EMPC display price (USD)</label><input id="setting_empc_usd_price" type="number" min="0.00000001" max="1000000" step="0.00000001"></div>
@@ -937,7 +974,7 @@ footer{
 <footer>
 
   <div class="container">
-    Empire Admin Panel © 2026
+    EMPIRE Emperor Panel © 2026
   </div>
 
 </footer>
