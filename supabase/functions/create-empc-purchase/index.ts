@@ -107,6 +107,17 @@ Deno.serve(async (req) => {
       throw new Error("Could not calculate the EMPC purchase amount.");
     }
 
+    const { data: treasury, error: treasuryError } = await admin
+      .from("empire_wallets")
+      .select("balance")
+      .eq("id", "00000000-0000-0000-0000-000000000001")
+      .eq("wallet_type", "treasury")
+      .maybeSingle();
+    if (treasuryError) throw treasuryError;
+    if (!treasury || Number(treasury.balance) < expectedEmpc) {
+      return Response.json({ error: "The EMPC treasury currently cannot cover this purchase amount." }, { status: 409, headers: corsHeaders });
+    }
+
     const rail = PAYMENT_RAILS[paymentMethod as keyof typeof PAYMENT_RAILS];
     const { data: order, error: insertError } = await admin
       .from("empirecoin_purchase_orders")
