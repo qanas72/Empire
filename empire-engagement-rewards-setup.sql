@@ -106,6 +106,8 @@ declare v_user uuid:=auth.uid(); v_author uuid; v_existing text; v_like_count in
  v_amount numeric(30,8); v_enabled boolean; v_treasury public.empire_wallets%rowtype; v_wallet public.empire_wallets%rowtype; v_event uuid; v_rewarded boolean:=false;
 begin
  if v_user is null then raise exception 'Sign in required'; end if;
+ if not exists(select 1 from auth.users where id=v_user and email_confirmed_at is not null) then raise exception 'Confirm your email before reacting'; end if;
+ if not exists(select 1 from public.profiles where id=v_user and is_active=true) then raise exception 'Active account required'; end if;
  if p_reaction not in ('like','dislike') then raise exception 'Invalid reaction'; end if;
  select author_id into v_author from public.community_posts where id=p_post_id and is_removed=false;
  if not found then raise exception 'Publication not found'; end if;
