@@ -268,8 +268,33 @@
       border: 0 !important;
       border-radius: 0 !important;
       object-fit: cover;
-      background: transparent;
+      background: #17130e;
       display: block;
+    }
+    .avatar-large-wrap {
+      isolation: isolate;
+    }
+    .avatar-camera {
+      position: absolute;
+      right: 10px;
+      bottom: 10px;
+      z-index: 5;
+      width: 46px;
+      height: 46px;
+      display: flex !important;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid rgba(230,190,100,.85);
+      border-radius: 50%;
+      background: rgba(18,14,9,.94);
+      color: #f4d27a;
+      font-size: 22px;
+      line-height: 1;
+      cursor: pointer;
+      opacity: 1 !important;
+      visibility: visible !important;
+      pointer-events: auto;
+      box-shadow: 0 2px 12px rgba(0,0,0,.55);
     }
     .avatar-camera:hover { transform:scale(1.06); }
 
@@ -698,7 +723,7 @@
       .profile-about { text-align:left; }
       .avatar-stage { grid-row:1; }
       .avatar-large-wrap { width:200px; height:200px; }
-      .avatar-camera { width:40px; height:40px; }
+      .avatar-camera { width:44px; height:44px; right:8px; bottom:8px; }
       .profile-hero .identity h2 { font-size:29px; }
       .profile-hero .username { font-size:15px; margin-bottom:12px; }
 
@@ -1189,11 +1214,12 @@
       if (!large) return;
 
       if (url) {
-        large.style.visibility = "hidden";
+        large.style.visibility = "visible";
         large.onload = () => { large.style.visibility = "visible"; };
         large.onerror = () => {
+          console.error("Profile avatar failed to load:", url);
           large.removeAttribute("src");
-          large.style.visibility = "hidden";
+          large.style.visibility = "visible";
         };
         large.src = url;
         large.alt = "Profile photo";
@@ -1205,7 +1231,7 @@
       }
 
       large.removeAttribute("src");
-      large.style.visibility = "hidden";
+      large.style.visibility = "visible";
       large.alt = "";
       if (small) small.removeAttribute("src");
     }
