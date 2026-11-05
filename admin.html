@@ -438,6 +438,27 @@ input[type=file]{
   border-radius:12px;
 }
 
+.audit-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  padding:9px 12px;
+  border:1px solid rgba(245,217,139,.55);
+  border-radius:9px;
+  background:transparent;
+  font-size:12px;
+}
+.audit-main{display:flex;flex-direction:column;gap:2px;min-width:0}
+.audit-main strong{font-size:13px;color:#f1c75a}
+.audit-main span{color:#aaa}
+.audit-main b{color:#f1c75a}
+.audit-meta{display:flex;flex-direction:column;align-items:flex-end;gap:2px;color:#777;font-size:11px;text-align:right;flex-shrink:0}
+@media(max-width:600px){
+  .audit-row{align-items:flex-start;flex-direction:column;gap:5px;padding:9px 10px}
+  .audit-meta{align-items:flex-start;text-align:left}
+}
+  
 /* FOOTER */
 
 footer{
@@ -1167,13 +1188,10 @@ async function loadEconomicAudit(){
       const date = new Date(row.created_at);
       const dateText = Number.isNaN(date.getTime()) ? escapeHtml(row.created_at) : escapeHtml(date.toLocaleString());
       const actor = names[row.changed_by] || row.changed_by || "Unknown admin";
-      return '<div class="video-row" style="align-items:flex-start;flex-direction:column">' +
-        '<div class="video-title">' + escapeHtml(labels[row.setting_key] || row.setting_key) + '</div>' +
-        '<div class="video-description">👤 Admin: ' + escapeHtml(actor) + '</div>' +
-        '<div style="display:flex;gap:12px;flex-wrap:wrap;font-size:13px">' +
-        '<span>Old: <b>' + escapeHtml(row.old_value) + '</b></span>' +
-        '<span>New: <b style="color:#f1c75a">' + escapeHtml(row.new_value) + '</b></span></div>' +
-        '<div class="video-description">🕒 ' + dateText + '</div></div>';
+      return '<div class="audit-row">' +
+        '<div class="audit-main"><strong>' + escapeHtml(labels[row.setting_key] || row.setting_key) + '</strong>' +
+        '<span>Old: ' + escapeHtml(row.old_value) + ' → <b>' + escapeHtml(row.new_value) + '</b></span></div>' +
+        '<div class="audit-meta"><span>👤 ' + escapeHtml(actor) + '</span><span>🕒 ' + dateText + '</span></div></div>';
     }).join("");
   }catch(error){
     console.error("ECONOMIC AUDIT LOAD ERROR:",error);
