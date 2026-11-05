@@ -109,9 +109,9 @@ finally{if($("sendBtn")){$("sendBtn").disabled=false;$("sendBtn").textContent="S
 }
 $("search").addEventListener("input",renderPeople);
 (async()=>{try{const {data,error}=await db.auth.getUser();if(error)throw error;me=data?.user;if(!me){location.href="login.html";return;}
-const [m,w,v]=await Promise.all([
+const [m,w,v,s]=await Promise.all([
 db.from("public_user_profiles").select("id,username,display_name,avatar_url,membership_type").order("display_name").limit(300),
-loadWallet(),loadVip()]);
+loadWallet(),loadVip(),loadEconomicSettings()]);
 if(m.error)throw m.error;members=(m.data||[]).filter(x=>x.id!==me.id);renderPeople();
 const target=new URLSearchParams(location.search).get("user_id");if(target&&target!==me.id&&members.some(x=>x.id===target))await openChat(target);
 }catch(e){console.error(e);$("people").innerHTML='<div class="empty">Could not load messages. Please sign in and refresh the page.</div>';}})();
