@@ -253,6 +253,7 @@
     .avatar-large-wrap {
       width: 184px;
       height: 184px;
+      flex: 0 0 auto;
       padding: 6px;
       border-radius: 50%;
       background: linear-gradient(145deg, #fff2bd, #b78325 48%, #f7df91);
@@ -1170,58 +1171,116 @@
     function setAvatar(url) {
       const large = $("avatarLarge");
       const small = $("avatarSmall");
+      if (!large) return;
 
       if (url) {
-        large.src = url;
-        if (small) small.src = url;
-
         large.onerror = () => {
           large.removeAttribute("src");
+          large.alt = "Profile photo unavailable";
         };
-
-        if (small) small.onerror = () => {
-          if (small) small.removeAttribute("src");
-        };
-
+        large.src = url;
+        large.alt = "Profile photo";
+        if (small) {
+          small.onerror = () => small.removeAttribute("src");
+          small.src = url;
+        }
         return;
       }
 
-      if (large) {
-        large.removeAttribute("src");
-        large.alt = "Profile photo";
-      }
+      large.removeAttribute("src");
+      large.alt = "Profile photo";
       if (small) small.removeAttribute("src");
     }
 
-    async function getSignedAvatar(path) {
-      if (!path) return null;
-      if (/^https?:\/\//i.test(path)) return path;
+    function avatarImageLoads(url) {
+      return new Promise((resolve) => {
+        const image = new Image();
+        let finished = false;
+        const done = (loaded) => {
+          if (finished) return;
+          finished = true;
+          clearTimeout(timer);
+          image.onload = null;
+          image.onerror = null;
+          resolve(loaded);
+        };
+        const timer = setTimeout(() => done(false), 10000);
+        image.onload = () => done(image.naturalWidth > 0);
+        image.onerror = () => done(false);
+        image.src = url;
+      });
+    }
 
-      const rawPath = String(path).replace(/^\/+/, "");
+    async function getAvatarCandidates(path) {
+      if (!path) return [];
+      if (/^https?:\/\//i.test(path)) return [path];
+
+      const rawPath = String(path).trim().replace(/^\/+/, "");
       const objectPaths = [...new Set([
         rawPath.replace(/^avatars\//i, ""),
         rawPath
       ])];
+      const candidates = [];
 
-      // Try a signed URL first (works with private buckets), then public URL.
       for (const objectPath of objectPaths) {
+        const { data: publicData } = supabaseClient.storage
+          .from("avatars")
+          .getPublicUrl(objectPath);
+        if (publicData?.publicUrl) candidates.push(publicData.publicUrl);
+
         try {
           const { data, error } = await withProfileTimeout(
             supabaseClient.storage.from("avatars").createSignedUrl(objectPath, 3600),
             "Profile photo request",
             8000
           );
-          if (!error && data?.signedUrl) return data.signedUrl;
+          if (!error && data?.signedUrl) candidates.push(data.signedUrl);
         } catch (error) {
           console.warn("Signed avatar URL attempt failed:", error.message);
         }
-
-        const { data: publicData } = supabaseClient.storage
-          .from("avatars")
-          .getPublicUrl(objectPath);
-        if (publicData?.publicUrl) return publicData.publicUrl;
       }
-      return null;
+
+      return [...new Set(candidates)];
+    }
+
+    async function loadAvatar(profile) {
+      const paths = [];
+      if (profile?.avatar_url) paths.push(profile.avatar_url);
+
+      // Compatibility fallback for avatars uploaded by the previous version.
+      if (currentUser) {
+        try {
+          const { data, error } = await supabaseClient
+            .storage
+            .from("avatars")
+            .list(currentUser.id, {
+              limit: 100,
+              sortBy: { column: "created_at", order: "desc" }
+            });
+          if (error) throw error;
+
+          const files = (data || [])
+            .filter((file) => file.name && !file.name.startsWith("."))
+            .sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+
+          if (files.length) paths.push(`${currentUser.id}/${files[0].name}`);
+        } catch (error) {
+          console.warn("Avatar storage fallback could not list files:", error.message);
+        }
+      }
+
+      for (const path of [...new Set(paths)]) {
+        const candidates = await getAvatarCandidates(path);
+        for (const url of candidates) {
+          if (await avatarImageLoads(url)) {
+            setAvatar(url);
+            return;
+          }
+        }
+      }
+
+      console.warn("No accessible profile image could be loaded for this account.");
+      setAvatar(null);
     }
 
     function withProfileTimeout(promise, label, milliseconds = 12000) {
