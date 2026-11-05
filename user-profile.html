@@ -169,8 +169,16 @@ async function refreshMemberPresence(){const {data:p,error:presenceError}=await 
  if(postsResult.error)throw postsResult.error;
  if(videosResult.error)throw videosResult.error;
  const posts=postsResult.data||[];
+ const postIds=posts.map(p=>p.id);
+ let reactionMap=new Map();
+ if(postIds.length&&!adminMode){
+  const {data:reactionRows,error:reactionError}=await db.from("community_post_reactions").select("post_id,user_id,reaction").in("post_id",postIds);
+  if(reactionError)throw reactionError;
+  (reactionRows||[]).forEach(r=>{if(!reactionMap.has(r.post_id))reactionMap.set(r.post_id,{likes:0,dislikes:0});const x=reactionMap.get(r.post_id);if(r.reaction==="like")x.likes++;else x.dislikes++;});
+ }
  if(!posts.length)$("posts").innerHTML='<div class="empty">No public publications yet.</div>';
- else $("posts").innerHTML=posts.map(p=>{const paths=[...(Array.isArray(p.image_paths)?p.image_paths:[]),...(p.image_path&&!(p.image_paths||[]).includes(p.image_path)?[p.image_path]:[])];const imgs=paths.map(path=>{const {data:u}=db.storage.from("post-images").getPublicUrl(path);return u?.publicUrl?'<img src="'+esc(u.publicUrl)+'" alt="Publication image" loading="lazy">':"";}).join("");return '<article class="post"><div class="post-date">'+date(p.created_at)+' · <span class="gold">'+(p.is_removed?"Removed / Hidden":"Published")+'</span></div><div class="post-text">'+esc(p.content||"")+'</div>'+imgs+'</article>';}).join("");
+ else $("posts").innerHTML=posts.map(p=>{const paths=[...(Array.isArray(p.image_paths)?p.image_paths:[]),...(p.image_path&&!(p.image_paths||[]).includes(p.image_path)?[p.image_path]:[])];const imgs=paths.map(path=>{const {data:u}=db.storage.from("post-images").getPublicUrl(path);return u?.publicUrl?'<img src="'+esc(u.publicUrl)+'" alt="Publication image" loading="lazy">':"";}).join("");const stats=reactionMap.get(p.id)||{likes:0,dislikes:0};const actions=!adminMode&&currentUserId&&currentUserId!==user.id?'<div class="post-actions"><button type="button" data-react="like" data-post="'+p.id+'">👍 Like ('+stats.likes+')</button><button type="button" data-react="dislike" data-post="'+p.id+'">👎 Dislike ('+stats.dislikes+')</button></div>':'<div class="post-actions">👍 '+stats.likes+' · 👎 '+stats.dislikes+'</div>';return '<article class="post"><div class="post-date">'+date(p.created_at)+' · <span class="gold">'+(p.is_removed?"Removed / Hidden":"Published")+'</span></div><div class="post-text">'+esc(p.content||"")+'</div>'+imgs+actions+'</article>';}).join("");
+ $("posts").querySelectorAll("[data-react]").forEach(button=>button.addEventListener("click",async()=>{button.disabled=true;try{const {data,error}=await db.rpc("toggle_community_post_reaction",{p_post_id:button.dataset.post,p_reaction:button.dataset.react});if(error)throw error;const result=Array.isArray(data)?data[0]:data;if(result?.rewarded)alert("Like reward sent to the publication owner.");await load();}catch(error){alert(error.message||"Reaction could not be saved.");}finally{button.disabled=false;}}));
  const videos=videosResult.data||[];
  if(!videos.length)$("videos").innerHTML='<div class="empty">No '+(adminMode?"videos":"approved videos")+' yet.</div>';
  else $("videos").innerHTML=videos.map(v=>'<article class="video"><div class="post-date">'+date(v.created_at)+' · <span class="gold">'+(adminMode?esc(v.approval_status||"Unknown"): "Approved / Published")+'</span></div><div class="video-title">'+esc(v.title||"Untitled video")+'</div><div class="video-desc">'+esc(v.description||"")+'</div></article>').join("");
