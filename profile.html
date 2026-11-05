@@ -791,15 +791,22 @@
   display:flex;flex-wrap:wrap;justify-content:center;gap:10px;
   margin:2px 0 24px;
 }
-.profile-social-tabs span{
-  display:inline-flex;align-items:center;justify-content:center;
+.profile-social-tabs .social-tab{
+  display:inline-flex;align-items:center;justify-content:center;gap:7px;
   padding:9px 17px;min-height:40px;border:1px solid rgba(245,217,139,.9);
   border-radius:999px;background:transparent;color:#f5d98b;
-  font-size:13px;font-weight:700;text-shadow:0 1px 8px rgba(0,0,0,.85);
+  font-size:13px;font-weight:700;text-shadow:0 1px 8px rgba(0,0,0,.85);cursor:pointer;
 }
+.profile-social-tabs .social-tab.active{background:rgba(214,173,85,.18);border-color:#ffe39a}
+.profile-social-tabs .social-tab strong{color:#fff}
+#bioInput{width:100%;padding:13px 14px;border-radius:10px;border:1px solid #65532d;outline:none;color:#fff;background:rgba(9,10,14,.5);font:inherit;resize:vertical}
+#bioInput:focus{border-color:var(--gold)}
+.social-member{display:flex;align-items:center;gap:13px;padding:10px;border:1px solid rgba(245,217,139,.25);border-radius:12px}
+.social-member img{width:48px;height:48px;border-radius:50%;object-fit:cover;border:1px solid var(--gold)}
+.social-member strong{display:block}.social-member small{color:var(--muted)}
 @media(max-width:600px){
  .profile-social-tabs{gap:8px;margin-bottom:19px}
- .profile-social-tabs span{padding:8px 12px;min-height:37px;font-size:12px}
+ .profile-social-tabs .social-tab{padding:8px 12px;min-height:37px;font-size:12px}
 }
 
 /* EMPIRE avatar image preview */
@@ -888,11 +895,26 @@
     </section>
 
     <nav class="profile-social-tabs" aria-label="Profile sections">
-      <span>👥 Followers</span>
-      <span>🤝 Friends</span>
-      <span>❤️ Likes</span>
-      <span>👤 About Me</span>
+      <button type="button" class="social-tab" data-social-tab="followers">👥 Followers <strong id="followersTabCount">—</strong></button>
+      <button type="button" class="social-tab" data-social-tab="friends">🤝 Friends <strong id="friendsTabCount">—</strong></button>
+      <button type="button" class="social-tab" data-social-tab="bio">👤 Bio</button>
     </nav>
+    <section class="card hidden" id="socialPanel">
+      <h2 class="section-title" id="socialPanelTitle">Community</h2>
+      <div id="socialPanelContent" class="list"><div class="loading">Select a section above.</div></div>
+    </section>
+    <section class="card" id="bioCard">
+      <h2 class="section-title">👤 Bio <small>Optional public information</small></h2>
+      <div id="bioDisplay" class="help-text" style="white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.8">No Bio added yet.</div>
+      <div id="bioEditor" style="margin-top:15px">
+        <div class="field">
+          <label for="bioInput">Tell other members a little about yourself (optional)</label>
+          <textarea id="bioInput" maxlength="500" rows="4" placeholder="Write something about yourself..."></textarea>
+          <small class="help-text">Up to 500 characters. You can leave this empty or change it at any time.</small>
+        </div>
+        <div class="form-actions"><button type="button" class="btn btn-gold" id="saveBioButton">Save Bio</button></div>
+      </div>
+    </section>
 
     <!-- Compact display-name editor -->
     <section class="card profile-edit-card">
@@ -1368,6 +1390,114 @@
       ]).finally(() => clearTimeout(timer));
     }
 
+    function publicAvatarUrl(path) {
+      if (!path) return "";
+      if (/^https?:\\/\\//i.test(path)) return path;
+      const clean = String(path).replace(/^\\/+/, "").replace(/^avatars\\//i, "");
+      return supabaseClient.storage.from("avatars").getPublicUrl(clean).data?.publicUrl || "";
+    }
+
+    let socialConnections = { followers: [], following: [], friends: [] };
+
+    async function loadSocialConnections() {
+      if (!currentUser) return;
+      const panel = $("socialPanelContent");
+      if (panel) panel.innerHTML = '<div class="loading">Loading community connections...</div>';
+      const [followersResult, followingResult] = await Promise.all([
+        supabaseClient.from("user_follows").select("follower_id").eq("following_id", currentUser.id),
+        supabaseClient.from("user_follows").select("following_id").eq("follower_id", currentUser.id)
+      ]);
+      if (followersResult.error) throw followersResult.error;
+      if (followingResult.error) throw followingResult.error;
+      const followerIds = (followersResult.data || []).map(x => x.follower_id);
+      const followingIds = (followingResult.data || []).map(x => x.following_id);
+      const friendIds = followerIds.filter(id => followingIds.includes(id));
+      const allIds = [...new Set([...followerIds, ...friendIds])];
+      let members = [];
+      if (allIds.length) {
+        const { data, error } = await supabaseClient.from("public_user_profiles")
+          .select("id,username,display_name,avatar_url,membership_type")
+          .in("id", allIds);
+        if (error) throw error;
+        members = data || [];
+      }
+      const byId = new Map(members.map(m => [m.id, m]));
+      socialConnections = {
+        followers: followerIds.map(id => byId.get(id)).filter(Boolean),
+        following: followingIds.map(id => byId.get(id)).filter(Boolean),
+        friends: friendIds.map(id => byId.get(id)).filter(Boolean)
+      };
+      $("followersTabCount").textContent = socialConnections.followers.length;
+      $("friendsTabCount").textContent = socialConnections.friends.length;
+      if (panel && ! $("socialPanel").classList.contains("hidden")) {
+        const active = document.querySelector("[data-social-tab].active")?.dataset.socialTab;
+        if (active === "followers" || active === "friends") renderSocialTab(active);
+      }
+    }
+
+    function renderSocialTab(type) {
+      const panel = $("socialPanel");
+      const content = $("socialPanelContent");
+      const title = $("socialPanelTitle");
+      if (!panel || !content) return;
+      panel.classList.remove("hidden");
+      document.querySelectorAll("[data-social-tab]").forEach(button =>
+        button.classList.toggle("active", button.dataset.socialTab === type)
+      );
+      if (type === "bio") {
+        title.textContent = "Your Bio";
+        $("bioCard").scrollIntoView({ behavior: "smooth", block: "start" });
+        panel.classList.add("hidden");
+        return;
+      }
+      const label = type === "followers" ? "Followers" : "Friends";
+      const members = socialConnections[type] || [];
+      title.textContent = label + " (" + members.length + ")";
+      if (!members.length) {
+        content.innerHTML = '<div class="empty-state">No ' + label.toLowerCase() + ' to display yet.</div>';
+        return;
+      }
+      content.innerHTML = members.map(member => {
+        const photo = publicAvatarUrl(member.avatar_url);
+        const image = photo ? '<img src="' + escapeHTML(photo) + '" alt="" loading="lazy">' : '<span class="social-avatar-fallback">👤</span>';
+        return '<a class="social-member" href="user-profile.html?username=' + encodeURIComponent(member.username) + '">' +
+          image + '<span><strong>' + escapeHTML(member.display_name || member.username) +
+          '</strong><small>@' + escapeHTML(member.username) + ' · ' + escapeHTML(member.membership_type || "Member") +
+          '</small></span></a>';
+      }).join("");
+      panel.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    async function saveBio() {
+      if (!currentUser) return;
+      const value = $("bioInput").value.trim();
+      if (value.length > 500) {
+        showNotice("Bio cannot exceed 500 characters.", "error");
+        return;
+      }
+      const button = $("saveBioButton");
+      button.disabled = true;
+      button.textContent = "Saving...";
+      try {
+        const { data, error } = await supabaseClient.from("profiles")
+          .update({ bio: value })
+          .eq("id", currentUser.id)
+          .select("id,bio")
+          .maybeSingle();
+        if (error) throw error;
+        if (!data) throw new Error("Bio was not saved. Please check your profile permissions.");
+        currentProfile = { ...currentProfile, ...data };
+        $("bioDisplay").textContent = data.bio || "No Bio added yet.";
+        showNotice("Your Bio has been saved.");
+      } catch (error) {
+        console.error("Save Bio error:", error);
+        showNotice(error.message || "Could not save your Bio.", "error");
+      } finally {
+        button.disabled = false;
+        button.textContent = "Save Bio";
+      }
+    }
+
     async function loadProfile() {
       const { data: authData, error: authError } =
         await supabaseClient.auth.getUser();
@@ -1414,6 +1544,15 @@
       }
 
       currentProfile = data;
+
+      $("bioInput").value = data.bio || "";
+      $("bioDisplay").textContent = data.bio || "No Bio added yet.";
+      loadSocialConnections().catch(error => {
+        console.error("Social connections error:", error);
+        $("followersTabCount").textContent = "—";
+        $("friendsTabCount").textContent = "—";
+        $("socialPanelContent").innerHTML = '<div class="empty-state">Connections could not be loaded. Please refresh the page.</div>';
+      });
 
       $("displayName").textContent =
         data.display_name || data.username || "Empire Member";
@@ -2091,6 +2230,10 @@
     });
 
     $("profileForm").addEventListener("submit", saveProfile);
+    $("saveBioButton").addEventListener("click", saveBio);
+    document.querySelectorAll("[data-social-tab]").forEach(button => {
+      button.addEventListener("click", () => renderSocialTab(button.dataset.socialTab));
+    });
 
     $("choosePhotoButton").addEventListener("click", () => {
       if (!avatarUploadInProgress) $("avatarFile").click();
