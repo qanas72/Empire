@@ -1308,8 +1308,8 @@
       const savedPath = profile?.avatar_url ? String(profile.avatar_url).trim() : "";
       if (savedPath) {
         const objectPath = savedPath
-          .replace(/^\\/+/, "")
-          .replace(/^avatars\\//i, "");
+          .replace(/^\/+/, "")
+          .replace(/^avatars\//i, "");
         const { data, error } = supabaseClient.storage
           .from("avatars")
           .getPublicUrl(objectPath);
