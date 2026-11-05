@@ -702,6 +702,22 @@ footer{
   </section>
 
 
+  <!-- INTERNAL EMPC TREASURY OVERVIEW -->
+  <section class="panel" id="treasuryWalletPanel">
+    <h2>🏦 EMPIRE Treasury Wallet</h2>
+    <p style="color:#888;font-size:13px;margin:-8px 0 18px">Live internal ledger overview. USD figures are estimates calculated from the current EMPC reference price.</p>
+    <div class="form-grid">
+      <div class="field"><label>🏦 Treasury wallet balance</label><div id="treasuryBalance" style="font-size:25px;font-weight:900;color:#f1c75a">Loading...</div></div>
+      <div class="field"><label>👥 EMPC held in member wallets</label><div id="memberWalletTotal" style="font-size:25px;font-weight:900">Loading...</div></div>
+      <div class="field"><label>🪙 Total internal EMPC supply (all wallets)</label><div id="totalEmpcSupply" style="font-size:25px;font-weight:900">Loading...</div></div>
+      <div class="field"><label>💵 Estimated total value (USD)</label><div id="totalEmpcUsd" style="font-size:25px;font-weight:900;color:#f1c75a">Loading...</div></div>
+      <div class="field full"><label>Current EMPC reference price</label><div id="treasuryEmpcPrice" style="font-size:16px">Loading...</div></div>
+    </div>
+    <div class="actions"><button class="btn btn-dark" id="refreshTreasuryBtn" onclick="loadTreasuryWallet()">↻ Refresh Treasury</button></div>
+    <div class="status" id="treasuryWalletStatus"></div>
+    <p style="color:#777;font-size:11px;margin-top:12px">Internal accounting only. This is not a blockchain token supply, cash reserve, USD backing, or guaranteed market value.</p>
+  </section>
+
   <!-- ECONOMIC AUDIT HISTORY: admins only -->
   <section class="panel" id="economicAuditPanel">
     <h2>🧾 Economic Change History</h2>
@@ -1183,6 +1199,37 @@ async function loadEconomicSettings(){
   }
 }
 
+
+async function loadTreasuryWallet(){
+  const status=document.getElementById("treasuryWalletStatus");
+  const button=document.getElementById("refreshTreasuryBtn");
+  try{
+    if(status){status.className="status";status.textContent="";}
+    if(button)button.disabled=true;
+    const [{data:wallets,error:walletError},{data:priceRow,error:priceError}]=await Promise.all([
+      supabaseClient.from("empire_wallets").select("wallet_type,balance"),
+      supabaseClient.from("empire_economic_settings").select("setting_value").eq("setting_key","empc_usd_price").maybeSingle()
+    ]);
+    if(walletError)throw walletError;
+    if(priceError)throw priceError;
+    const rows=wallets||[];
+    const treasury=rows.filter(w=>w.wallet_type==="treasury").reduce((n,w)=>n+Number(w.balance||0),0);
+    const members=rows.filter(w=>w.wallet_type==="user").reduce((n,w)=>n+Number(w.balance||0),0);
+    const total=treasury+members;
+    const price=Number(priceRow?.setting_value||0);
+    const fmt=n=>n.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:8});
+    document.getElementById("treasuryBalance").textContent=fmt(treasury)+" EMPC";
+    document.getElementById("memberWalletTotal").textContent=fmt(members)+" EMPC";
+    document.getElementById("totalEmpcSupply").textContent=fmt(total)+" EMPC";
+    document.getElementById("totalEmpcUsd").textContent=price>0?"$"+fmt(total*price):"Price unavailable";
+    document.getElementById("treasuryEmpcPrice").textContent=price>0?"1 EMPC = $"+price.toFixed(8)+" USD":"Reference price not set";
+    if(status){status.textContent="Treasury wallet data updated.";status.className="status show success";}
+  }catch(error){
+    console.error("TREASURY WALLET LOAD ERROR:",error);
+    if(status){status.textContent="Could not load treasury wallet: "+(error.message||"Unknown error");status.className="status show error";}
+    ["treasuryBalance","memberWalletTotal","totalEmpcSupply","totalEmpcUsd","treasuryEmpcPrice"].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent="Unavailable";});
+  }finally{if(button)button.disabled=false;}
+}
 
 async function loadEconomicAudit(){
   const list = document.getElementById("economicAuditList");
@@ -2295,6 +2342,8 @@ async function logout(){
     updatePriceVisibility();
 
     await loadEconomicSettings();
+
+    await loadTreasuryWallet();
 
     await loadEconomicAudit();
 
