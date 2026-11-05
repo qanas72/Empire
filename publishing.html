@@ -100,7 +100,7 @@ async function loadFeed(){
    const author=authorMap.get(p.author_id);
    const ownProfile=!!user&&user.id===p.author_id;
    let authorHtml="";
-   if(adminIds.has(p.author_id)) authorHtml='<div class="post-admin"><span class="post-admin-mark">♛</span><span>EMPIRE Administration</span></div>';
+   if(adminIds.has(p.author_id)) authorHtml='<div class="post-admin"><span class="post-admin-mark">♛</span><span>EMPIRE</span></div>';
    else {
     const displayName=author?.display_name||author?.username||p.author_name||"Empire Member";
     const avatarUrl=author?.avatar_url?db.storage.from("avatars").getPublicUrl(author.avatar_url).data?.publicUrl:null;
