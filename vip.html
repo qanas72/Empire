@@ -215,6 +215,7 @@
   <h2>Publish a Video</h2>
 
   <span class="badge">VIP MEMBERS ONLY</span>
+  <p class="small" id="videoFeeDisplay">Publishing fee: Loading...</p>
 
   <p class="small">
     Submit your original content for review. Your video will not
@@ -317,6 +318,7 @@
   const myVideos = document.getElementById("myVideos");
 
   let currentUser = null;
+  let videoPublishFee = null;
 
   function showMessage(text, error = false) {
     message.textContent = text;
@@ -328,6 +330,21 @@
       .normalize("NFKD")
       .replace(/[^a-zA-Z0-9._-]/g, "_")
       .slice(-100) || "upload";
+  }
+
+  async function loadVideoPublishFee() {
+    const { data, error } = await client
+      .from("empire_economic_settings")
+      .select("setting_value")
+      .eq("setting_key", "video_publish_fee")
+      .maybeSingle();
+    if (error) throw error;
+    if (!data || data.setting_value === null || !Number.isFinite(Number(data.setting_value)) || Number(data.setting_value) < 0) {
+      throw new Error("Video publishing fee setting is unavailable.");
+    }
+    videoPublishFee = Number(data.setting_value);
+    document.getElementById("videoFeeDisplay").textContent =
+      "Publishing fee: " + videoPublishFee.toLocaleString() + " EMPC per video. The fee is transferred to the EMPIRE treasury after successful submission.";
   }
 
   async function getActiveVIP() {
@@ -365,6 +382,7 @@
         return;
       }
 
+      await loadVideoPublishFee();
       panel.classList.remove("hidden");
       showMessage("Your VIP membership is active. Welcome to Creator Studio.");
 
@@ -468,6 +486,7 @@
 
     let uploadedVideoPath = null;
     let uploadedThumbnailPath = null;
+    let submissionCompleted = false;
 
     try {
       showMessage("Verifying your VIP membership...");
@@ -517,24 +536,21 @@
         thumbnailPath = uploadedThumbnailPath;
       }
 
-      showMessage("Submitting video for administrator review...");
+      showMessage("Submitting video and processing the publishing fee...");
 
-      const { error: insertError } = await client
-        .from("videos")
-        .insert({
-          title,
-          description,
-          video_path: uploadedVideoPath,
-          thumbnail_url: thumbnailPath,
-          creator_id: currentUser.id,
-          access_type: "free",
-          approval_status: "pending",
-          reviewed_at: null,
-          reviewed_by: null,
-          rejection_reason: null
-        });
+      const { data: videoId, error: submitError } = await client.rpc(
+        "submit_empire_video",
+        {
+          p_title: title,
+          p_description: description,
+          p_video_path: uploadedVideoPath,
+          p_thumbnail_path: thumbnailPath
+        }
+      );
 
-      if (insertError) throw insertError;
+      if (submitError) throw submitError;
+      if (!videoId) throw new Error("The server did not confirm video submission.");
+      submissionCompleted = true;
 
       form.reset();
 
@@ -547,11 +563,11 @@
     } catch (error) {
       console.error(error);
 
-      if (uploadedVideoPath) {
+      if (!submissionCompleted && uploadedVideoPath) {
         await client.storage.from("videos").remove([uploadedVideoPath]);
       }
 
-      if (uploadedThumbnailPath) {
+      if (!submissionCompleted && uploadedThumbnailPath) {
         await client.storage.from("videos").remove([uploadedThumbnailPath]);
       }
 
