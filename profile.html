@@ -798,14 +798,14 @@
 <body>
 
   <header class="topbar">
-    <a class="brand" href="/Empire/index.html#home" aria-label="Empire Home"><span class="brand-mark" aria-hidden="true">👑</span><span class="brand-name">𝑬𝒎𝒑𝒊𝒓𝒆</span></a>
+    <a class="brand" href="index.html#home" aria-label="Empire Home"><span class="brand-mark" aria-hidden="true">👑</span><span class="brand-name">𝑬𝒎𝒑𝒊𝒓𝒆</span></a>
 
     <nav class="nav-links" aria-label="Main navigation">
-      <a href="/Empire/index.html#home">🏡 Home</a>
-      <a href="/Empire/publishing.html">📝 Publishing</a>
-      <a href="/Empire/premium.html">👑 Premium</a>
+      <a href="index.html#home">🏡 Home</a>
+      <a href="publishing.html">📝 Publishing</a>
+      <a href="premium.html">👑 Premium</a>
       <div class="nav-secondary">
-        <a href="/Empire/messages.html">💬 Messaging</a>
+        <a href="messages.html">💬 Messaging</a>
         <button type="button" class="nav-logout" onclick="document.getElementById('logoutButton').click()">🚪 Logout</button>
       </div>
     </nav>
@@ -904,7 +904,7 @@
       </div>
 
       <div class="form-actions">
-        <a href="/Empire/premium.html" class="btn btn-gold">
+        <a href="premium.html" class="btn btn-gold">
           Explore Premium
         </a>
       </div>
@@ -935,19 +935,19 @@
 
     <!-- Rank and EmpireCoin -->
     <section class="feature-grid">
-      <a class="feature-card" href="/Empire/publishing.html">
+      <a class="feature-card" href="publishing.html">
         <div class="feature-icon">✍️</div>
         <h3>Empire Publishing</h3>
         <p>Publish text and images, explore community publications and report content that breaks the rules.</p>
         <span class="coming-soon">OPEN PUBLISHING</span>
       </a>
 
-      <a class="feature-card" href="/Empire/premium.html">
+      <a class="feature-card" href="premium.html">
         <div class="feature-icon">♛</div><h3>Premium Membership</h3>
         <p>Explore membership plans and premium benefits.</p><span class="coming-soon">EXPLORE PREMIUM</span>
       </a>
 
-      <a class="feature-card" id="vipCreatorCard" href="/Empire/vip.html" style="display:none">
+      <a class="feature-card" id="vipCreatorCard" href="vip.html" style="display:none">
         <div class="feature-icon">🎬</div><h3>VIP Video Publishing</h3>
         <p>Upload videos and follow their review status.</p><span class="coming-soon">VIP CREATOR STUDIO</span>
       </a>
@@ -1297,7 +1297,7 @@
         await supabaseClient.auth.getUser();
 
       if (authError || !authData?.user) {
-        window.location.href = "/Empire/login.html";
+        window.location.href = "login.html";
         return;
       }
 
@@ -1852,7 +1852,7 @@
         return;
       }
 
-      window.location.href = "/Empire/login.html";
+      window.location.href = "login.html";
     }
 
     async function deleteAccount() {
@@ -1916,7 +1916,7 @@
 
         await supabaseClient.auth.signOut();
 
-        window.location.href = "/Empire/login.html";
+        window.location.href = "login.html";
       } catch (error) {
         console.error("Delete account error:", error);
 
