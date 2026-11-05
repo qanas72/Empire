@@ -642,6 +642,18 @@ footer{
     <p style="color:#777;font-size:11px;margin-top:12px">These are internal EMPC platform settings, not a live market price or a guarantee of exchange, withdrawal, or profit. Saving settings does not change wallet balances.</p>
   </section>
 
+
+  <!-- ECONOMIC AUDIT HISTORY: admins only -->
+  <section class="panel" id="economicAuditPanel">
+    <h2>🧾 Economic Change History</h2>
+    <p style="color:#888;font-size:13px;margin:-8px 0 18px">Admin-only audit history. Each entry records who changed a setting, when, and the old and new values.</p>
+    <div class="actions" style="margin-top:0;margin-bottom:15px">
+      <button class="btn btn-dark" id="refreshEconomicAuditBtn" onclick="loadEconomicAudit()">↻ Refresh History</button>
+    </div>
+    <div id="economicAuditStatus" class="status"></div>
+    <div id="economicAuditList" class="video-list"><div class="empty">Loading audit history...</div></div>
+  </section>
+
   <!-- UPLOAD -->
 
   <section class="panel">
@@ -1109,6 +1121,65 @@ async function loadEconomicSettings(){
     console.error("ECONOMIC SETTINGS LOAD ERROR:", error);
     status.textContent = "Could not load settings: " + (error.message || "Unknown error");
     status.className = "status show error";
+  }
+}
+
+
+async function loadEconomicAudit(){
+  const list = document.getElementById("economicAuditList");
+  const status = document.getElementById("economicAuditStatus");
+  const button = document.getElementById("refreshEconomicAuditBtn");
+  if(!currentUser){ list.innerHTML = '<div class="empty">Admin authentication required.</div>'; return; }
+  button.disabled = true;
+  list.innerHTML = '<div class="empty">Loading audit history...</div>';
+  status.className = "status";
+  status.textContent = "";
+  try{
+    // The table's RLS policy independently restricts SELECT to verified admins.
+    const { data, error } = await supabaseClient
+      .from("empire_economic_setting_logs")
+      .select("id,setting_key,old_value,new_value,changed_by,created_at")
+      .order("created_at",{ascending:false})
+      .limit(100);
+    if(error) throw error;
+    const rows = data || [];
+    if(!rows.length){
+      list.innerHTML = '<div class="empty">No economic changes have been recorded yet.</div>';
+      return;
+    }
+    const ids = [...new Set(rows.map(row => row.changed_by).filter(Boolean))];
+    let names = {};
+    if(ids.length){
+      const { data: profiles, error: profileError } = await supabaseClient
+        .from("profiles").select("id,username,display_name").in("id",ids);
+      if(profileError) console.warn("Could not resolve admin display names:",profileError);
+      for(const p of (profiles || [])) names[p.id] = p.display_name || p.username || p.id;
+    }
+    const labels = {
+      empc_usd_price:"EMPC display price (USD)",
+      message_fee_regular:"Regular message fee (EMPC)",
+      message_fee_vip:"VIP message fee (EMPC)",
+      video_publish_fee:"Video publishing fee (EMPC)",
+      exchange_min_holding:"Minimum holding (EMPC)",
+      exchange_holding_months:"Holding period (months)"
+    };
+    list.innerHTML = rows.map(row => {
+      const date = new Date(row.created_at);
+      const dateText = Number.isNaN(date.getTime()) ? escapeHtml(row.created_at) : escapeHtml(date.toLocaleString());
+      const actor = names[row.changed_by] || row.changed_by || "Unknown admin";
+      return '<div class="video-row" style="align-items:flex-start;flex-direction:column">' +
+        '<div class="video-title">' + escapeHtml(labels[row.setting_key] || row.setting_key) + '</div>' +
+        '<div class="video-description">👤 Admin: ' + escapeHtml(actor) + '</div>' +
+        '<div style="display:flex;gap:12px;flex-wrap:wrap;font-size:13px">' +
+        '<span>Old: <b>' + escapeHtml(row.old_value) + '</b></span>' +
+        '<span>New: <b style="color:#f1c75a">' + escapeHtml(row.new_value) + '</b></span></div>' +
+        '<div class="video-description">🕒 ' + dateText + '</div></div>';
+    }).join("");
+  }catch(error){
+    console.error("ECONOMIC AUDIT LOAD ERROR:",error);
+    list.innerHTML = '<div class="empty">Could not load audit history: ' + escapeHtml(error.message || "Unknown error") + '</div>';
+  }finally{
+    button.disabled = false;
   }
 }
 
@@ -2160,6 +2231,8 @@ async function logout(){
     updatePriceVisibility();
 
     await loadEconomicSettings();
+
+    await loadEconomicAudit();
 
     await loadVideos();
 
