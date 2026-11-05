@@ -1315,8 +1315,28 @@
     }
 
     async function loadProfile() {
-      const { data: authData, error: authError } =
-        await supabaseClient.auth.getUser();
+      $("displayName").textContent = "Connecting to account...";
+      $("heroUsername").textContent = "Please wait";
+
+      let authResult;
+      try {
+        authResult = await withProfileTimeout(
+          supabaseClient.auth.getUser(),
+          "Account authentication request",
+          12000
+        );
+      } catch (authRequestError) {
+        console.error("Account authentication request failed:", authRequestError);
+        $("displayName").textContent = "Connection timed out";
+        $("heroUsername").textContent = "Refresh the page";
+        showNotice(
+          "The profile page could not reach Supabase authentication. Check your internet connection and refresh. No profile or photo data was changed.",
+          "error"
+        );
+        return;
+      }
+
+      const { data: authData, error: authError } = authResult;
 
       if (authError || !authData?.user) {
         window.location.href = "login.html";
