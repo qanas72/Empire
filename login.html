@@ -111,6 +111,34 @@
       box-shadow: 0 0 0 2px rgba(201, 154, 53, 0.12);
     }
 
+    .password-field {
+      position: relative;
+      width: 100%;
+    }
+
+    .password-field input {
+      padding-right: 76px;
+    }
+
+    .password-toggle {
+      position: absolute;
+      top: 50%;
+      right: 12px;
+      transform: translateY(-50%);
+      border: 0;
+      background: transparent;
+      color: #f1c75a;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      padding: 6px;
+    }
+
+    .password-toggle:focus-visible {
+      outline: 1px solid #f1c75a;
+      border-radius: 5px;
+    }
+
     .main-button {
       width: 100%;
       margin-top: 24px;
@@ -285,13 +313,16 @@
           Password
         </label>
 
-        <input
-          id="loginPassword"
-          type="password"
-          required
-          autocomplete="current-password"
-          placeholder="Enter your password"
-        >
+        <div class="password-field">
+          <input
+            id="loginPassword"
+            type="password"
+            required
+            autocomplete="current-password"
+            placeholder="Enter your password"
+          >
+          <button class="password-toggle" type="button" data-password-target="loginPassword" aria-label="Show password" aria-pressed="false">Show</button>
+        </div>
 
         <button
           id="loginButton"
@@ -366,28 +397,34 @@
           Password
         </label>
 
-        <input
-          id="signupPassword"
-          type="password"
-          required
-          minlength="6"
-          autocomplete="new-password"
-          placeholder="Create a password"
-        >
+        <div class="password-field">
+          <input
+            id="signupPassword"
+            type="password"
+            required
+            minlength="6"
+            autocomplete="new-password"
+            placeholder="Create a password"
+          >
+          <button class="password-toggle" type="button" data-password-target="signupPassword" aria-label="Show password" aria-pressed="false">Show</button>
+        </div>
 
 
         <label for="signupConfirmPassword">
           Confirm Password
         </label>
 
-        <input
-          id="signupConfirmPassword"
-          type="password"
-          required
-          minlength="6"
-          autocomplete="new-password"
-          placeholder="Confirm your password"
-        >
+        <div class="password-field">
+          <input
+            id="signupConfirmPassword"
+            type="password"
+            required
+            minlength="6"
+            autocomplete="new-password"
+            placeholder="Confirm your password"
+          >
+          <button class="password-toggle" type="button" data-password-target="signupConfirmPassword" aria-label="Show password" aria-pressed="false">Show</button>
+        </div>
 
 
         <div class="signup-confirmations">
@@ -514,6 +551,23 @@
           ? "#9cffb0"
           : "#ff9b9b";
     }
+
+
+    // ==========================================
+    // SHOW / HIDE PASSWORD
+    // ==========================================
+
+    document.querySelectorAll(".password-toggle").forEach(function(button) {
+      button.addEventListener("click", function() {
+        const input = document.getElementById(button.dataset.passwordTarget);
+        const shouldShow = input.type === "password";
+
+        input.type = shouldShow ? "text" : "password";
+        button.textContent = shouldShow ? "Hide" : "Show";
+        button.setAttribute("aria-label", shouldShow ? "Hide password" : "Show password");
+        button.setAttribute("aria-pressed", String(shouldShow));
+      });
+    });
 
 
     // ==========================================
