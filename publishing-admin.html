@@ -40,18 +40,26 @@ async function init(){
  $("message").textContent="Signed in as administrator.";
  await loadReports();
 }
+function profileCard(userId,profile,label){
+ if(!userId)return '<div class="muted">'+label+': unavailable</div>';
+ const p=profile||{};
+ const photo=p.avatar_url?db.storage.from("avatars").getPublicUrl(p.avatar_url).data?.publicUrl:"";
+ const img=photo?'<img src="'+esc(photo)+'" alt="" style="width:48px;height:48px;object-fit:cover;border-radius:50%;border:1px solid #80642f">':'<div style="width:48px;height:48px;border-radius:50%;display:grid;place-items:center;border:1px solid #80642f;color:#e8c36b">♙</div>';
+ return '<div style="display:flex;align-items:center;gap:10px;min-width:220px">'+img+'<div><div><b>'+esc(p.display_name||"Unknown user")+'</b></div><div class="muted">@'+esc(p.username||"unavailable")+'</div><div class="muted">'+esc(p.membership_type||"Account")+' · '+(p.is_active?"Active":"Inactive")+'</div><div class="actions" style="margin-top:5px"><button class="dismiss" data-warn="'+esc(userId)+'">Send warning</button></div></div></div>';
+}
 async function loadReports(){
- const {data,error}=await db.from("post_reports").select("id,post_id,reason,created_at,status,community_posts(id,author_id,author_name,content,image_path,image_paths,is_removed)").eq("status","pending").order("created_at",{ascending:false});
- if(error){$("reports").textContent="Could not load reports. Ensure publishing-setup.sql has been run.";return;}
- if(!data.length){$("reports").textContent="No pending reports.";return;}
+ const {data,error}=await db.from("post_reports").select("id,post_id,reporter_id,reason,created_at,status,community_posts(id,author_id,author_name,content,image_path,image_paths,is_removed)").eq("status","pending").order("created_at",{ascending:false});
+ if(error){$("reports").textContent="Could not load reports: "+error.message;return;}
+ if(!data?.length){$("reports").textContent="No pending reports.";return;}
+ const ids=[...new Set(data.flatMap(r=>[r.reporter_id,r.community_posts?.author_id]).filter(Boolean))];
+ const {data:profiles,error:profileError}=await db.rpc("admin_get_user_directory",{p_user_ids:ids});
+ if(profileError){$("reports").textContent="Reports loaded, but user profiles could not be retrieved: "+profileError.message+". Run emperor-user-directory-setup.sql.";return;}
+ const profileMap=Object.fromEntries((profiles||[]).map(p=>[p.user_id,p]));
  $("reports").innerHTML=data.map(r=>{
   const post=r.community_posts||{};
   const paths=[...(Array.isArray(post.image_paths)?post.image_paths:[]),...(post.image_path&&!(post.image_paths||[]).includes(post.image_path)?[post.image_path]:[])];
-  const images=paths.map(path=>{
-   const url=db.storage.from("post-images").getPublicUrl(path).data?.publicUrl;
-   return url?'<img src="'+esc(url)+'" alt="Reported publication image" loading="lazy" style="display:block;max-width:100%;max-height:360px;object-fit:contain;margin:12px 0;border:1px solid #80642f;border-radius:10px">':"";
-  }).join("");
-  return '<article class="report"><p class="status">Report • '+new Date(r.created_at).toLocaleString()+'</p><p><b>Reason:</b> '+esc(r.reason)+'</p><p><b>Publication by:</b> '+esc(post.author_name||"Unknown")+'</p><p class="muted">'+esc(post.content||"[Image-only publication]")+'</p>'+images+'<p class="muted">Publication ID: '+esc(r.post_id)+'</p><div class="actions"><button class="remove" data-remove="'+r.post_id+'" data-report="'+r.id+'">Remove publication</button><button class="dismiss" data-dismiss="'+r.id+'">Dismiss report</button>'+(post.author_id?'<button class="dismiss" data-warn="'+post.author_id+'">Send user warning</button>':"")+'</div></article>';
+  const images=paths.map(path=>{const url=db.storage.from("post-images").getPublicUrl(path).data?.publicUrl;return url?'<img src="'+esc(url)+'" alt="Reported publication image" loading="lazy" style="display:block;max-width:100%;max-height:360px;object-fit:contain;margin:12px 0;border:1px solid #80642f;border-radius:10px">':"";}).join("");
+  return '<article class="report"><p class="status">Report • '+new Date(r.created_at).toLocaleString()+'</p><p><b>Reason:</b> '+esc(r.reason)+'</p><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px;margin:12px 0"><div><p class="status">REPORTED USER</p>'+profileCard(post.author_id,profileMap[post.author_id],"Reported user")+'</div><div><p class="status">REPORTER</p>'+profileCard(r.reporter_id,profileMap[r.reporter_id],"Reporter")+'</div></div><p><b>Publication by:</b> '+esc(post.author_name||"Unknown")+'</p><p class="muted">'+esc(post.content||"[Image-only publication]")+'</p>'+images+'<p class="muted">Publication ID: '+esc(r.post_id)+'</p><div class="actions"><button class="remove" data-remove="'+r.post_id+'" data-report="'+r.id+'">Remove publication</button><button class="dismiss" data-dismiss="'+r.id+'">Dismiss report</button></div></article>';
  }).join("");
  $("reports").querySelectorAll("[data-remove]").forEach(b=>b.onclick=()=>moderate(b.dataset.report,b.dataset.remove,true));
  $("reports").querySelectorAll("[data-dismiss]").forEach(b=>b.onclick=()=>moderate(b.dataset.dismiss,null,false));
