@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>EMPIRE | My Publications</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{--gold:#e8c36b;--line:#493a20}*{box-sizing:border-box}body{margin:0;min-height:100vh;background:#080808;color:#f5f5f5;font-family:Arial,sans-serif}body:before{content:"";position:fixed;inset:0;z-index:-1;background:linear-gradient(#000b,#000e),url("profile-background-desktop.png") center/cover no-repeat}.top{position:sticky;top:0;z-index:5;padding:14px 5%;display:flex;justify-content:space-between;align-items:center;gap:12px;background:#090909ed;border-bottom:1px solid var(--line)}.brand{font-size:20px;font-weight:900;letter-spacing:1px;color:#ffe39a;text-decoration:none}.nav{display:flex;gap:14px;flex-wrap:wrap}.nav a{color:var(--gold);text-decoration:none;font-size:14px}.wrap{width:min(900px,92%);margin:28px auto 60px}.heading{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.heading h1{font-size:clamp(24px,4vw,32px);margin:0;color:var(--gold)}.muted{color:#aaa;font-size:13px}.card{border:1px solid rgba(245,217,139,.75);border-radius:14px;padding:18px;margin:16px 0;background:#08080855}.post,.video{border-top:1px solid #40351f;padding:17px 0}.post:first-child,.video:first-child{border-top:0}.meta{color:#aaa;font-size:12px;margin-bottom:9px}.content{white-space:pre-wrap;line-height:1.7;overflow-wrap:anywhere}.images{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin-top:12px}.images img{width:100%;max-height:280px;object-fit:contain;border-radius:9px;background:#111}.btn{border:1px solid #a77b2d;background:#17130c;color:#f5d98d;padding:9px 13px;border-radius:8px;font-weight:700;cursor:pointer}.btn:disabled{opacity:.5;cursor:wait}.danger{border-color:#873c35;color:#ffb6aa;background:#24100e}.empty,.loading{text-align:center;padding:22px;color:#aaa;border:1px dashed #49402e;border-radius:10px}.section-title{color:var(--gold);font-size:19px;margin:0 0 10px}.notice{padding:10px;border-radius:8px;background:#251c0b;color:#f5d98d;display:none;margin:12px 0}.notice.show{display:block}@media(max-width:600px){body:before{background:linear-gradient(#000b,#000e),url("profile-background-mobile.png") center/cover no-repeat}.top{padding:12px 4%;flex-wrap:wrap}.nav{width:100%;justify-content:space-between;border-top:1px solid #302817;padding-top:9px}.card{padding:14px}}
+</style>
+</head>
+<body>
+<header class="top"><a class="brand" href="index.html">👑 EMPIRE</a><nav class="nav"><a href="profile.html">My Profile</a><a href="publishing.html">Publishing</a><a href="index.html">Home</a></nav></header>
+<main class="wrap">
+<div class="heading"><h1>My Publications</h1><a class="btn" href="publishing.html">＋ Publish</a></div>
+<p class="muted">All your community posts and submitted videos in one place.</p><div id="notice" class="notice"></div>
+<section class="card"><h2 class="section-title">My Posts & Photos</h2><div id="posts" class="loading">Loading your publications...</div></section>
+<section class="card"><h2 class="section-title">My Videos</h2><div id="videos" class="loading">Loading your videos...</div></section>
+</main>
+<script>
+const db=window.supabase.createClient("https://vubjkwbkuwndkjqfnyom.supabase.co","sb_publishable_Ig1R3dpAKyBfjIGSUhhlKw_u-CQF0QQ");
+const $=id=>document.getElementById(id);
+const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const date=v=>v?new Date(v).toLocaleString():"—";
+function notice(msg,error=false){$("notice").textContent=msg;$("notice").style.display="block";$("notice").style.color=error?"#ffb6aa":"#f5d98d";}
+function imageUrl(path){return db.storage.from("post-images").getPublicUrl(path).data?.publicUrl||"";}
+async function load(){
+ const {data:session,error:sessionError}=await db.auth.getSession();
+ const user=session?.session?.user;if(sessionError||!user){location.href="login.html";return;}
+ const [postsResult,videosResult]=await Promise.all([
+  db.from("community_posts").select("id,author_id,content,image_path,image_paths,created_at,is_removed").eq("author_id",user.id).eq("is_removed",false).order("created_at",{ascending:false}).limit(200),
+  db.from("videos").select("id,title,description,created_at,approval_status,access_type,price").eq("creator_id",user.id).order("created_at",{ascending:false}).limit(200)
+ ]);
+ if(postsResult.error)throw postsResult.error;
+ if(videosResult.error)console.warn("Video list unavailable:",videosResult.error);
+ const posts=postsResult.data||[];
+ if(!posts.length)$("posts").innerHTML='<div class="empty">You have not published any posts yet.</div>';
+ else $("posts").innerHTML=posts.map(p=>{
+  const paths=[...(Array.isArray(p.image_paths)?p.image_paths:[]),...(p.image_path&&!(p.image_paths||[]).includes(p.image_path)?[p.image_path]:[])];
+  const imgs=paths.map(path=>{const url=imageUrl(path);return url?'<img src="'+esc(url)+'" alt="Your publication image" loading="lazy">':"";}).join("");
+  return '<article class="post" id="post-'+esc(p.id)+'"><div class="meta">'+date(p.created_at)+' · Your publication</div><div class="content">'+esc(p.content||"")+'</div>'+(imgs?'<div class="images">'+imgs+'</div>':"")+'<div style="margin-top:12px"><button class="btn danger" data-delete-post="'+esc(p.id)+'">Delete my post</button></div></article>';
+ }).join("");
+ if(videosResult.error){$("videos").innerHTML='<div class="empty">Could not load your videos: '+esc(videosResult.error.message)+'</div>';return;}
+ const videos=videosResult.data||[];
+ if(!videos.length)$("videos").innerHTML='<div class="empty">You have not submitted any videos yet.</div>';
+ else $("videos").innerHTML=videos.map(v=>'<article class="video"><div class="meta">'+date(v.created_at)+' · '+esc(v.approval_status||"Submitted")+'</div><div><b>'+esc(v.title||"Untitled video")+'</b></div><div class="muted">'+esc(v.description||"")+'</div></article>').join("");
+}
+$("posts").addEventListener("click",async e=>{
+ const btn=e.target.closest("[data-delete-post]");if(!btn)return;
+ const id=btn.dataset.deletePost;if(!confirm("Delete this publication permanently? This action cannot be undone."))return;
+ btn.disabled=true;btn.textContent="Deleting...";
+ try{
+  const {data:session}=await db.auth.getSession();const user=session?.session?.user;if(!user)throw new Error("Please sign in again.");
+  const {data:post,error:readError}=await db.from("community_posts").select("id,author_id,image_path,image_paths").eq("id",id).eq("author_id",user.id).single();
+  if(readError)throw readError;if(post.author_id!==user.id)throw new Error("You can delete only your own publication.");
+  const {error}=await db.from("community_posts").delete().eq("id",id).eq("author_id",user.id);if(error)throw error;
+  const paths=[...(Array.isArray(post.image_paths)?post.image_paths:[]),...(post.image_path&&!(post.image_paths||[]).includes(post.image_path)?[post.image_path]:[])];
+  if(paths.length){const {error:storageError}=await db.storage.from("post-images").remove(paths);if(storageError)console.warn("Post deleted, image cleanup needs attention:",storageError);}
+  document.getElementById("post-"+id)?.remove();if(!$("posts").querySelector(".post"))$("posts").innerHTML='<div class="empty">You have not published any posts yet.</div>';
+  notice("Your publication was deleted.");
+ }catch(err){notice(err.message||"Could not delete publication.",true);btn.disabled=false;btn.textContent="Delete my post";}
+});
+load().catch(e=>{console.error(e);$("posts").innerHTML='<div class="empty">Could not load your publications: '+esc(e.message)+'</div>';});
+</script>
+</body></html>
