@@ -1178,8 +1178,8 @@
 
       const objectPath = String(path)
         .trim()
-        .replace(/^\\/+/, "")
-        .replace(/^avatars\\//i, "");
+        .replace(/^\/+/, "")
+        .replace(/^avatars\//i, "");
 
       if (!objectPath) return null;
 
