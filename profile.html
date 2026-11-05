@@ -88,7 +88,7 @@
       flex-wrap: wrap;
       align-items: center;
       justify-content: flex-end;
-      gap: 8px 10px;
+      gap: 4px 8px;
       font-size: 13px;
       color: var(--muted);
       min-width: 0;
@@ -100,10 +100,10 @@
       justify-content: center;
       gap: 6px;
       min-height: 36px;
-      padding: 8px 12px;
-      border: 1px solid var(--border);
-      border-radius: 9px;
-      background: rgba(255,255,255,.035);
+      padding: 5px 7px;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
       color: inherit;
       white-space: nowrap;
       cursor: pointer;
@@ -117,6 +117,7 @@
     }
 
     .nav-links .nav-secondary { display:contents; }
+    .nav-links .nav-back { color:var(--gold-light); }
     .nav-links .nav-logout { color:#ffb7b7; border-color:rgba(255,100,100,.3); }
 
     .page {
@@ -818,7 +819,7 @@
     <a class="brand" href="index.html#home" aria-label="Empire Home"><span class="brand-mark" aria-hidden="true">👑</span><span class="brand-name">𝑬𝒎𝒑𝒊𝒓𝒆</span></a>
 
     <nav class="nav-links" aria-label="Main navigation">
-      <a href="index.html#home">🏡 Home</a>
+      <button type="button" class="nav-back" onclick="history.length>1?history.back():location.href='index.html#home'">← Back</button><a href="index.html#home">🏡 Home</a>
       <a href="publishing.html">📝 Publishing</a>
       <a href="premium.html">👑 Premium</a>
       <a href="support.html">Support & Help</a>
