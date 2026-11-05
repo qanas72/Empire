@@ -1218,8 +1218,7 @@
       if (url) {
         // Render as a CSS background instead of an IMG element. This avoids
         // the profile page's broken-image/alt-text behavior entirely.
-        const safeUrl = String(url).replace(/["\\\\]/g, "\\\\$&");
-        avatar.style.backgroundImage = 'url("' + safeUrl + '")';
+        avatar.style.backgroundImage = "url(" + JSON.stringify(String(url)) + ")";
         avatar.setAttribute("aria-label", "Profile photo");
         avatar.dataset.avatarUrl = url;
       } else {
