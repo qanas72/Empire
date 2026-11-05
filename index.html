@@ -840,7 +840,7 @@ text-shadow: 0 0 12px rgba(90, 170, 255, 0.4);
 <nav class="links" id="mainLinks">  
   <a href="#home" onclick="closeMenu()">Home</a>  
   <a href="#community" onclick="closeMenu()">Community</a>  
-  <a href="#videos" onclick="closeMenu()">Videos</a>  
+  <a href="#videos" onclick="closeMenu()">Videos</a>  <a href="raffle.html">Raffles</a>  
   <a href="members.html">Members</a>  
   <a href="about.html">About</a>  
 </nav>  
@@ -1036,8 +1036,8 @@ async function loadCommunityFeed(){
       }
       const report=currentSession?'<button type="button" onclick="reportCommunityPost(\''+escapeAttribute(post.id)+'\')">Report</button>':'';
       const stats=reactionMap.get(post.id)||{likes:0,dislikes:0,mine:null};
-      const canReact=!!currentSession&&currentSession.user.id!==post.author_id;
-      const actions='<div class="community-post-foot">'+(canReact?'<button type="button" data-react="like" data-post="'+post.id+'">👍 Like ('+stats.likes+')</button><button type="button" data-react="dislike" data-post="'+post.id+'">👎 Dislike ('+stats.dislikes+')</button>':'<span>👍 '+stats.likes+' · 👎 '+stats.dislikes+'</span>')+report+'</div>';
+      const canReact=!!currentSession&&currentSession.user.id!==post.author_id&&!stats.mine;
+      const actions='<div class="community-post-foot">'+(canReact?'<button type="button" data-react="like" data-post="'+post.id+'">👍 Like ('+stats.likes+')</button><button type="button" data-react="dislike" data-post="'+post.id+'">👎 Dislike ('+stats.dislikes+')</button>':'<span>👍 '+stats.likes+' · 👎 '+stats.dislikes+(stats.mine?' · Your reaction: '+(stats.mine==='like'?'Liked':'Disliked'):'')+'</span>')+report+'</div>';
       return '<article class="community-post"><div class="community-post-head"><div class="community-author">'+authorHtml+'</div><span>'+new Date(post.created_at).toLocaleString()+'</span></div><div class="community-post-body">'+escapeHtml(post.content||"")+'</div>'+image+actions+'</article>';
     }).join("");
     box.querySelectorAll("[data-react]").forEach(button=>button.addEventListener("click",async()=>{
