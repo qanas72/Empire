@@ -256,7 +256,7 @@
       height: 240px;
       flex: 0 0 auto;
       padding: 0;
-      border-radius: 8px;
+      border-radius: 0 !important;
       background: transparent;
       box-shadow: none;
       position: relative;
@@ -266,21 +266,12 @@
       width: 100%;
       height: 100%;
       border: 0 !important;
-      border-radius: 8px;
-      object-fit: contain;
+      border-radius: 0 !important;
+      object-fit: cover;
       background: transparent;
       display: block;
     }
     .avatar-camera:hover { transform:scale(1.06); }
-
-    .avatar-large {
-      width: 100%;
-      height: 100%;
-      border-radius: 50%;
-      object-fit: contain;
-      background: #242424;
-      display: block;
-    }
 
     .avatar-small-row {
       display: flex;
@@ -706,7 +697,7 @@
       .profile-main { grid-template-columns:1fr; gap:18px; }
       .profile-about { text-align:left; }
       .avatar-stage { grid-row:1; }
-      .avatar-large-wrap { width:136px; height:136px; }
+      .avatar-large-wrap { width:200px; height:200px; }
       .avatar-camera { width:40px; height:40px; }
       .profile-hero .identity h2 { font-size:29px; }
       .profile-hero .username { font-size:15px; margin-bottom:12px; }
@@ -1198,9 +1189,11 @@
       if (!large) return;
 
       if (url) {
+        large.style.visibility = "hidden";
+        large.onload = () => { large.style.visibility = "visible"; };
         large.onerror = () => {
           large.removeAttribute("src");
-          large.alt = "Profile photo unavailable";
+          large.style.visibility = "hidden";
         };
         large.src = url;
         large.alt = "Profile photo";
@@ -1212,7 +1205,8 @@
       }
 
       large.removeAttribute("src");
-      large.alt = "Profile photo";
+      large.style.visibility = "hidden";
+      large.alt = "";
       if (small) small.removeAttribute("src");
     }
 
@@ -1315,65 +1309,6 @@
           timer = setTimeout(() => reject(new Error(label + " timed out")), milliseconds);
         })
       ]).finally(() => clearTimeout(timer));
-    }
-
-    async function loadAvatar(profile) {
-      // First try the saved avatar path from the profile record.
-      if (profile?.avatar_url) {
-        const savedUrl = await getSignedAvatar(profile.avatar_url);
-
-        if (savedUrl) {
-          setAvatar(savedUrl);
-          return;
-        }
-      }
-
-      // Compatibility fallback for avatars uploaded by the previous version.
-      if (!currentUser) {
-        setAvatar(null);
-        return;
-      }
-
-      try {
-        const { data, error } = await supabaseClient
-          .storage
-          .from("avatars")
-          .list(currentUser.id, {
-            limit: 100,
-            sortBy: {
-              column: "created_at",
-              order: "desc"
-            }
-          });
-
-        if (error) throw error;
-
-        const files = (data || [])
-          .filter((file) => file.name && !file.name.startsWith("."))
-          .sort((a, b) => {
-            const aTime = new Date(a.created_at || 0).getTime();
-            const bTime = new Date(b.created_at || 0).getTime();
-
-            return bTime - aTime;
-          });
-
-        if (!files.length) {
-          setAvatar(null);
-          return;
-        }
-
-        const latestPath = `${currentUser.id}/${files[0].name}`;
-        const signedUrl = await getSignedAvatar(latestPath);
-
-        if (signedUrl) {
-          setAvatar(signedUrl);
-        } else {
-          setAvatar(null);
-        }
-      } catch (error) {
-        console.warn("Could not load avatar:", error.message);
-        setAvatar(null);
-      }
     }
 
     async function loadProfile() {
