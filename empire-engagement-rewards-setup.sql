@@ -232,11 +232,9 @@ begin
  if new.status<>'confirmed' or new.usd_amount<2 then return new; end if;
  select * into v_ref from public.empire_referrals where referred_user_id=new.user_id and status='pending' for update;
  if not found then return new; end if;
- select is_enabled into v_enabled from public.empire_reward_settings where setting_key='referral_reward_enabled';
- if not coalesce(v_enabled,false) then return new; end if;
  select exists(select 1 from public.vip_memberships where user_id=v_ref.referrer_user_id and lower(status)='active' and expires_at>now()) into v_is_vip;
- select setting_value into v_amount from public.empire_reward_settings where setting_key=case when v_is_vip then 'referral_reward_vip' else 'referral_reward_regular' end;
- if coalesce(v_amount,0)<=0 then return new; end if;
+ select setting_value,is_enabled into v_amount,v_enabled from public.empire_reward_settings where setting_key=case when v_is_vip then 'referral_reward_vip' else 'referral_reward_regular' end;
+ if not coalesce(v_enabled,false) or coalesce(v_amount,0)<=0 then return new; end if;
  v_key:='referral:'||v_ref.id::text;
  insert into public.empire_reward_events(event_key,recipient_user_id,source_user_id,reward_type,amount)
  values(v_key,v_ref.referrer_user_id,v_ref.referred_user_id,'referral',v_amount)
