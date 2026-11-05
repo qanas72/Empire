@@ -381,6 +381,12 @@
         >
 
 
+        <label for="signupReferralCode">
+          Referral Code (optional)
+        </label>
+        <input id="signupReferralCode" type="text" maxlength="20" autocomplete="off" placeholder="Enter invitation code">
+        <div class="hint">If someone invited you, enter their EMPIRE referral code.</div>
+
         <label for="signupEmail">
           Email
         </label>
@@ -534,6 +540,9 @@
 
     const message =
       document.getElementById("message");
+
+    const referralFromLink = new URLSearchParams(window.location.search).get("ref");
+    if (referralFromLink) document.getElementById("signupReferralCode").value = referralFromLink.trim().toUpperCase();
 
 
     // ==========================================
@@ -827,6 +836,8 @@
         const passwordPolicyAccepted =
           document.getElementById("confirmPasswordPolicy").checked;
 
+        const referralCode = (document.getElementById("signupReferralCode").value || "").trim().toUpperCase();
+
 
         try {
 
@@ -927,7 +938,8 @@
   emailRedirectTo: "https://qanas72.github.io/Empire/",
   data: {
     username,
-    display_name: displayName
+    display_name: displayName,
+    referral_code: referralCode
   }
 }
 
