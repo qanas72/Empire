@@ -45,7 +45,7 @@ function profileCard(userId,profile,label){
  const p=profile||{};
  const photo=p.avatar_url?db.storage.from("avatars").getPublicUrl(p.avatar_url).data?.publicUrl:"";
  const img=photo?'<img src="'+esc(photo)+'" alt="" style="width:48px;height:48px;object-fit:cover;border-radius:50%;border:1px solid #80642f">':'<div style="width:48px;height:48px;border-radius:50%;display:grid;place-items:center;border:1px solid #80642f;color:#e8c36b">♙</div>';
- return '<div style="display:flex;align-items:center;gap:10px;min-width:220px">'+img+'<div><div><b>'+esc(p.display_name||"Unknown user")+'</b></div><div class="muted">@'+esc(p.username||"unavailable")+'</div><div class="muted">'+esc(p.membership_type||"Account")+' · '+(p.is_active?"Active":"Inactive")+'</div><div class="actions" style="margin-top:5px"><button class="dismiss" data-warn="'+esc(userId)+'">Send warning</button></div></div></div>';
+ return '<div style="display:flex;align-items:center;gap:10px;min-width:220px">'+img+'<div><div><b>'+esc(p.display_name||"Unknown user")+'</b></div><div class="muted"><a href="user-profile.html?username='+encodeURIComponent(p.username||"")+"&admin=1"+'" target="_blank" rel="noopener">@'+esc(p.username||"unavailable")+' ↗</a></div><div class="muted">'+esc(p.membership_type||"Account")+' · '+(p.is_active?"Active":"Inactive")+'</div><div class="actions" style="margin-top:5px"><button class="dismiss" data-warn="'+esc(userId)+'">Send warning</button></div></div></div>';
 }
 async function loadReports(){
  const {data,error}=await db.from("post_reports").select("id,post_id,reporter_id,reason,created_at,status,community_posts(id,author_id,author_name,content,image_path,image_paths,is_removed)").eq("status","pending").order("created_at",{ascending:false});
