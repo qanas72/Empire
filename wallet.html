@@ -19,6 +19,9 @@ main{width:min(900px,92%);margin:30px auto 55px}.heading{margin-bottom:20px}.eye
 .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:13px}.btn{display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--line);border-radius:9px;padding:9px 12px;background:#17130c;color:var(--gold2);font-weight:700;font-size:12px}
 footer{text-align:center;color:#777;border-top:1px solid #292929;padding:20px;font-size:11px}
 @media(max-width:560px){.top{align-items:flex-start;flex-direction:column}.nav{width:100%}.nav a{flex:1;text-align:center;padding:8px 5px}.panel{padding:13px}.balance{grid-template-columns:1fr}.balance .chip{justify-self:start}.metrics{gap:8px}}
+
+.buy-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.field{display:grid;gap:6px}.field label{font-size:11px;color:var(--muted)}.field input,.field select{width:100%;background:#090909;color:#fff;border:1px solid var(--line);border-radius:9px;padding:11px;font-size:14px;min-width:0}.buy-btn{cursor:pointer;background:linear-gradient(135deg,#d9b65e,#f6e4a5);color:#171107;border:0}.buy-btn:disabled{opacity:.55;cursor:wait}.order-box{display:none;margin-top:13px;padding:13px;border:1px solid var(--line);border-radius:10px;background:#080808a8}.order-box.show{display:block}.order-line{display:grid;gap:5px;margin:9px 0}.order-line small{color:var(--muted);font-size:11px}.order-value{font-size:13px;overflow-wrap:anywhere;color:var(--gold2)}.copy-row{display:flex;gap:7px;align-items:center}.copy-row .order-value{flex:1;min-width:0}.mini-btn{border:1px solid var(--line);border-radius:8px;background:#17130c;color:var(--gold2);padding:8px 10px;font-size:11px;cursor:pointer}.buy-help{font-size:12px;line-height:1.6;color:var(--muted);margin:10px 0 0}.status-line{font-size:12px;line-height:1.6;margin-top:10px;color:var(--gold2)}@media(max-width:560px){.buy-grid{grid-template-columns:1fr}}
+
 </style>
 </head>
 <body>
@@ -30,6 +33,28 @@ footer{text-align:center;color:#777;border-top:1px solid #292929;padding:20px;fo
  <div class="balance"><div><div class="label">AVAILABLE BALANCE</div><div class="amount" id="balance">Loading…</div><div class="sub">Your recorded internal EmpireCoin balance</div></div><span class="chip">🪙 EMPC WALLET</span></div>
  <div class="metrics"><div class="metric"><div class="label">PLATFORM DISPLAY PRICE</div><strong id="unitPrice">Loading…</strong><div class="sub">Per 1 EMPC</div></div><div class="metric"><div class="label">ESTIMATED DISPLAY VALUE</div><strong id="estimatedValue">—</strong><div class="sub">Calculation only; not cash value or a withdrawal quote</div></div></div>
 </section>
+
+<section class="panel" id="buyPanel">
+ <div class="section-head"><h2>🪙 Buy EMPC</h2><small>Minimum $1 USDT</small></div>
+ <p class="sub">Buy internal EMPC using USDT. Choose the exact network shown below; sending another asset or using another network may result in lost funds.</p>
+ <div class="buy-grid" style="margin-top:12px">
+  <div class="field"><label for="buyNetwork">PAYMENT NETWORK</label><select id="buyNetwork"><option value="USDT_TRC20">USDT · TRON (TRC20)</option><option value="USDT_BEP20">USDT · BNB Smart Chain (BEP20)</option><option value="USDT_TON">USDT · TON</option></select></div>
+  <div class="field"><label for="buyAmount">AMOUNT (USDT)</label><input id="buyAmount" type="number" min="1" max="1000000" step="0.01" value="1" inputmode="decimal"></div>
+ </div>
+ <div class="actions"><button class="btn buy-btn" id="createOrderBtn" type="button">Create Purchase Order</button></div>
+ <div class="order-box" id="orderBox">
+  <div class="chip" id="orderStatus">PAYMENT ORDER</div>
+  <div class="order-line"><small>PAY EXACTLY</small><strong class="order-value" id="payAmount"></strong></div>
+  <div class="order-line"><small>RECEIVING ADDRESS</small><div class="copy-row"><strong class="order-value" id="payAddress"></strong><button class="mini-btn" id="copyAddressBtn" type="button">Copy</button></div></div>
+  <div class="order-line"><small>USDT TOKEN CONTRACT — VERIFY BEFORE SENDING</small><div class="copy-row"><span class="order-value" id="payToken"></span><button class="mini-btn" id="copyTokenBtn" type="button">Copy</button></div></div>
+  <div class="metrics"><div class="metric"><div class="label">EXPECTED EMPC</div><strong id="expectedEmpc">—</strong></div><div class="metric"><div class="label">ORDER EXPIRES</div><strong id="orderExpiry">—</strong></div></div>
+  <div class="field" style="margin-top:12px"><label for="txHash">TRANSACTION HASH / ID</label><input id="txHash" type="text" maxlength="150" placeholder="Paste the transaction hash after sending USDT" autocomplete="off"></div>
+  <div class="actions"><button class="btn buy-btn" id="verifyPaymentBtn" type="button">Verify Payment</button></div>
+  <div class="status-line" id="orderMessage">Send only the exact USDT amount on the selected network, then submit its transaction hash.</div>
+ </div>
+ <p class="buy-help">Orders expire after 2 hours. EMPC is an internal platform balance, not a live blockchain token. Do not send funds until you have checked the network, token contract, address, and exact amount.</p>
+</section>
+
 <section class="panel">
  <div class="section-head"><h2>📜 Transaction History</h2><small>Latest 30 records</small></div>
  <div id="transactions" class="tx-list"><div class="loading">Loading wallet history…</div></div>
@@ -81,6 +106,62 @@ async function init(){
  }catch(error){console.error("Wallet load failed:",error);$("balance").textContent="Unavailable";$("transactions").innerHTML='<div class="empty">Wallet information could not be loaded. Please refresh and try again.</div>';notice("Wallet information could not be loaded.");}
 }
 $("logoutLink").addEventListener("click",async e=>{e.preventDefault();await db.auth.signOut();location.href="login.html";});
+
+let activePurchaseOrder=null;
+const copyText=async value=>{try{await navigator.clipboard.writeText(value);notice("Copied successfully.","ok");}catch{notice("Copy is unavailable on this device. Please copy the text manually.");}};
+function showOrder(order){
+ activePurchaseOrder=order;
+ $("orderBox").classList.add("show");
+ $("orderStatus").textContent="PENDING PAYMENT";
+ $("payAmount").textContent=order.payment_amount+" "+order.payment_currency+" · "+order.payment_label;
+ $("payAddress").textContent=order.recipient_address;
+ $("payToken").textContent=order.token_contract;
+ $("expectedEmpc").textContent=fmt(order.expected_empc)+" EMPC";
+ $("orderExpiry").textContent=date(order.expires_at);
+ $("txHash").value="";
+ $("orderMessage").textContent="Send the exact amount shown above using the selected network. After the transfer is confirmed on-chain, paste its transaction hash and select Verify Payment.";
+ $("orderBox").scrollIntoView({behavior:"smooth",block:"nearest"});
+}
+$("createOrderBtn").addEventListener("click",async()=>{
+ const amount=$("buyAmount").value.trim();
+ const method=$("buyNetwork").value;
+ if(!amount||!Number.isFinite(Number(amount))||Number(amount)<1||Number(amount)>1000000){notice("Minimum purchase is $1 USDT. Enter a valid amount.");return;}
+ const btn=$("createOrderBtn");btn.disabled=true;btn.textContent="Creating order…";
+ try{
+  const {data,error}=await db.functions.invoke("create-empc-purchase",{body:{payment_method:method,usd_amount:amount}});
+  if(error)throw error;
+  if(!data?.success||!data?.order_id)throw new Error(data?.error||"Could not create purchase order.");
+  showOrder(data);notice("Purchase order created. No EMPC has been credited yet.","ok");
+ }catch(error){console.error("Create EMPC order failed:",error);notice(error.message||"Could not create purchase order.");}
+ finally{btn.disabled=false;btn.textContent="Create Purchase Order";}
+});
+$("copyAddressBtn").addEventListener("click",()=>copyText($("payAddress").textContent));
+$("copyTokenBtn").addEventListener("click",()=>copyText($("payToken").textContent));
+$("verifyPaymentBtn").addEventListener("click",async()=>{
+ if(!activePurchaseOrder?.order_id){notice("Create a purchase order first.");return;}
+ const txid=$("txHash").value.trim();
+ if(txid.length<20||txid.length>150){notice("Enter the transaction hash or ID from your wallet.");return;}
+ const btn=$("verifyPaymentBtn");btn.disabled=true;btn.textContent="Checking blockchain…";
+ $("orderMessage").textContent="Checking the selected network. This may take a moment.";
+ try{
+  const {data,error}=await db.functions.invoke("verify-empc-payment",{body:{order_id:activePurchaseOrder.order_id,transaction_hash:txid}});
+  if(error)throw error;
+  if(data?.status==="confirmed"&&data?.success){
+   $("orderStatus").textContent="PAYMENT CONFIRMED";
+   $("orderMessage").textContent="Payment verified. The purchase settlement has been completed. Refreshing your wallet…";
+   notice("Payment confirmed. Refreshing your EMPC balance.","ok");
+   activePurchaseOrder=null;
+   await init();
+  }else if(data?.status==="pending"){
+   $("orderMessage").textContent=data.error||"Payment is not confirmed yet. Check the transaction hash and wait for the required network confirmations, then try again.";
+   notice("No confirmed payment found yet. Your balance has not changed.");
+  }else{
+   throw new Error(data?.error||"Payment could not be verified.");
+  }
+ }catch(error){console.error("Verify EMPC payment failed:",error);$("orderMessage").textContent=error.message||"Verification failed. Please check the transaction details.";notice(error.message||"Payment verification failed.");}
+ finally{btn.disabled=false;btn.textContent="Verify Payment";}
+});
+
 init();
 </script>
 </body>
