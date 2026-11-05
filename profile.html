@@ -1110,6 +1110,15 @@
 
     </section>
 
+    <!-- EMPIRE referral program -->
+    <section class="card" id="empireReferralCard">
+      <h2 class="section-title">🤝 Invite Friends &amp; Earn EMPC</h2>
+      <p class="help-text">Share your personal referral link. Your reward is paid after the invited member confirms their email and completes a verified EMPC purchase of at least $2.</p>
+      <div class="field"><label for="myReferralLink">Your invitation link</label><input id="myReferralLink" type="text" readonly value="Loading referral link..."></div>
+      <div id="myReferralStatus" class="help-text">Loading referral information...</div>
+      <div class="form-actions"><button type="button" class="btn btn-dark" id="copyReferralLinkButton">📋 Copy invitation link</button></div>
+    </section>
+
     <!-- Official account warnings -->
     <section class="card" id="accountWarningsCard">
       <h2 class="section-title">⚠️ Account Warnings <small id="warningCount">Your notices from EMPIRE administrators</small></h2>
@@ -1559,6 +1568,21 @@
       }
     }
 
+    async function loadEmpireReferral(){
+      const input=$("myReferralLink"),status=$("myReferralStatus");
+      try{
+        const {data:code,error}=await supabaseClient.rpc("get_my_empire_referral_code");
+        if(error)throw error;
+        const link=new URL("login.html",window.location.href);link.searchParams.set("ref",code);
+        input.value=link.toString();
+        const {data:rows,error:rowsError}=await supabaseClient.from("empire_referrals").select("id,status").eq("referrer_user_id",currentUser.id);
+        if(rowsError)throw rowsError;
+        const paid=(rows||[]).filter(x=>x.status==="paid").length;
+        const pending=(rows||[]).filter(x=>x.status==="pending").length;
+        status.textContent="Successful referrals: "+paid+" · Pending verified purchases: "+pending+". Reward: 50 EMPC (regular) or 100 EMPC (VIP).";
+      }catch(error){input.value="Referral link unavailable";status.textContent="Could not load referral information: "+(error.message||"Unknown error");}
+    }
+
     async function loadProfile() {
       const { data: authData, error: authError } =
         await supabaseClient.auth.getUser();
@@ -1569,6 +1593,14 @@
       }
 
       currentUser = authData.user;
+
+      loadEmpireReferral().catch(error=>console.warn("Referral panel unavailable:",error));
+      $("copyReferralLinkButton")?.addEventListener("click",async()=>{
+        const value=$("myReferralLink").value;
+        if(!value||value==="Referral link unavailable"||value==="Loading referral link...")return;
+        try{await navigator.clipboard.writeText(value);showNotice("Referral link copied.");}
+        catch(error){$("myReferralLink").focus();$("myReferralLink").select();showNotice("Select and copy your referral link.");}
+      });
 
       // Use the Auth account creation timestamp immediately as a reliable fallback.
       $("memberSince").textContent = formatDate(currentUser.created_at);
