@@ -267,9 +267,12 @@
       height: 100%;
       border: 0 !important;
       border-radius: 0 !important;
-      object-fit: cover;
-      background: #17130e;
+      background-color: #17130e;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-size: cover;
       display: block;
+      cursor: zoom-in;
     }
     .avatar-large-wrap {
       isolation: isolate;
@@ -848,7 +851,7 @@
       <div class="profile-main">
         <div class="avatar-stage">
           <div class="avatar-large-wrap">
-            <img id="avatarLarge" class="avatar-large" alt="Profile photo" src="">
+            <div id="avatarLarge" class="avatar-large" role="img" aria-label="Profile photo"></div>
             <button type="button" class="avatar-camera" id="choosePhotoButton" aria-label="Change profile photo" title="Change profile photo">📷</button>
           </div>
         </div>
@@ -1209,43 +1212,20 @@
     }
 
     function setAvatar(url) {
-      const large = $("avatarLarge");
-      const small = $("avatarSmall");
-      if (!large) return;
+      const avatar = $("avatarLarge");
+      if (!avatar) return;
 
       if (url) {
-        large.style.visibility = "visible";
-        large.alt = "Profile photo";
-        large.dataset.avatarRetry = "0";
-        large.onload = () => {
-          large.style.visibility = "visible";
-          delete large.dataset.avatarRetry;
-        };
-        large.onerror = () => {
-          // Retry once with a fresh query string in case the browser cached
-          // an earlier failed response for this public Storage object.
-          if (large.dataset.avatarRetry !== "1") {
-            large.dataset.avatarRetry = "1";
-            const retryUrl = new URL(url, window.location.href);
-            retryUrl.searchParams.set("avatar_refresh", String(Date.now()));
-            large.src = retryUrl.toString();
-            return;
-          }
-          console.error("Profile avatar failed after retry:", large.currentSrc || large.src);
-          large.style.visibility = "visible";
-        };
-        large.src = url;
-        if (small) {
-          small.onerror = () => console.warn("Small profile avatar failed to load.");
-          small.src = url;
-        }
-        return;
+        // Render as a CSS background instead of an IMG element. This avoids
+        // the profile page's broken-image/alt-text behavior entirely.
+        const safeUrl = String(url).replace(/["\\\\]/g, "\\\\$&");
+        avatar.style.backgroundImage = 'url("' + safeUrl + '")';
+        avatar.setAttribute("aria-label", "Profile photo");
+        avatar.dataset.avatarUrl = url;
+      } else {
+        avatar.style.backgroundImage = "none";
+        avatar.removeAttribute("data-avatar-url");
       }
-
-      large.removeAttribute("src");
-      large.style.visibility = "visible";
-      large.alt = "Profile photo";
-      if (small) small.removeAttribute("src");
     }
 
     function avatarImageLoads(url) {
@@ -2041,12 +2021,22 @@
   box.addEventListener("click",e=>{if(e.target===box||e.target.tagName==="BUTTON")close();});
   document.addEventListener("keydown",e=>{if(e.key==="Escape"&&box.classList.contains("is-open"))close();});
   document.addEventListener("click",e=>{
-    const img=e.target.closest('img.avatar,img.avatar-large,img.avatar-small,img.community-author-avatar,img.post-author-avatar,.community-author img,.post-author img,.chat-head img.avatar');
-    if(!img)return; const source=img.currentSrc||img.getAttribute("src"); if(!source||source.startsWith("data:")||!img.complete||img.naturalWidth===0)return;
+    const avatarBox=e.target.closest(".avatar-large");
+    if(avatarBox){
+      const source=avatarBox.dataset.avatarUrl;
+      if(!source)return;
+      e.preventDefault();e.stopPropagation();
+      preview.src=source;box.classList.add("is-open");
+      return;
+    }
+    const img=e.target.closest('img.avatar,img.avatar-small,img.community-author-avatar,img.post-author-avatar,.community-author img,.post-author img,.chat-head img.avatar');
+    if(!img)return;
+    const source=img.currentSrc||img.getAttribute("src");
+    if(!source||source.startsWith("data:")||!img.complete||img.naturalWidth===0)return;
     e.preventDefault();e.stopPropagation();
     preview.src=source;box.classList.add("is-open");
   },true);
-  document.querySelectorAll('img.avatar,img.avatar-large,img.avatar-small,.community-author img,.post-author img,.chat-head img.avatar').forEach(img=>img.classList.add("empire-avatar-zoom"));
+  document.querySelectorAll('.avatar-large,img.avatar,img.avatar-small,.community-author img,.post-author img,.chat-head img.avatar').forEach(img=>img.classList.add("empire-avatar-zoom"));
 })();
 </script>
 
