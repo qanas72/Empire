@@ -16,6 +16,14 @@ insert into public.empire_reward_settings(setting_key,setting_value,is_enabled) 
  ('referral_reward_vip',100,true)
 on conflict(setting_key) do nothing;
 
+-- Accounts created before this migration are not eligible for the one-time signup bonus.
+create table if not exists public.empire_reward_program_config (
+ id boolean primary key default true check(id),
+ started_at timestamptz not null default now()
+);
+insert into public.empire_reward_program_config(id) values(true) on conflict(id) do nothing;
+revoke all on public.empire_reward_program_config from public,anon,authenticated;
+
 create table if not exists public.empire_reward_setting_logs (
  id uuid primary key default gen_random_uuid(),
  setting_key text not null,
@@ -187,12 +195,14 @@ grant execute on function public.get_my_empire_referral_code() to authenticated;
 create or replace function public.claim_empire_signup_reward()
 returns jsonb language plpgsql security definer set search_path=public,pg_temp
 as $$
-declare v_user uuid:=auth.uid(); v_confirmed timestamptz; v_meta jsonb; v_amount numeric(30,8); v_enabled boolean;
+declare v_user uuid:=auth.uid(); v_confirmed timestamptz; v_created_at timestamptz; v_started_at timestamptz; v_meta jsonb; v_amount numeric(30,8); v_enabled boolean;
  v_treasury public.empire_wallets%rowtype; v_wallet public.empire_wallets%rowtype; v_event uuid; v_code text; v_referrer uuid;
 begin
  if v_user is null then raise exception 'Sign in required'; end if;
- select email_confirmed_at,raw_user_meta_data into v_confirmed,v_meta from auth.users where id=v_user;
+ select email_confirmed_at,raw_user_meta_data,created_at into v_confirmed,v_meta,v_created_at from auth.users where id=v_user;
  if v_confirmed is null then raise exception 'Confirm your email before claiming the signup reward'; end if;
+ select started_at into v_started_at from public.empire_reward_program_config where id=true;
+ if v_started_at is null or v_created_at<v_started_at then raise exception 'This account was created before the EMPC signup reward program began'; end if;
  select setting_value,is_enabled into v_amount,v_enabled from public.empire_reward_settings where setting_key='signup_reward';
  if coalesce(v_enabled,false) and coalesce(v_amount,0)>0 then
    insert into public.empire_reward_events(event_key,recipient_user_id,reward_type,amount)
