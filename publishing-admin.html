@@ -41,12 +41,30 @@ async function init(){
  await loadReports();
 }
 async function loadReports(){
- const {data,error}=await db.from("post_reports").select("id,post_id,reason,created_at,status,community_posts(id,author_name,content,image_path,is_removed)").eq("status","pending").order("created_at",{ascending:false});
+ const {data,error}=await db.from("post_reports").select("id,post_id,reason,created_at,status,community_posts(id,author_id,author_name,content,image_path,image_paths,is_removed)").eq("status","pending").order("created_at",{ascending:false});
  if(error){$("reports").textContent="Could not load reports. Ensure publishing-setup.sql has been run.";return;}
  if(!data.length){$("reports").textContent="No pending reports.";return;}
- $("reports").innerHTML=data.map(r=>'<article class="report"><p class="status">Report • '+new Date(r.created_at).toLocaleString()+'</p><p><b>Reason:</b> '+esc(r.reason)+'</p><p><b>Publication by:</b> '+esc(r.community_posts?.author_name||"Unknown")+'</p><p class="muted">'+esc(r.community_posts?.content||"[Image-only publication]")+'</p><p class="muted">Publication ID: '+esc(r.post_id)+'</p><div class="actions"><button class="remove" data-remove="'+r.post_id+'" data-report="'+r.id+'">Remove publication</button><button class="dismiss" data-dismiss="'+r.id+'">Dismiss report</button></div></article>').join("");
+ $("reports").innerHTML=data.map(r=>{
+  const post=r.community_posts||{};
+  const paths=[...(Array.isArray(post.image_paths)?post.image_paths:[]),...(post.image_path&&!(post.image_paths||[]).includes(post.image_path)?[post.image_path]:[])];
+  const images=paths.map(path=>{
+   const url=db.storage.from("post-images").getPublicUrl(path).data?.publicUrl;
+   return url?'<img src="'+esc(url)+'" alt="Reported publication image" loading="lazy" style="display:block;max-width:100%;max-height:360px;object-fit:contain;margin:12px 0;border:1px solid #80642f;border-radius:10px">':"";
+  }).join("");
+  return '<article class="report"><p class="status">Report • '+new Date(r.created_at).toLocaleString()+'</p><p><b>Reason:</b> '+esc(r.reason)+'</p><p><b>Publication by:</b> '+esc(post.author_name||"Unknown")+'</p><p class="muted">'+esc(post.content||"[Image-only publication]")+'</p>'+images+'<p class="muted">Publication ID: '+esc(r.post_id)+'</p><div class="actions"><button class="remove" data-remove="'+r.post_id+'" data-report="'+r.id+'">Remove publication</button><button class="dismiss" data-dismiss="'+r.id+'">Dismiss report</button>'+(post.author_id?'<button class="dismiss" data-warn="'+post.author_id+'">Send user warning</button>':"")+'</div></article>';
+ }).join("");
  $("reports").querySelectorAll("[data-remove]").forEach(b=>b.onclick=()=>moderate(b.dataset.report,b.dataset.remove,true));
  $("reports").querySelectorAll("[data-dismiss]").forEach(b=>b.onclick=()=>moderate(b.dataset.dismiss,null,false));
+ $("reports").querySelectorAll("[data-warn]").forEach(b=>b.onclick=()=>sendUserWarning(b.dataset.warn));
+}
+async function sendUserWarning(userId){
+ const message=prompt("Write a warning message for this user (5–2000 characters):");
+ if(message===null)return;
+ if(message.trim().length<5||message.trim().length>2000){alert("Warning must be 5–2000 characters.");return;}
+ const {data:{user:admin}}=await db.auth.getUser();
+ const {error}=await db.from("user_warnings").insert({user_id:userId,admin_id:admin.id,message:message.trim()});
+ if(error){alert("Could not send warning: "+error.message);return;}
+ alert("Warning sent to the user's account.");
 }
 async function moderate(reportId,postId,remove){
  const decision=remove?"Remove this publication from public view?":"Dismiss this report?";
