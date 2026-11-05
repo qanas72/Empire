@@ -1306,10 +1306,14 @@
       // Use the Auth account creation timestamp immediately as a reliable fallback.
       $("memberSince").textContent = formatDate(currentUser.created_at);
 
-      // Load the wallet independently so profile/avatar requests cannot leave it stuck.
+      // Load independent account sections immediately after authentication.
+      // VIP membership and purchases do not depend on the profiles row.
       loadEmpireWallet().catch((error) => {
         console.error("EmpireCoin wallet startup error:", error);
       });
+
+      const membershipPromise = loadMembership();
+      const purchasesPromise = loadPurchases();
 
       const { data, error } = await supabaseClient
         .from("profiles")
@@ -1352,11 +1356,11 @@
       // Prefer the profile timestamp, falling back to the Auth account timestamp.
       $("memberSince").textContent = formatDate(data.created_at || currentUser.created_at);
 
-      // These sections load independently; a slow avatar must not block account data.
+      // Avatar loading is independent; membership and purchases have already started.
       loadAvatar(data).catch((error) => console.warn("Avatar loading error:", error));
       await Promise.allSettled([
-        loadMembership(),
-        loadPurchases()
+        membershipPromise,
+        purchasesPromise
       ]);
     }
 
