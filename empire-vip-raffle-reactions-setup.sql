@@ -235,11 +235,25 @@ alter table public.empire_raffle_winners enable row level security;
 drop policy if exists "Public read open and completed raffles" on public.empire_raffles;
 create policy "Public read open and completed raffles" on public.empire_raffles for select using(status in ('open','completed') or public.is_admin());
 drop policy if exists "Users read raffle participant totals" on public.empire_raffle_entries;
-create policy "Users read raffle participant totals" on public.empire_raffle_entries for select using(true);
+create policy "Admins read raffle entries" on public.empire_raffle_entries for select to authenticated using(public.is_admin());
 drop policy if exists "Public read raffle winners" on public.empire_raffle_winners;
 create policy "Public read raffle winners" on public.empire_raffle_winners for select using(true);
 revoke all on public.empire_raffles,public.empire_raffle_entries,public.empire_raffle_winners from public,anon,authenticated;
 grant select on public.empire_raffles,public.empire_raffle_entries,public.empire_raffle_winners to anon,authenticated;
+
+
+create or replace function public.get_empire_raffle_public_data(p_raffle_ids uuid[])
+returns table(raffle_id uuid,participant_count bigint,joined_by_me boolean)
+language sql stable security definer set search_path=public,pg_temp
+as $
+ select r.id,count(e.id),coalesce(bool_or(e.user_id=auth.uid()),false)
+ from public.empire_raffles r
+ left join public.empire_raffle_entries e on e.raffle_id=r.id
+ where r.id=any(coalesce(p_raffle_ids,'{}'::uuid[])) and r.status in ('open','completed')
+ group by r.id
+$;
+revoke all on function public.get_empire_raffle_public_data(uuid[]) from public;
+grant execute on function public.get_empire_raffle_public_data(uuid[]) to anon,authenticated;
 
 create or replace function public.admin_save_empire_raffle(
  p_raffle_id uuid,p_title text,p_description text,p_conditions text,
