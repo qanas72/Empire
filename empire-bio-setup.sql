@@ -43,3 +43,14 @@ comment on view public.public_user_profiles is
 
 revoke all on public.public_user_profiles from public;
 grant select on public.public_user_profiles to anon, authenticated;
+
+-- Follow relationships are public so visitor profiles can show mutual friends.
+drop policy if exists "Authenticated users can view follows" on public.user_follows;
+drop policy if exists "Public can view follow relationships" on public.user_follows;
+create policy "Public can view follow relationships"
+  on public.user_follows
+  for select
+  to anon, authenticated
+  using (true);
+
+grant select on public.user_follows to anon, authenticated;
