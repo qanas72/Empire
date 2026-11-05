@@ -13,10 +13,7 @@ insert into public.empire_reward_settings(setting_key,setting_value,is_enabled) 
  ('post_like_reward',1,true),
  ('signup_reward',10,true),
  ('referral_reward_regular',50,true),
- ('referral_reward_vip',100,true),
- ('like_reward_enabled',1,true),
- ('signup_reward_enabled',1,true),
- ('referral_reward_enabled',1,true)
+ ('referral_reward_vip',100,true)
 on conflict(setting_key) do nothing;
 
 create table if not exists public.empire_reward_setting_logs (
@@ -47,12 +44,10 @@ as $$
 declare v_old public.empire_reward_settings%rowtype;
 begin
  if not public.is_admin() then raise exception 'Admin access required'; end if;
- if p_key not in ('post_like_reward','signup_reward','referral_reward_regular','referral_reward_vip',
-                  'like_reward_enabled','signup_reward_enabled','referral_reward_enabled') then
+ if p_key not in ('post_like_reward','signup_reward','referral_reward_regular','referral_reward_vip') then
    raise exception 'Unknown reward setting';
  end if;
  if p_value is null or p_value < 0 or p_value > 1000000000 then raise exception 'Invalid reward amount'; end if;
- if p_key like '%_enabled' and p_value not in (0,1) then raise exception 'Invalid enabled setting'; end if;
  select * into v_old from public.empire_reward_settings where setting_key=p_key for update;
  insert into public.empire_reward_settings(setting_key,setting_value,is_enabled,updated_by,updated_at)
  values(p_key,p_value,p_enabled,auth.uid(),now())
