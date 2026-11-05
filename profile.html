@@ -1288,42 +1288,66 @@
     }
 
     async function loadAvatar(profile) {
-      const paths = [];
-      if (profile?.avatar_url) paths.push(profile.avatar_url);
+      const image = $("avatarLarge");
+      if (!image || !currentUser) return;
 
-      // Compatibility fallback for avatars uploaded by the previous version.
-      if (currentUser) {
-        try {
-          const { data, error } = await supabaseClient
-            .storage
-            .from("avatars")
-            .list(currentUser.id, {
-              limit: 100,
-              sortBy: { column: "created_at", order: "desc" }
-            });
-          if (error) throw error;
+      // Match the exact source used by members.html: public_user_profiles.avatar_url.
+      let avatarPath = profile?.avatar_url || null;
+      try {
+        const { data: publicProfile, error } = await supabaseClient
+          .from("public_user_profiles")
+          .select("avatar_url")
+          .eq("id", currentUser.id)
+          .maybeSingle();
 
-          const files = (data || [])
-            .filter((file) => file.name && !file.name.startsWith("."))
-            .sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+        if (!error && publicProfile?.avatar_url) {
+          avatarPath = publicProfile.avatar_url;
+        }
+      } catch (error) {
+        console.warn("Could not read public profile avatar path:", error.message);
+      }
 
-          if (files.length) paths.push(`${currentUser.id}/${files[0].name}`);
-        } catch (error) {
-          console.warn("Avatar storage fallback could not list files:", error.message);
+      if (avatarPath) {
+        const { data } = supabaseClient.storage
+          .from("avatars")
+          .getPublicUrl(avatarPath);
+
+        const publicUrl = data?.publicUrl;
+        if (publicUrl) {
+          setAvatar(publicUrl);
+          return;
         }
       }
 
-      for (const path of [...new Set(paths)]) {
-        const candidates = await getAvatarCandidates(path);
-        for (const url of candidates) {
-          if (await avatarImageLoads(url)) {
-            setAvatar(url);
+      // Fallback: locate the newest image in this user's avatars folder.
+      try {
+        const { data, error } = await supabaseClient.storage
+          .from("avatars")
+          .list(currentUser.id, {
+            limit: 100,
+            sortBy: { column: "created_at", order: "desc" }
+          });
+        if (error) throw error;
+
+        const files = (data || [])
+          .filter((file) => file.name && !file.name.startsWith("."))
+          .sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+
+        if (files.length) {
+          const latestPath = currentUser.id + "/" + files[0].name;
+          const { data: latest } = supabaseClient.storage
+            .from("avatars")
+            .getPublicUrl(latestPath);
+          if (latest?.publicUrl) {
+            setAvatar(latest.publicUrl);
             return;
           }
         }
+      } catch (error) {
+        console.warn("Avatar storage fallback failed:", error.message);
       }
 
-      console.warn("No accessible profile image could be loaded for this account.");
+      console.warn("No avatar path was found for the signed-in profile.");
       setAvatar(null);
     }
 
