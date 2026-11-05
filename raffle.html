@@ -9,10 +9,10 @@ a{color:inherit;text-decoration:none}.top{padding:16px 5%;display:flex;justify-c
 .brand{font-weight:900;letter-spacing:2px;color:var(--gold);font-size:22px}.nav{display:flex;gap:18px;flex-wrap:wrap;color:#ccc;font-size:13px}
 main{width:min(980px,92%);margin:34px auto 60px}.intro{text-align:center;margin-bottom:28px}.intro h1{color:var(--gold);font-size:34px}.intro p{color:var(--muted);line-height:1.8}
 .card{padding:22px;margin:16px 0;border:1px solid var(--gold);border-radius:16px;background:#101010dd}.card h2{margin:0 0 8px;color:var(--gold)}.muted{color:var(--muted);font-size:13px;line-height:1.8;white-space:pre-wrap}
-.prizes{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:18px 0}.prize{border:1px solid #65512b;border-radius:12px;padding:13px;background:#18150f}.prize b{display:block;color:var(--gold);margin-bottom:6px}.meta{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:14px 0;color:#ddd;font-size:13px}
+.prizes{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:18px 0}.empc-prizes{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0}.empc-prize{padding:10px;border:1px solid #493b20;border-radius:9px;background:#12100c;text-align:center;font-size:13px}.empc-prize b{display:block;color:var(--gold);margin-bottom:4px}.prize-note{margin-top:10px;color:#bbb;font-size:12px;line-height:1.7}.prize{border:1px solid #65512b;border-radius:12px;padding:13px;background:#18150f}.prize b{display:block;color:var(--gold);margin-bottom:6px}.meta{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:14px 0;color:#ddd;font-size:13px}
 button{background:linear-gradient(120deg,#f2d486,#c99b3e);color:#111;border:0;border-radius:9px;padding:12px 17px;font-weight:800;cursor:pointer}button:disabled{opacity:.55;cursor:not-allowed}
 .status{margin-top:12px;color:var(--muted);font-size:13px}.winner{padding:10px;border-bottom:1px solid #ffffff18;font-size:13px}.winner b{color:var(--gold)}
-@media(max-width:600px){body:before{background:linear-gradient(#000b,#000e),url("empire-background.png") center/cover no-repeat}.top{align-items:flex-start;flex-direction:column}.prizes{grid-template-columns:1fr}.intro h1{font-size:28px}.card{padding:16px}}
+@media(max-width:600px){body:before{background:linear-gradient(#000b,#000e),url("empire-background.png") center/cover no-repeat}.top{align-items:flex-start;flex-direction:column}.prizes{grid-template-columns:1fr}.empc-prizes{grid-template-columns:repeat(2,1fr)}.intro h1{font-size:28px}.card{padding:16px}}
 </style></head><body>
 <header class="top"><a class="brand" href="index.html">👑 EMPIRE</a><nav class="nav"><a href="index.html">Home</a><a href="publishing.html">Publishing</a><a href="premium.html">VIP</a><a href="profile.html">Profile</a></nav></header>
 <main><section class="intro"><h1>EMPIRE Raffles</h1><p>Official giveaways managed by EMPIRE administrators. Each raffle has its own details, prizes and additional conditions.</p></section>
@@ -28,15 +28,25 @@ async function loadRaffles(){
   const {data:{user}}=await db.auth.getUser();
   const ids=rows.map(r=>r.id);
   const {data:entryData,error:entryError}=await db.rpc("get_empire_raffle_public_data",{p_raffle_ids:ids});if(entryError)throw entryError;
-  const {data:winners,error:winnerError}=await db.from("empire_raffle_winners").select("raffle_id,user_id,prize_rank,prize_description").in("raffle_id",ids);if(winnerError)throw winnerError;
+  const {data:winners,error:winnerError}=await db.from("empire_raffle_winners").select("raffle_id,user_id,prize_rank,prize_description,empc_amount").in("raffle_id",ids);if(winnerError)throw winnerError;
   const userIds=[...new Set((winners||[]).map(w=>w.user_id))];let names={};
   if(userIds.length){const {data:profiles}=await db.from("public_user_profiles").select("id,username,display_name").in("id",userIds);(profiles||[]).forEach(p=>names[p.id]=p.display_name||p.username||"Member");}
   root.innerHTML=rows.map(r=>{
-   const count=(entries||[]).filter(e=>e.raffle_id===r.id).length;
-   const mine=(entries||[]).some(e=>e.raffle_id===r.id&&e.user_id===user?.id);
+   const stats=(entryData||[]).find(e=>e.raffle_id===r.id)||{};
+   const count=Number(stats.participant_count||0);
+   const mine=!!stats.joined_by_me;
    const wins=(winners||[]).filter(w=>w.raffle_id===r.id).sort((a,b)=>a.prize_rank-b.prize_rank);
    const prize=[r.prize_1,r.prize_2,r.prize_3];
-   return '<article class="card"><h2>'+esc(r.title)+'</h2><p class="muted">'+esc(r.description||"")+'</p><div class="prizes">'+prize.map((p,i)=>'<div class="prize"><b>'+["🥇 First Prize","🥈 Second Prize","🥉 Third Prize"][i]+'</b>'+esc(p)+'</div>').join("")+'</div><div class="muted"><b>Entry requirement:</b> Buy at least $5 worth of EMPC through confirmed purchases and keep at least the EMPC equivalent of $5 in your wallet. '+esc(r.conditions||"")+'</div><div class="meta"><span>Participants: '+count+'/'+r.target_participants+'</span><span>Status: '+esc(r.status)+'</span></div>'+(r.status==="open"?'<button '+(mine||!user?'disabled':'')+' onclick="joinRaffle(\''+r.id+'\')">'+(mine?"Already joined":user?"Join raffle":"Sign in to join")+'</button>':'<p class="muted">This raffle has finished.</p>')+'<div class="status" id="status_'+r.id+'">'+(mine?"Your entry is confirmed.":"")+'</div>'+(wins.length?'<h3 style="color:var(--gold);margin-top:18px">🏆 Winners</h3>'+wins.map(w=>'<div class="winner"><b>'+["🥇","🥈","🥉"][w.prize_rank-1]+' '+esc(names[w.user_id]||"Winner")+'</b> — '+esc(w.prize_description)+'</div>').join(""):"")+'</article>';
+   const empcPrizes=Array.from({length:18},(_,i)=>6600-i*300);
+   const prizeCards=prize.map((p,i)=>'<div class="prize"><b>'+["🥇 First Prize","🥈 Second Prize","🥉 Third Prize"][i]+'</b>'+esc(p)+'</div>').join("");
+   const empcCards=empcPrizes.map((amount,i)=>'<div class="empc-prize"><b>EMPC Winner '+(i+1)+'</b>'+amount.toLocaleString("en-US")+' EMPC</div>').join("");
+   const winnerRows=wins.map(w=>{
+    const rank=Number(w.prize_rank);
+    const label=rank===1?"🥇 1st":rank===2?"🥈 2nd":rank===3?"🥉 3rd":"🎖️ EMPC #"+(rank-3);
+    const amount=w.empc_amount?(" — "+Number(w.empc_amount).toLocaleString("en-US")+" EMPC"):"";
+    return '<div class="winner"><b>'+label+' · '+esc(names[w.user_id]||"Winner")+'</b> — '+esc(w.prize_description)+esc(amount)+'</div>';
+   }).join("");
+   return '<article class="card"><h2>'+esc(r.title)+'</h2><p class="muted">'+esc(r.description||"")+'</p><div class="prizes">'+prizeCards+'</div><h3 style="color:var(--gold);margin:18px 0 8px">🪙 18 EMPC Prizes</h3><div class="empc-prizes">'+empcCards+'</div><p class="prize-note">18 additional winners receive EMPC, from 6,600 down to 1,500 EMPC. Total EMPC prize pool: 72,900 EMPC. EMPC prizes are credited from the internal EMPIRE treasury wallet.</p><div class="muted"><b>Entry requirement:</b> Buy at least $5 worth of EMPC through confirmed purchases and keep at least the EMPC equivalent of $5 in your wallet. '+esc(r.conditions||"")+'</div><div class="meta"><span>Participants: '+count+'/'+r.target_participants+'</span><span>Status: '+esc(r.status)+'</span><span>Winners: 21</span></div>'+(r.status==="open"?'<button '+(mine||!user?'disabled':'')+' onclick="joinRaffle(\''+r.id+'\')">'+(mine?"Already joined":user?"Join raffle":"Sign in to join")+'</button>':'<p class="muted">This raffle has finished.</p>')+'<div class="status" id="status_'+r.id+'">'+(mine?"Your entry is confirmed.":"")+'</div>'+(wins.length?'<h3 style="color:var(--gold);margin-top:18px">🏆 Winners</h3>'+winnerRows:"")+'</article>';
   }).join("");
  }catch(e){root.innerHTML='<div class="card"><h2>Raffles unavailable</h2><p class="muted">'+esc(e.message||"Could not load raffles")+'</p></div>';}
 }
@@ -44,7 +54,7 @@ async function joinRaffle(id){
  const st=document.getElementById("status_"+id);st.textContent="Checking eligibility...";
  const {data,error}=await db.rpc("join_empire_raffle",{p_raffle_id:id});
  if(error){st.textContent=error.message;return;}
- st.textContent=data.draw_completed?"The participant limit has been reached. The three winners have been selected!":"Entry confirmed. Participants: "+data.participant_count+"/"+data.target_participants;
+ st.textContent=data.draw_completed?"The participant limit has been reached. All 21 winners have been selected!":"Entry confirmed. Participants: "+data.participant_count+"/"+data.target_participants;
  await loadRaffles();
 }
 loadRaffles();
