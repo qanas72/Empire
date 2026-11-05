@@ -115,13 +115,8 @@ begin
     raise exception 'Active VIP membership is required to send photos, videos, or voice messages';
   end if;
 
-  -- Keep the same VIP message fee as the existing text-message policy.
-  select coalesce((select es.setting_value::numeric
-                   from public.empire_economic_settings es
-                   where es.setting_key = 'message_fee_vip'
-                   limit 1), 3)
-    into v_fee;
-  if v_fee < 0 then raise exception 'Invalid VIP message fee'; end if;
+  -- Match the existing secure text-message RPC: VIP messages cost 3 EMPC.
+  v_fee := 3;
 
   select w.id, w.balance
     into v_sender_wallet_id, v_balance
