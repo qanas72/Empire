@@ -72,28 +72,41 @@ async function load(){
  const profileParams=new URLSearchParams(location.search);
  const username=profileParams.get("username");
  const previewMode=profileParams.get("preview")==="1";
+ const adminMode=profileParams.get("admin")==="1";
  if(!username){$("profile").innerHTML='<div class="empty">No member was selected. <a class="gold" href="members.html">Browse members</a>.</div>';return;}
- const {data:user,error}=await db.from("public_user_profiles").select("id,username,display_name,avatar_url,created_at,membership_type,active_vip_plan").eq("username",username).maybeSingle();
- if(error)throw error;
+ let user=null;
+ if(adminMode){
+  if(!currentUserId){location.href="login.html";return;}
+  const {data:isAdmin,error:adminError}=await db.rpc("is_admin");
+  if(adminError||isAdmin!==true){$("profile").innerHTML='<div class="empty error">Administrator access required.</div>';return;}
+  const {data:directory,error:directoryError}=await db.rpc("admin_get_user_directory");
+  if(directoryError)throw directoryError;
+  const member=(directory||[]).find(p=>(p.username||"").toLowerCase()===username.toLowerCase());
+  if(member)user={id:member.user_id,...member};
+ }else{
+  const {data:publicUser,error}=await db.from("public_user_profiles").select("id,username,display_name,avatar_url,created_at,membership_type,active_vip_plan").eq("username",username).maybeSingle();
+  if(error)throw error;
+  user=publicUser;
+ }
  if(!user){$("profile").innerHTML='<div class="empty">This profile is unavailable or private. <a class="gold" href="members.html">Browse members</a>.</div>';$("posts").textContent="No public profile."; $("videos").textContent="No public profile.";return;}
  const isOwnProfile=!!(currentUserId&&currentUserId===user.id);
- if(isOwnProfile&&!previewMode){location.replace("profile.html");return;}
+ if(isOwnProfile&&!previewMode&&!adminMode){location.replace("profile.html");return;}
  document.title="EMPIRE | "+user.display_name;
  async function refreshMemberPresence(){const {data:p,error:presenceError}=await db.from("user_presence").select("last_seen").eq("user_id",user.id).maybeSingle();if(presenceError){$("memberPresence").textContent="Status unavailable";return;}const online=!!p&&new Date(p.last_seen).getTime()>Date.now()-120000;$("memberPresence").innerHTML='<i class="presence-dot '+(online?"online":"")+'"></i>'+(online?"Online":"Offline");}
- $("profile").innerHTML='<img class="avatar" src="'+avatar(user.avatar_url?db.storage.from("avatars").getPublicUrl(user.avatar_url).data?.publicUrl:null)+'" alt="Profile photo"><div><h1 class="name">'+esc(user.display_name)+'</h1><div class="username">@'+esc(user.username)+'</div><span class="badge '+(user.membership_type==="VIP"?"":"regular")+'">'+(user.membership_type==="VIP"?"♛ VIP Member":"Regular Member")+'</span><div class="meta">Member since '+date(user.created_at)+'</div><div style="margin-top:15px"><a class="badge" style="display:inline-block" href="'+(isOwnProfile?"profile.html":"messages.html?user_id="+encodeURIComponent(user.id))+'">'+(isOwnProfile?"← Back to My Profile":"✉ Send Message")+'</a></div><div id="memberPresence" class="presence"><i class="presence-dot"></i>Checking status...</div></div>';
+ $("profile").innerHTML='<img class="avatar" src="'+avatar(user.avatar_url?db.storage.from("avatars").getPublicUrl(user.avatar_url).data?.publicUrl:null)+'" alt="Profile photo"><div><h1 class="name">'+esc(user.display_name||user.username)+'</h1><div class="username">@'+esc(user.username)+'</div><span class="badge '+(user.membership_type==="VIP"?"":"regular")+'">'+(user.membership_type==="VIP"?"♛ VIP Member":"Regular Member")+'</span>'+(adminMode?'<span class="badge">'+(user.is_active===false?"Inactive":"Active")+'</span>':'')+'<div class="meta">Member since '+date(user.created_at)+'</div><div style="margin-top:15px"><a class="badge" style="display:inline-block" href="'+(adminMode?"admin.html":isOwnProfile?"profile.html":"messages.html?user_id="+encodeURIComponent(user.id))+'">'+(adminMode?"← Return to Emperor Panel":isOwnProfile?"← Back to My Profile":"✉ Send Message")+'</a></div><div id="memberPresence" class="presence"><i class="presence-dot"></i>Checking status...</div></div>';
  await refreshMemberPresence();setInterval(refreshMemberPresence,60000);
- const [postsResult,videosResult]=await Promise.all([
-  db.from("community_posts").select("id,content,image_path,created_at").eq("author_id",user.id).eq("is_removed",false).order("created_at",{ascending:false}).limit(50),
-  db.from("videos").select("id,title,description,thumbnail_url,created_at").eq("creator_id",user.id).eq("approval_status","approved").order("created_at",{ascending:false}).limit(50)
- ]);
+ let postsQuery=db.from("community_posts").select("id,content,image_path,image_paths,created_at,is_removed").eq("author_id",user.id).order("created_at",{ascending:false}).limit(100);
+ let videosQuery=db.from("videos").select("id,title,description,thumbnail_url,created_at,approval_status").eq("creator_id",user.id).order("created_at",{ascending:false}).limit(100);
+ if(!adminMode){postsQuery=postsQuery.eq("is_removed",false);videosQuery=videosQuery.eq("approval_status","approved");}
+ const [postsResult,videosResult]=await Promise.all([postsQuery,videosQuery]);
  if(postsResult.error)throw postsResult.error;
  if(videosResult.error)throw videosResult.error;
  const posts=postsResult.data||[];
  if(!posts.length)$("posts").innerHTML='<div class="empty">No public publications yet.</div>';
- else $("posts").innerHTML=posts.map(p=>{let img="";if(p.image_path){const {data:u}=db.storage.from("post-images").getPublicUrl(p.image_path);if(u?.publicUrl)img='<img src="'+esc(u.publicUrl)+'" alt="Publication image" loading="lazy">';}return '<article class="post"><div class="post-date">'+date(p.created_at)+' · <span class="gold">Published</span></div><div class="post-text">'+esc(p.content||"")+'</div>'+img+'</article>';}).join("");
+ else $("posts").innerHTML=posts.map(p=>{const paths=[...(Array.isArray(p.image_paths)?p.image_paths:[]),...(p.image_path&&!(p.image_paths||[]).includes(p.image_path)?[p.image_path]:[])];const imgs=paths.map(path=>{const {data:u}=db.storage.from("post-images").getPublicUrl(path);return u?.publicUrl?'<img src="'+esc(u.publicUrl)+'" alt="Publication image" loading="lazy">':"";}).join("");return '<article class="post"><div class="post-date">'+date(p.created_at)+' · <span class="gold">'+(p.is_removed?"Removed / Hidden":"Published")+'</span></div><div class="post-text">'+esc(p.content||"")+'</div>'+imgs+'</article>';}).join("");
  const videos=videosResult.data||[];
- if(!videos.length)$("videos").innerHTML='<div class="empty">No approved videos yet.</div>';
- else $("videos").innerHTML=videos.map(v=>'<article class="video"><div class="post-date">'+date(v.created_at)+' · <span class="gold">Approved / Published</span></div><div class="video-title">'+esc(v.title||"Untitled video")+'</div><div class="video-desc">'+esc(v.description||"")+'</div></article>').join("");
+ if(!videos.length)$("videos").innerHTML='<div class="empty">No '+(adminMode?"videos":"approved videos")+' yet.</div>';
+ else $("videos").innerHTML=videos.map(v=>'<article class="video"><div class="post-date">'+date(v.created_at)+' · <span class="gold">'+(adminMode?esc(v.approval_status||"Unknown"): "Approved / Published")+'</span></div><div class="video-title">'+esc(v.title||"Untitled video")+'</div><div class="video-desc">'+esc(v.description||"")+'</div></article>').join("");
 }
 load().catch(e=>{console.error(e);$("profile").innerHTML='<div class="empty error">Could not load this profile. Please try again later.</div>';});
 
