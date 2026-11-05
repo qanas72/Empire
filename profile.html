@@ -1397,7 +1397,7 @@
 
       const publicProfileButton = $("viewPublicProfileButton");
       if (publicProfileButton && data.username) {
-        publicProfileButton.href = "user-profile.html?username=" + encodeURIComponent(data.username);
+        publicProfileButton.href = "user-profile.html?username=" + encodeURIComponent(data.username) + "&preview=1";
       }
 
       $("accountStatus").textContent =
