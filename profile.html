@@ -1306,7 +1306,7 @@
       // profiles.avatar_url is the verified source of truth. members.html
       // uses this same bucket and the same public URL generation method.
       const avatarPath = profile?.avatar_url
-        ? String(profile.avatar_url).trim().replace(/^\\/+/, "").replace(/^avatars\\//i, "")
+        ? String(profile.avatar_url).trim().replace(/^\/+/, "").replace(/^avatars\//i, "")
         : "";
 
       if (avatarPath) {
