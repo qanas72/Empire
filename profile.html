@@ -252,22 +252,24 @@
     }
 
     .avatar-large-wrap {
-      width: 184px;
-      height: 184px;
+      width: 240px;
+      height: 240px;
       flex: 0 0 auto;
-      padding: 6px;
-      border-radius: 24px;
-      background: linear-gradient(145deg, #fff2bd, #b78325 48%, #f7df91);
-      box-shadow: 0 0 0 9px rgba(214,173,85,.09), 0 14px 38px rgba(0,0,0,.48), 0 0 34px rgba(214,173,85,.28);
+      padding: 0;
+      border-radius: 8px;
+      background: transparent;
+      box-shadow: none;
       position: relative;
+      overflow: hidden;
     }
-    .avatar-large { border:3px solid #17120c; }
-    .avatar-camera {
-      position:absolute; right:-2px; bottom:7px; z-index:3;
-      width:46px; height:46px; padding:0; border-radius: 17px;
-      border:2px solid rgba(255,232,170,.85); color:#fff;
-      background:linear-gradient(145deg,#66502b,#17130d);
-      box-shadow:0 5px 18px rgba(0,0,0,.5); font-size:21px; cursor:pointer;
+    .avatar-large {
+      width: 100%;
+      height: 100%;
+      border: 0 !important;
+      border-radius: 8px;
+      object-fit: contain;
+      background: transparent;
+      display: block;
     }
     .avatar-camera:hover { transform:scale(1.06); }
 
@@ -289,12 +291,12 @@
     }
 
     .avatar-small {
-      width: 42px;
-      height: 42px;
-      border-radius: 10px;
+      width: 48px;
+      height: 48px;
+      border: 0;
+      border-radius: 6px;
       object-fit: contain;
-      border: 2px solid var(--gold);
-      background: #242424;
+      background: transparent;
       display: block;
     }
 
@@ -2042,9 +2044,9 @@
   document.addEventListener("keydown",e=>{if(e.key==="Escape"&&box.classList.contains("is-open"))close();});
   document.addEventListener("click",e=>{
     const img=e.target.closest('img.avatar,img.avatar-large,img.avatar-small,img.community-author-avatar,img.post-author-avatar,.community-author img,.post-author img,.chat-head img.avatar');
-    if(!img||!img.src||img.src.startsWith("data:"))return;
+    if(!img)return; const source=img.currentSrc||img.getAttribute("src"); if(!source||source.startsWith("data:")||!img.complete||img.naturalWidth===0)return;
     e.preventDefault();e.stopPropagation();
-    preview.src=img.currentSrc||img.src;box.classList.add("is-open");
+    preview.src=source;box.classList.add("is-open");
   },true);
   document.querySelectorAll('img.avatar,img.avatar-large,img.avatar-small,.community-author img,.post-author img,.chat-head img.avatar').forEach(img=>img.classList.add("empire-avatar-zoom"));
 })();
