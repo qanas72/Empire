@@ -1171,6 +1171,25 @@
       return plans[value] || (plan || "VIP Membership");
     }
 
+    // The avatars bucket is public, so use its public object URL.
+    // This helper is also used after uploading a new profile photo.
+    async function getSignedAvatar(path) {
+      if (!path) return null;
+
+      const objectPath = String(path)
+        .trim()
+        .replace(/^\\/+/, "")
+        .replace(/^avatars\\//i, "");
+
+      if (!objectPath) return null;
+
+      const { data } = supabaseClient.storage
+        .from("avatars")
+        .getPublicUrl(objectPath);
+
+      return data?.publicUrl || null;
+    }
+
     function setAvatar(url) {
       const large = $("avatarLarge");
       const small = $("avatarSmall");
