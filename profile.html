@@ -1292,57 +1292,55 @@
       const image = $("avatarLarge");
       if (!image || !currentUser) return;
 
-      try {
-        // Re-read the saved path for the signed-in account, then use the
-        // exact same public-URL method that works on members.html.
-        const { data: freshProfile, error: profileError } = await supabaseClient
-          .from("profiles")
-          .select("avatar_url")
-          .eq("id", currentUser.id)
-          .maybeSingle();
+      // Use the avatar path already loaded with the authenticated profile.
+      // This avoids a second profiles query that can fail independently.
+      const savedPath = String(profile?.avatar_url || "").trim();
 
-        if (profileError) throw profileError;
-
-        const savedPath = String(
-          freshProfile?.avatar_url || profile?.avatar_url || ""
-        ).trim();
-
-        if (!savedPath) {
-          setAvatar(null);
-          return;
-        }
-
-        const { data: publicData } = supabaseClient.storage
-          .from("avatars")
-          .getPublicUrl(savedPath);
-
-        if (!publicData?.publicUrl) {
-          throw new Error("Supabase did not return a public avatar URL.");
-        }
-
-        const publicUrl = publicData.publicUrl;
-        image.onerror = async () => {
-          image.onerror = null;
-          try {
-            const { data: signedData, error: signedError } =
-              await supabaseClient.storage
-                .from("avatars")
-                .createSignedUrl(savedPath, 3600);
-
-            if (signedError) throw signedError;
-            if (!signedData?.signedUrl) throw new Error("Signed image URL unavailable.");
-
-            setAvatar(signedData.signedUrl);
-          } catch (fallbackError) {
-            console.error("Profile avatar could not load:", fallbackError.message);
-          }
-        };
-
-        setAvatar(publicUrl);
-      } catch (error) {
-        console.error("Profile avatar loading failed:", error.message);
+      if (!savedPath) {
         setAvatar(null);
+        return;
       }
+
+      const objectPath = savedPath
+        .replace(/^\/+/, "")
+        .replace(/^avatars\//i, "");
+
+      const { data: publicData } = supabaseClient.storage
+        .from("avatars")
+        .getPublicUrl(objectPath);
+
+      if (!publicData?.publicUrl) {
+        console.error("Supabase did not return a public avatar URL.");
+        setAvatar(null);
+        return;
+      }
+
+      // Set the primary URL first, then attach fallback handling so it
+      // cannot be overwritten by setAvatar().
+      setAvatar(publicData.publicUrl);
+
+      image.onerror = async () => {
+        image.onerror = null;
+        try {
+          const { data: signedData, error: signedError } =
+            await supabaseClient.storage
+              .from("avatars")
+              .createSignedUrl(objectPath, 3600);
+
+          if (signedError) throw signedError;
+          if (!signedData?.signedUrl) throw new Error("Signed image URL unavailable.");
+
+          image.dataset.avatarUrl = signedData.signedUrl;
+          image.dataset.avatarLoaded = "false";
+          image.src = signedData.signedUrl;
+          image.onerror = () => {
+            image.dataset.avatarLoaded = "false";
+            console.error("Both public and signed profile avatar URLs failed.");
+          };
+        } catch (fallbackError) {
+          console.error("Profile avatar fallback failed:", fallbackError.message);
+        }
+      };
     }
     function withProfileTimeout(promise, label, milliseconds = 12000) {
       let timer;
