@@ -302,8 +302,11 @@ begin
  select count(*) into v_count from public.empire_raffle_entries where raffle_id=p_raffle_id;
  if v_count>=v_raffle.target_participants then
    for v_row in
-    select e.user_id, row_number() over(order by random()) as rank
-    from public.empire_raffle_entries e where e.raffle_id=p_raffle_id order by random() limit 3
+    select picked.user_id, row_number() over(order by random()) as rank
+    from (
+      select e.user_id from public.empire_raffle_entries e
+      where e.raffle_id=p_raffle_id order by random() limit 3
+    ) picked
    loop
     insert into public.empire_raffle_winners(raffle_id,user_id,prize_rank,prize_description)
     values(p_raffle_id,v_row.user_id,v_row.rank,
