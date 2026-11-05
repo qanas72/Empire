@@ -115,7 +115,7 @@ async function loadFeed(){
    }
    const stats=reactionMap.get(p.id)||{likes:0,dislikes:0,mine:null};
    const canReact=!!user&&user.id!==p.author_id&&!stats.mine;
-   const actions='<div class="post-actions">'+(canReact?'<button type="button" class="reaction-btn" data-react="like" data-post="'+p.id+'">👍 Like ('+stats.likes+')</button><button type="button" class="reaction-btn" data-react="dislike" data-post="'+p.id+'">👎 Dislike ('+stats.dislikes+')</button>':'<span>👍 '+stats.likes+' · 👎 '+stats.dislikes+'</span>')+' <button class="report-btn" data-report="'+p.id+'">Report publication</button></div>';
+   const actions='<div class="post-actions">'+(canReact?'<button type="button" class="reaction-btn" data-react="like" data-post="'+p.id+'">👍 Like ('+stats.likes+')</button><button type="button" class="reaction-btn" data-react="dislike" data-post="'+p.id+'">👎 Dislike ('+stats.dislikes+')</button>':'<span>👍 '+stats.likes+' · 👎 '+stats.dislikes+(stats.mine?' · Your reaction: '+(stats.mine==='like'?'Liked':'Disliked'):'')+'</span>')+' <button class="report-btn" data-report="'+p.id+'">Report publication</button></div>';
    return '<article class="post"><div class="post-head"><div class="post-author">'+authorHtml+'</div><span>'+new Date(p.created_at).toLocaleString()+'</span></div><div class="post-body">'+escapeHTML(p.content||"")+'</div>'+image+actions+'</article>';
   }));
   $("feed").innerHTML=cards.join("");
