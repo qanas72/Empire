@@ -702,6 +702,23 @@ footer{
   </section>
 
 
+  <!-- ENGAGEMENT AND REWARD SETTINGS -->
+  <section class="panel" id="empireRewardSettingsPanel">
+    <h2>🎁 EMPIRE Engagement &amp; Reward Settings</h2>
+    <p style="color:#888;font-size:13px;margin:-8px 0 18px">Control EMPC rewards paid from the internal treasury. Each reward can be disabled independently.</p>
+    <div class="form-grid">
+      <div class="field"><label for="reward_post_like_reward">👍 Reward for each eligible post like (EMPC)</label><input id="reward_post_like_reward" type="number" min="0" max="1000000000" step="0.00000001"><label style="display:flex;align-items:center;gap:8px;margin-top:8px"><input id="reward_enabled_post_like_reward" type="checkbox"> Enable like reward</label></div>
+      <div class="field"><label for="reward_signup_reward">🎉 Verified account signup reward (EMPC)</label><input id="reward_signup_reward" type="number" min="0" max="1000000000" step="0.00000001"><label style="display:flex;align-items:center;gap:8px;margin-top:8px"><input id="reward_enabled_signup_reward" type="checkbox"> Enable signup reward</label></div>
+      <div class="field"><label for="reward_referral_reward_regular">👥 Referral reward — regular inviter (EMPC)</label><input id="reward_referral_reward_regular" type="number" min="0" max="1000000000" step="0.00000001"><label style="display:flex;align-items:center;gap:8px;margin-top:8px"><input id="reward_enabled_referral_reward_regular" type="checkbox"> Enable regular referral reward</label></div>
+      <div class="field"><label for="reward_referral_reward_vip">👑 Referral reward — VIP inviter (EMPC)</label><input id="reward_referral_reward_vip" type="number" min="0" max="1000000000" step="0.00000001"><label style="display:flex;align-items:center;gap:8px;margin-top:8px"><input id="reward_enabled_referral_reward_vip" type="checkbox"> Enable VIP referral reward</label></div>
+    </div>
+    <div class="actions"><button class="btn btn-gold" id="saveEmpireRewardSettingsBtn" onclick="saveEmpireRewardSettings()">💾 Save Reward Settings</button><button class="btn btn-dark" onclick="loadEmpireRewardSettings()">↻ Reload</button></div>
+    <div class="status" id="empireRewardSettingsStatus"></div>
+    <h3 style="margin-top:22px">🧾 Reward Payment History</h3>
+    <div id="empireRewardHistory" class="video-list"><div class="empty">Loading reward history...</div></div>
+    <p style="color:#777;font-size:11px;margin-top:12px">Rewards are internal EMPC transfers from the treasury, not cash payments. A like reward is paid only once per person per publication, even if they remove and add their like again. Dislikes do not earn EMPC.</p>
+  </section>
+
   <!-- INTERNAL EMPC TREASURY OVERVIEW -->
   <section class="panel" id="treasuryWalletPanel">
     <h2>🏦 EMPIRE Treasury Wallet</h2>
@@ -1199,6 +1216,42 @@ async function loadEconomicSettings(){
   }
 }
 
+
+const EMPIRE_REWARD_KEYS=["post_like_reward","signup_reward","referral_reward_regular","referral_reward_vip"];
+async function loadEmpireRewardSettings(){
+ const status=document.getElementById("empireRewardSettingsStatus");
+ try{
+  const {data,error}=await supabaseClient.from("empire_reward_settings").select("setting_key,setting_value,is_enabled").in("setting_key",EMPIRE_REWARD_KEYS);
+  if(error)throw error;
+  for(const row of data||[]){
+   const amount=document.getElementById("reward_"+row.setting_key),enabled=document.getElementById("reward_enabled_"+row.setting_key);
+   if(amount)amount.value=row.setting_value;
+   if(enabled)enabled.checked=!!row.is_enabled;
+  }
+  status.textContent="Reward settings loaded.";status.className="status show success";
+ }catch(error){status.textContent="Could not load reward settings: "+(error.message||"Unknown error");status.className="status show error";}
+ await loadEmpireRewardHistory();
+}
+async function saveEmpireRewardSettings(){
+ const button=document.getElementById("saveEmpireRewardSettingsBtn"),status=document.getElementById("empireRewardSettingsStatus");
+ const values={};
+ for(const key of EMPIRE_REWARD_KEYS){const input=document.getElementById("reward_"+key),value=Number(input.value);if(input.value.trim()===""||!Number.isFinite(value)||value<0||value>1000000000){status.textContent="Enter a valid reward amount.";status.className="status show error";input.focus();return;}values[key]={value,enabled:document.getElementById("reward_enabled_"+key).checked};}
+ button.disabled=true;button.textContent="Saving...";
+ try{for(const key of EMPIRE_REWARD_KEYS){const {error}=await supabaseClient.rpc("admin_update_empire_reward_setting",{p_key:key,p_value:values[key].value,p_enabled:values[key].enabled});if(error)throw new Error(key+": "+error.message);}
+ status.textContent="All reward settings saved.";status.className="status show success";await loadEmpireRewardHistory();
+ }catch(error){status.textContent="Save failed: "+(error.message||"Unknown error");status.className="status show error";}
+ finally{button.disabled=false;button.textContent="💾 Save Reward Settings";}
+}
+async function loadEmpireRewardHistory(){
+ const box=document.getElementById("empireRewardHistory");if(!box)return;
+ try{const {data,error}=await supabaseClient.from("empire_reward_events").select("id,recipient_user_id,source_user_id,reward_type,amount,created_at").order("created_at",{ascending:false}).limit(40);if(error)throw error;
+ if(!data?.length){box.innerHTML='<div class="empty">No reward payments have been recorded yet.</div>';return;}
+ const ids=[...new Set(data.flatMap(x=>[x.recipient_user_id,x.source_user_id]).filter(Boolean))];let names={};
+ if(ids.length){const {data:profiles}=await supabaseClient.from("profiles").select("id,username,display_name").in("id",ids);(profiles||[]).forEach(p=>names[p.id]=p.display_name||p.username||p.id);}
+ const labels={post_like:"Post like",signup:"Account signup",referral:"Referral"};
+ box.innerHTML=data.map(x=>'<div class="video-item"><strong>'+escapeHtml(labels[x.reward_type]||x.reward_type)+'</strong><div>'+escapeHtml(names[x.recipient_user_id]||x.recipient_user_id)+' · '+Number(x.amount).toLocaleString()+" EMPC"+'</div><small>Source: '+escapeHtml(names[x.source_user_id]||"System")+' · '+new Date(x.created_at).toLocaleString()+'</small></div>').join("");
+ }catch(error){box.innerHTML='<div class="empty">Could not load reward history: '+escapeHtml(error.message||"Unknown error")+'</div>';}
+}
 
 async function loadTreasuryWallet(){
   const status=document.getElementById("treasuryWalletStatus");
@@ -2345,6 +2398,8 @@ async function logout(){
     updatePriceVisibility();
 
     await loadEconomicSettings();
+
+    await loadEmpireRewardSettings();
 
     await loadTreasuryWallet();
 
