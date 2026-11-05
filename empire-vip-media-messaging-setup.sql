@@ -46,6 +46,18 @@ with check (
   )
 );
 
+drop policy if exists "VIP users can remove their own unlinked message media" on storage.objects;
+create policy "VIP users can remove their own unlinked message media"
+on storage.objects for delete to authenticated
+using (
+  bucket_id = 'message-media'
+  and (storage.foldername(name))[1] = auth.uid()::text
+  and not exists (
+    select 1 from public.empire_messages em
+    where em.media_path = storage.objects.name
+  )
+);
+
 drop policy if exists "Conversation participants can view message media" on storage.objects;
 create policy "Conversation participants can view message media"
 on storage.objects for select to authenticated
@@ -87,7 +99,7 @@ begin
   if p_receiver_id is null or p_receiver_id = v_sender_id then
     raise exception 'Invalid recipient';
   end if;
-  if p_media_type not in ('image','video','audio') then
+  if p_media_type is null or p_media_type not in ('image','video','audio') then
     raise exception 'Unsupported media type';
   end if;
   if p_media_path is null
