@@ -1594,6 +1594,11 @@
 
       currentUser = authData.user;
 
+      // Idempotent server-side claim also covers users who open their profile directly.
+      supabaseClient.rpc("claim_empire_signup_reward").then(({error})=>{
+        if(error)console.info("Signup reward not available:",error.message);
+      }).catch(error=>console.info("Signup reward claim skipped:",error));
+
       loadEmpireReferral().catch(error=>console.warn("Referral panel unavailable:",error));
       $("copyReferralLinkButton")?.addEventListener("click",async()=>{
         const value=$("myReferralLink").value;
