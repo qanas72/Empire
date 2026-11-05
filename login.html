@@ -912,6 +912,18 @@
               error
             );
 
+            const errorText = String(error.message || "").toLowerCase();
+            const isDuplicateUsername =
+              error.code === "23505" ||
+              errorText.includes("profiles_username_unique_ci") ||
+              errorText.includes("duplicate key");
+
+            if (isDuplicateUsername) {
+              throw new Error(
+                "This username is already taken. Please choose another username."
+              );
+            }
+
             throw new Error(
               error.message
             );
