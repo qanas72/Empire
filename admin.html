@@ -734,13 +734,16 @@ footer{
     <h2>🎟️ EMPIRE Raffle Manager</h2>
     <p style="color:#888;font-size:13px;margin:-8px 0 18px">Create raffles and set their conditions and three prizes. The draw runs automatically when 50 eligible participants join.</p>
     <div class="form-grid">
-      <div class="field full"><label for="raffleTitle">Raffle title</label><input id="raffleTitle" maxlength="140" placeholder="November VIP Giveaway"></div>
+      <div class="field full"><label for="raffleTitle">Raffle title</label><input id="raffleTitle" maxlength="140" placeholder="November EMPIRE Giveaway"></div>
       <div class="field full"><label for="raffleDescription">Details</label><textarea id="raffleDescription" rows="3" placeholder="Describe this raffle..."></textarea></div>
       <div class="field full"><label for="raffleConditions">Additional participation conditions</label><textarea id="raffleConditions" rows="3" placeholder="Add any additional conditions..."></textarea></div>
-      <div class="field"><label for="rafflePrize1">🥇 First prize</label><input id="rafflePrize1" maxlength="240" placeholder="1 Year VIP"></div>
-      <div class="field"><label for="rafflePrize2">🥈 Second prize</label><input id="rafflePrize2" maxlength="240" placeholder="6 Months VIP"></div>
-      <div class="field"><label for="rafflePrize3">🥉 Third prize</label><input id="rafflePrize3" maxlength="240" placeholder="3 Months VIP"></div>
+      <div class="field"><label for="rafflePrize1Amount">🥇 First prize — USDT amount</label><input id="rafflePrize1Amount" type="number" min="0.01" step="0.01" placeholder="100"></div>
+      <div class="field"><label for="rafflePrize1Network">🥇 First prize — network</label><select id="rafflePrize1Network"><option value="TRC20">TRC20</option><option value="BEP20">BEP20</option><option value="ERC20">ERC20</option></select></div>
+      <div class="field"><label for="rafflePrize2Amount">🥈 Second prize — USDT amount</label><input id="rafflePrize2Amount" type="number" min="0.01" step="0.01" placeholder="50"></div>
+      <div class="field"><label for="rafflePrize2Network">🥈 Second prize — network</label><select id="rafflePrize2Network"><option value="TRC20">TRC20</option><option value="BEP20">BEP20</option><option value="ERC20">ERC20</option></select></div>
+      <div class="field full"><label for="rafflePrize3Plan">🥉 Third prize — VIP plan</label><select id="rafflePrize3Plan"><option value="vip-monthly">1 Month VIP</option><option value="vip-quarterly">3 Months VIP</option><option value="vip-semiannual">6 Months VIP</option><option value="vip-yearly">1 Year VIP</option></select></div>
     </div>
+    <p style="color:#888;font-size:12px;margin-top:12px">USDT transfers are made manually by the admin after the draw. The admin verifies the winner's wallet address and records the transaction ID after sending.</p>
     <div class="actions"><button class="btn btn-gold" onclick="createEmpireRaffle()">＋ Create Draft Raffle</button><button class="btn btn-dark" onclick="loadEmpireRaffles()">↻ Refresh Raffles</button></div>
     <div id="raffleAdminStatus" class="status"></div><div id="raffleAdminList" class="video-list"><div class="empty">Loading raffles...</div></div>
   </section>
@@ -1304,9 +1307,51 @@ async function giftVipToSelectedUser(){
  catch(e){st.textContent="Gift activation failed: "+(e.message||"Unknown error");st.className="status show error";}
 }
 async function createEmpireRaffle(){
- const st=document.getElementById("raffleAdminStatus"),ids=["raffleTitle","raffleDescription","raffleConditions","rafflePrize1","rafflePrize2","rafflePrize3"],v=ids.map(id=>document.getElementById(id).value.trim());
- try{const {data,error}=await supabaseClient.rpc("admin_save_empire_raffle",{p_raffle_id:null,p_title:v[0],p_description:v[1],p_conditions:v[2],p_prize_1:v[3],p_prize_2:v[4],p_prize_3:v[5],p_action:"create"});if(error)throw error;st.textContent="Draft raffle created. Publish it from the list.";st.className="status show success";ids.forEach(id=>document.getElementById(id).value="");await loadEmpireRaffles();}
- catch(e){st.textContent="Could not create raffle: "+(e.message||"Unknown error");st.className="status show error";}
+ const st=document.getElementById("raffleAdminStatus");
+ const title=document.getElementById("raffleTitle").value.trim();
+ const description=document.getElementById("raffleDescription").value.trim();
+ const conditions=document.getElementById("raffleConditions").value.trim();
+ const amount1=Number(document.getElementById("rafflePrize1Amount").value);
+ const network1=document.getElementById("rafflePrize1Network").value;
+ const amount2=Number(document.getElementById("rafflePrize2Amount").value);
+ const network2=document.getElementById("rafflePrize2Network").value;
+ const vipPlan=document.getElementById("rafflePrize3Plan").value;
+ const vipLabels={"vip-monthly":"1 Month VIP","vip-quarterly":"3 Months VIP","vip-semiannual":"6 Months VIP","vip-yearly":"1 Year VIP"};
+ if(title.length<3){st.textContent="Enter a raffle title with at least 3 characters.";st.className="status show error";return;}
+ if(!Number.isFinite(amount1)||amount1<=0||!Number.isFinite(amount2)||amount2<=0){st.textContent="Enter valid USDT amounts greater than zero for both cash prizes.";st.className="status show error";return;}
+ if(!["TRC20","BEP20","ERC20"].includes(network1)||!["TRC20","BEP20","ERC20"].includes(network2)){st.textContent="Choose a valid network for both USDT prizes.";st.className="status show error";return;}
+ const prize1=amount1.toFixed(2)+" USDT — "+network1;
+ const prize2=amount2.toFixed(2)+" USDT — "+network2;
+ const prize3=vipLabels[vipPlan]||"VIP Membership";
+ try{
+  st.textContent="Creating draft raffle...";
+  st.className="status show";
+  const {data:raffleId,error:createError}=await supabaseClient.rpc("admin_save_empire_raffle",{
+   p_raffle_id:null,p_title:title,p_description:description,p_conditions:conditions,
+   p_prize_1:prize1,p_prize_2:prize2,p_prize_3:prize3,p_action:"create"
+  });
+  if(createError)throw createError;
+  if(!raffleId)throw new Error("Draft was created but no raffle ID was returned. Contact support before retrying.");
+  const {error:prizeError}=await supabaseClient.rpc("admin_configure_empire_raffle_prizes",{
+   p_raffle_id:raffleId,
+   p_prize_1_amount:amount1,
+   p_prize_1_network:network1,
+   p_prize_2_amount:amount2,
+   p_prize_2_network:network2,
+   p_prize_3_vip_plan_key:vipPlan
+  });
+  if(prizeError)throw new Error("Draft "+raffleId+" was created, but saving its prize settings failed: "+prizeError.message+". Do not create it again; refresh the raffle list.");
+  ["raffleTitle","raffleDescription","raffleConditions","rafflePrize1Amount","rafflePrize2Amount"].forEach(id=>document.getElementById(id).value="");
+  document.getElementById("rafflePrize1Network").value="TRC20";
+  document.getElementById("rafflePrize2Network").value="TRC20";
+  document.getElementById("rafflePrize3Plan").value="vip-monthly";
+  st.textContent="Draft raffle and all three prizes saved successfully. Review it in the list before publishing.";
+  st.className="status show success";
+  await loadEmpireRaffles();
+ }catch(e){
+  st.textContent="Could not complete raffle setup: "+(e.message||"Unknown error");
+  st.className="status show error";
+ }
 }
 async function loadEmpireRaffles(){
  const box=document.getElementById("raffleAdminList");if(!box)return;
