@@ -68,7 +68,7 @@ button:disabled{opacity:.5;cursor:not-allowed}.row{display:flex;gap:10px;flex-wr
 <p class="hint" id="loginHint">Sign in to publish text or images. Text and image posts are published immediately.</p>
 <form id="postForm">
 <label for="postText">Your text</label><textarea id="postText" maxlength="5000" placeholder="Write something..."></textarea>
-<label for="postImage">Image (optional)</label><input id="postImage" type="file" accept="image/jpeg,image/png,image/webp">
+<label for="postImage">Images (optional)</label><input id="postImage" type="file" accept="image/jpeg,image/png,image/webp" multiple><p class="hint">Regular members: 1 image per post. Active VIP members: up to 7 images.</p>
 <p class="hint">Maximum image size: 5 MB. Do not share illegal, abusive, private or copyrighted material without permission.</p>
 <div class="row"><button id="publishBtn" type="submit">Publish</button></div>
 </form>
@@ -85,7 +85,7 @@ const $=id=>document.getElementById(id);
 function escapeHTML(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));}
 function notify(message,error=false){$("notice").textContent=message;$("notice").className="notice show "+(error?"error":"success");}
 async function loadFeed(){
- const {data,error}=await db.from("community_posts").select("id,author_id,author_name,content,image_path,created_at").eq("is_removed",false).order("created_at",{ascending:false}).limit(50);
+ const {data,error}=await db.from("community_posts").select("id,author_id,author_name,content,image_path,image_paths,created_at").eq("is_removed",false).order("created_at",{ascending:false}).limit(50);
  if(error){$("feed").textContent="Could not load publications. Please run publishing-setup.sql in Supabase first.";return;}
  if(!data.length){$("feed").textContent="No publications yet. Be the first to publish.";return;}
  const authorIds=[...new Set(data.map(p=>p.author_id).filter(Boolean))];
@@ -96,7 +96,7 @@ async function loadFeed(){
   const fallbackAvatar="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 80'%3E%3Crect width='80' height='80' fill='%23222222'/%3E%3Ctext x='40' y='52' text-anchor='middle' font-size='38' fill='%23e8c36b'%3E%E2%98%BB%3C/text%3E%3C/svg%3E";
   const cards=await Promise.all(data.map(async p=>{
    let image="";
-   if(p.image_path){const {data:u}=db.storage.from("post-images").getPublicUrl(p.image_path);image=u?.publicUrl?'<img src="'+escapeHTML(u.publicUrl)+'" alt="Publication image" loading="lazy">':"";}
+   const paths=[...(Array.isArray(p.image_paths)?p.image_paths:[]),...(p.image_path&&!(p.image_paths||[]).includes(p.image_path)?[p.image_path]:[])];\n   for(const path of paths){const {data:u}=db.storage.from("post-images").getPublicUrl(path);if(u?.publicUrl)image+='<img src="'+escapeHTML(u.publicUrl)+'" alt="Publication image" loading="lazy">';}
    const author=authorMap.get(p.author_id);
    const ownProfile=!!user&&user.id===p.author_id;
    let authorHtml="";
@@ -134,19 +134,25 @@ $("reportForm").addEventListener("submit",async e=>{
 $("postForm").addEventListener("submit",async e=>{
  e.preventDefault();
  if(!user){notify("Please sign in before publishing.",true);return;}
- const content=$("postText").value.trim(),file=$("postImage").files[0];
- if(!content&&!file){notify("Write text or select an image.",true);return;}
- if(file&&(!/^image\/(jpeg|png|webp)$/.test(file.type)||file.size>5*1024*1024)){notify("Choose a JPG, PNG or WEBP image up to 5 MB.",true);return;}
+ const content=$("postText").value.trim(),files=Array.from($("postImage").files||[]);
+ if(!content&&!files.length){notify("Write text or select an image.",true);return;}
+ if(files.some(file=>!/^image\/(jpeg|png|webp)$/.test(file.type)||file.size>5*1024*1024)){notify("Choose JPG, PNG or WEBP images up to 5 MB each.",true);return;}
+ const {data:memberships,error:membershipError}=await db.from("vip_memberships").select("status,expires_at").eq("user_id",user.id).eq("status","active").order("created_at",{ascending:false}).limit(5);
+ if(membershipError){notify("Could not verify VIP status. Please try again.",true);return;}
+ const isVip=(memberships||[]).some(m=>!m.expires_at||new Date(m.expires_at).getTime()>Date.now());
+ const maxImages=isVip?7:1;
+ if(files.length>maxImages){notify(isVip?"VIP members can add up to 7 images per publication.":"Regular members can add only 1 image per publication.",true);return;}
  const btn=$("publishBtn");btn.disabled=true;btn.textContent="Publishing...";
  try{
-  let image_path=null;
-  if(file){const safe=file.name.normalize("NFKD").replace(/[^a-zA-Z0-9._-]/g,"_").slice(-80)||"image";image_path=user.id+"/"+Date.now()+"-"+safe;
-   const up=await db.storage.from("post-images").upload(image_path,file,{upsert:false,contentType:file.type});if(up.error)throw up.error;}
+  const image_paths=[];
+  for(const file of files){const safe=file.name.normalize("NFKD").replace(/[^a-zA-Z0-9._-]/g,"_").slice(-80)||"image";const path=user.id+"/"+Date.now()+"-"+Math.random().toString(36).slice(2,8)+"-"+safe;
+   const up=await db.storage.from("post-images").upload(path,file,{upsert:false,contentType:file.type});if(up.error)throw up.error;image_paths.push(path);}
+  const image_path=image_paths[0]||null;
   const {data:profile,error:profileError}=await db.from("profiles").select("username,display_name").eq("id",user.id).maybeSingle();
   if(profileError)throw profileError;
   const author_name=profile?.display_name||profile?.username||"Empire member";
-  const {error}=await db.from("community_posts").insert({author_id:user.id,author_name,content,image_path});
-  if(error){if(image_path)await db.storage.from("post-images").remove([image_path]);throw error;}
+  const {error}=await db.from("community_posts").insert({author_id:user.id,author_name,content,image_path,image_paths});
+  if(error){if(image_paths.length)await db.storage.from("post-images").remove(image_paths);throw error;}
   $("postForm").reset();notify("Your publication is now live.");await loadFeed();
  }catch(err){notify(err.message||"Could not publish. Check the Supabase setup.",true);}
  finally{btn.disabled=false;btn.textContent="Publish";}
