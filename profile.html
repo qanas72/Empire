@@ -1337,15 +1337,35 @@
       const membershipPromise = loadMembership();
       const purchasesPromise = loadPurchases();
 
-      const { data, error } = await supabaseClient
-        .from("profiles")
-        .select("*")
-        .eq("id", currentUser.id)
-        .maybeSingle();
+      let profileResult;
+      try {
+        profileResult = await withProfileTimeout(
+          supabaseClient
+            .from("profiles")
+            .select("*")
+            .eq("id", currentUser.id)
+            .maybeSingle(),
+          "Profile data request",
+          15000
+        );
+      } catch (profileRequestError) {
+        console.error("Profile load request failed:", profileRequestError);
+        $("displayName").textContent = "Profile unavailable";
+        $("heroUsername").textContent = "Please refresh";
+        showNotice(
+          "Your account is signed in, but profile data did not load. Please refresh once. If this continues, the profile database request needs checking.",
+          "error"
+        );
+        return;
+      }
+
+      const { data, error } = profileResult;
 
       if (error) {
         console.error("Profile load error:", error);
-        showNotice("Could not load your profile. Please refresh the page.", "error");
+        $("displayName").textContent = "Profile unavailable";
+        $("heroUsername").textContent = "Please refresh";
+        showNotice("Could not load your profile: " + (error.message || "database request failed"), "error");
         return;
       }
 
@@ -1976,8 +1996,14 @@
 
     $("deleteAccountButton").addEventListener("click", deleteAccount);
 
-    // Start the page.
-    loadProfile();
+    // Start the page and surface unexpected startup errors instead of leaving
+    // the profile header permanently stuck on its loading placeholders.
+    loadProfile().catch((error) => {
+      console.error("Unexpected profile startup error:", error);
+      $("displayName").textContent = "Profile could not start";
+      $("heroUsername").textContent = "Please refresh";
+      showNotice("The profile page encountered an unexpected loading error. Please refresh the page.", "error");
+    });
   
 /* Click any profile avatar to view it larger; tap outside or close to dismiss. */
 (function installEmpireAvatarPreview(){
