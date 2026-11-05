@@ -14,7 +14,8 @@ select
     when vm.user_id is not null then 'VIP'
     else 'Regular'
   end as membership_type,
-  vm.plan as active_vip_plan
+  vm.plan as active_vip_plan,
+  p.bio
 from public.profiles p
 left join lateral (
   select m.user_id, m.plan
@@ -32,7 +33,7 @@ where p.is_active = true
   );
 
 comment on view public.public_user_profiles is
-  'Safe public directory; excludes administrator accounts and exposes no private account or payment fields.';
+  'Safe public directory; excludes administrator accounts and exposes only selected public profile fields and no private account or payment fields.';
 
 revoke all on public.public_user_profiles from public;
 grant select on public.public_user_profiles to anon, authenticated;
