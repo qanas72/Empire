@@ -157,6 +157,40 @@
       font-size: 12px;
     }
 
+    .signup-confirmations {
+      margin-top: 20px;
+      padding: 14px;
+      border: 1px solid rgba(245, 217, 139, 0.45);
+      border-radius: 12px;
+      background: rgba(0, 0, 0, 0.22);
+    }
+
+    .signup-confirmations .confirmation-title {
+      margin: 0 0 12px;
+      color: #f1c75a;
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .confirmation-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      margin: 12px 0;
+      color: #ddd;
+      font-size: 13px;
+      line-height: 1.55;
+      cursor: pointer;
+    }
+
+    .confirmation-item input {
+      width: 17px;
+      height: 17px;
+      flex: 0 0 17px;
+      margin: 2px 0 0;
+      accent-color: #e8b94f;
+    }
+
     @media (max-width: 480px) {
       .box {
         padding: 25px 20px;
@@ -355,6 +389,28 @@
           placeholder="Confirm your password"
         >
 
+
+        <div class="signup-confirmations">
+          <p class="confirmation-title">Please confirm before creating your account:</p>
+
+          <label class="confirmation-item" for="confirmUsernamePolicy">
+            <input
+              id="confirmUsernamePolicy"
+              type="checkbox"
+              required
+            >
+            <span>I understand that my username is permanent and cannot be changed after my account is created.</span>
+          </label>
+
+          <label class="confirmation-item" for="confirmPasswordPolicy">
+            <input
+              id="confirmPasswordPolicy"
+              type="checkbox"
+              required
+            >
+            <span>I understand that EMPIRE currently has no Forgot Password or password recovery option. I must keep my password safe; if I lose it, I may permanently lose access to my account.</span>
+          </label>
+        </div>
 
         <button
           id="signupButton"
@@ -710,6 +766,12 @@
             .getElementById("signupConfirmPassword")
             .value;
 
+        const usernamePolicyAccepted =
+          document.getElementById("confirmUsernamePolicy").checked;
+
+        const passwordPolicyAccepted =
+          document.getElementById("confirmPasswordPolicy").checked;
+
 
         try {
 
@@ -734,6 +796,12 @@
           if (password !== confirmPassword) {
             throw new Error(
               "Passwords do not match."
+            );
+          }
+
+          if (!usernamePolicyAccepted || !passwordPolicyAccepted) {
+            throw new Error(
+              "Please confirm both account conditions before creating your account."
             );
           }
 
