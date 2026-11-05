@@ -58,7 +58,7 @@ button:disabled{opacity:.5;cursor:not-allowed}.row{display:flex;gap:10px;flex-wr
 
 </style></head>
 <body>
-<header class="top"><a class="brand" href="index.html" aria-label="Empire Home"><span class="brand-mark" aria-hidden="true">👑</span><span class="brand-name">𝑬𝒎𝒑𝒊𝒓𝒆</span></a><nav class="nav"><button type="button" class="back-nav" onclick="history.length>1?history.back():location.href='index.html'">← Back</button><a href="index.html">Home</a><a href="members.html">Members</a><a href="profile.html">Profile</a><a href="premium.html">VIP</a></nav></header>
+<header class="top"><a class="brand" href="index.html" aria-label="Empire Home"><span class="brand-mark" aria-hidden="true">👑</span><span class="brand-name">𝑬𝒎𝒑𝒊𝒓𝒆</span></a><nav class="nav"><button type="button" class="back-nav" onclick="history.length>1?history.back():location.href='index.html'">← Back</button><a href="index.html">Home</a><a href="members.html">Members</a><a href="profile.html">Profile</a><a href="premium.html">VIP</a><a href="raffle.html">Raffles</a></nav></header>
 <main>
 <section class="intro"><h1>Empire <span class="gold">Publishing</span></h1><p class="muted">Share your thoughts and images with the Empire community.</p></section>
 <div id="notice" class="notice"></div>
@@ -114,7 +114,7 @@ async function loadFeed(){
     authorHtml=author?.username?'<a href="'+(ownProfile?"profile.html":"user-profile.html?username="+encodeURIComponent(author.username))+'">'+content+'</a>':'<div class="post-author-fallback">'+content+'</div>';
    }
    const stats=reactionMap.get(p.id)||{likes:0,dislikes:0,mine:null};
-   const canReact=!!user&&user.id!==p.author_id;
+   const canReact=!!user&&user.id!==p.author_id&&!stats.mine;
    const actions='<div class="post-actions">'+(canReact?'<button type="button" class="reaction-btn" data-react="like" data-post="'+p.id+'">👍 Like ('+stats.likes+')</button><button type="button" class="reaction-btn" data-react="dislike" data-post="'+p.id+'">👎 Dislike ('+stats.dislikes+')</button>':'<span>👍 '+stats.likes+' · 👎 '+stats.dislikes+'</span>')+' <button class="report-btn" data-report="'+p.id+'">Report publication</button></div>';
    return '<article class="post"><div class="post-head"><div class="post-author">'+authorHtml+'</div><span>'+new Date(p.created_at).toLocaleString()+'</span></div><div class="post-body">'+escapeHTML(p.content||"")+'</div>'+image+actions+'</article>';
   }));
