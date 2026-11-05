@@ -846,7 +846,7 @@ text-shadow: 0 0 12px rgba(90, 170, 255, 0.4);
 </nav>  
 
 <div class="nav-actions">  
-  <a href="premium.html">Premium</a>\n  <a href="support.html">Support & Help</a>  
+  <a href="premium.html">Premium</a>  
   <a href="profile.html">Profile</a>  
   <span class="user-name" id="userName">Loading...</span>  
 </div>  
@@ -1014,7 +1014,7 @@ async function loadCommunityFeed(){
       const author=authorMap.get(post.author_id);
       const ownProfile=!!currentSession&&currentSession.user.id===post.author_id;
       let authorHtml='';
-      if(adminIds.has(post.author_id)) authorHtml='<div class="community-admin"><span class="community-admin-mark">♛</span><span>EMPIRE Administration</span></div>';
+      if(adminIds.has(post.author_id)) authorHtml='<div class="community-admin"><span class="community-admin-mark">♛</span><span>EMPIRE</span></div>';
       else {
         const displayName=author?.display_name||author?.username||post.author_name||"Empire Member";
         const avatarUrl=author?.avatar_url?supabaseClient.storage.from("avatars").getPublicUrl(author.avatar_url).data?.publicUrl:null;
