@@ -28,7 +28,7 @@ async function load(){
  const user=session?.session?.user;if(sessionError||!user){location.href="login.html";return;}
  const [postsResult,videosResult]=await Promise.all([
   db.from("community_posts").select("id,author_id,content,image_path,image_paths,created_at,is_removed").eq("author_id",user.id).eq("is_removed",false).order("created_at",{ascending:false}).limit(200),
-  db.from("videos").select("id,title,description,created_at,approval_status,access_type,price").eq("creator_id",user.id).order("created_at",{ascending:false}).limit(200)
+  db.from("videos").select("id,title,description,created_at,approval_status,access_type,price,video_path,thumbnail_url").eq("creator_id",user.id).order("created_at",{ascending:false}).limit(200)
  ]);
  if(postsResult.error)throw postsResult.error;
  if(videosResult.error)console.warn("Video list unavailable:",videosResult.error);
@@ -42,8 +42,23 @@ async function load(){
  if(videosResult.error){$("videos").innerHTML='<div class="empty">Could not load your videos: '+esc(videosResult.error.message)+'</div>';return;}
  const videos=videosResult.data||[];
  if(!videos.length)$("videos").innerHTML='<div class="empty">You have not submitted any videos yet.</div>';
- else $("videos").innerHTML=videos.map(v=>'<article class="video"><div class="meta">'+date(v.created_at)+' · '+esc(v.approval_status||"Submitted")+'</div><div><b>'+esc(v.title||"Untitled video")+'</b></div><div class="muted">'+esc(v.description||"")+'</div></article>').join("");
+ else $("videos").innerHTML=videos.map(v=>'<article class="video" id="video-'+esc(v.id)+'"><div class="meta">'+date(v.created_at)+' · '+esc(v.approval_status||"Submitted")+'</div><div><b>'+esc(v.title||"Untitled video")+'</b></div><div class="muted">'+esc(v.description||"")+'</div><div style="margin-top:12px"><button class="btn danger" data-delete-video="'+esc(v.id)+'">Delete my video</button></div></article>').join("");
 }
+$("videos").addEventListener("click",async e=>{
+ const btn=e.target.closest("[data-delete-video]");if(!btn)return;
+ const id=btn.dataset.deleteVideo;if(!confirm("Delete your video permanently? The publishing fee will not be refunded."))return;
+ btn.disabled=true;btn.textContent="Deleting...";
+ try{
+  const {data:session}=await db.auth.getSession();const user=session?.session?.user;if(!user)throw new Error("Please sign in again.");
+  const {data:video,error:readError}=await db.from("videos").select("id,creator_id,video_path,thumbnail_url").eq("id",id).eq("creator_id",user.id).single();
+  if(readError)throw readError;if(video.creator_id!==user.id)throw new Error("You can delete only your own video.");
+  const {error}=await db.from("videos").delete().eq("id",id).eq("creator_id",user.id);if(error)throw error;
+  const paths=[video.video_path,video.thumbnail_url].filter(p=>p&&typeof p==="string"&&!/^https?:\\/\\//i.test(p));
+  if(paths.length){const {error:storageError}=await db.storage.from("videos").remove(paths);if(storageError)console.warn("Video row deleted, file cleanup needs attention:",storageError);}
+  document.getElementById("video-"+id)?.remove();if(!$("videos").querySelector(".video"))$("videos").innerHTML='<div class="empty">You have not submitted any videos yet.</div>';
+  notice("Your video was deleted. The publishing fee was not refunded.");
+ }catch(err){notice(err.message||"Could not delete video.",true);btn.disabled=false;btn.textContent="Delete my video";}
+});
 $("posts").addEventListener("click",async e=>{
  const btn=e.target.closest("[data-delete-post]");if(!btn)return;
  const id=btn.dataset.deletePost;if(!confirm("Delete this publication permanently? This action cannot be undone."))return;
