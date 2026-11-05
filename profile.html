@@ -84,13 +84,14 @@
     }
 
     .nav-links {
-      display: grid;
-      grid-template-columns: repeat(3, auto);
+      display: flex;
+      flex-wrap: wrap;
       align-items: center;
-      justify-content: end;
+      justify-content: flex-end;
       gap: 8px 10px;
       font-size: 13px;
       color: var(--muted);
+      min-width: 0;
     }
 
     .nav-links a, .nav-links button {
@@ -115,7 +116,7 @@
       background: rgba(214,173,85,.09);
     }
 
-    .nav-links .nav-secondary { grid-column: 1 / -1; display:flex; justify-content:flex-end; gap:10px; }
+    .nav-links .nav-secondary { display:contents; }
     .nav-links .nav-logout { color:#ffb7b7; border-color:rgba(255,100,100,.3); }
 
     .page {
@@ -666,7 +667,9 @@
 
       .nav-links {
         width: 100%;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
         gap: 7px;
         font-size: 12px;
       }
