@@ -268,9 +268,6 @@
       border: 0 !important;
       border-radius: 0 !important;
       background-color: #17130e;
-      background-position: center;
-      background-repeat: no-repeat;
-      background-size: cover;
       display: block;
       cursor: zoom-in;
     }
@@ -1215,16 +1212,29 @@
       const avatar = $("avatarLarge");
       if (!avatar) return;
 
-      if (url) {
-        // Render as a CSS background instead of an IMG element. This avoids
-        // the profile page's broken-image/alt-text behavior entirely.
-        avatar.style.backgroundImage = "url(" + JSON.stringify(String(url)) + ")";
-        avatar.setAttribute("aria-label", "Profile photo");
-        avatar.dataset.avatarUrl = url;
-      } else {
-        avatar.style.backgroundImage = "none";
+      avatar.replaceChildren();
+      if (!url) {
         avatar.removeAttribute("data-avatar-url");
+        return;
       }
+
+      const photo = document.createElement("img");
+      photo.alt = "Profile photo";
+      photo.loading = "eager";
+      photo.decoding = "async";
+      photo.referrerPolicy = "no-referrer";
+      photo.style.cssText = "display:block;width:100%;height:100%;object-fit:cover;object-position:center;";
+      photo.onload = () => {
+        avatar.dataset.avatarLoaded = "true";
+      };
+      photo.onerror = () => {
+        avatar.dataset.avatarLoaded = "false";
+        console.error("Profile avatar image element failed to load:", url);
+      };
+      avatar.dataset.avatarUrl = String(url);
+      avatar.setAttribute("aria-label", "Profile photo");
+      avatar.appendChild(photo);
+      photo.src = String(url);
     }
 
     function avatarImageLoads(url) {
