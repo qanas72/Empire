@@ -719,6 +719,31 @@ footer{
     <p style="color:#777;font-size:11px;margin-top:12px">Rewards are internal EMPC transfers from the treasury, not cash payments. A like reward is paid only once per person per publication, even if they remove and add their like again. Dislikes do not earn EMPC.</p>
   </section>
 
+  <!-- VIP PLAN PRICING AND GIFT ACTIVATION -->
+  <section class="panel" id="vipPlanAdminPanel">
+    <h2>👑 VIP Plans & Complimentary Memberships</h2>
+    <p style="color:#888;font-size:13px;margin:-8px 0 18px">Change VIP plan prices or gift a membership to a selected user.</p>
+    <div id="vipPlanAdminList" class="video-list"><div class="empty">Loading VIP plans...</div></div>
+    <div class="actions"><button class="btn btn-gold" onclick="saveVipPlanAdmin()">💾 Save VIP Prices</button><button class="btn btn-dark" onclick="loadVipPlanAdmin()">↻ Reload</button></div>
+    <div id="vipPlanAdminStatus" class="status"></div>
+    <h3 style="margin-top:22px">🎁 Gift VIP Membership</h3>
+    <div class="form-grid"><div class="field"><label for="vipGiftUser">Select member</label><select id="vipGiftUser"><option value="">Loading members...</option></select></div><div class="field"><label for="vipGiftPlan">VIP plan</label><select id="vipGiftPlan"><option value="vip-monthly">1 Month VIP</option><option value="vip-quarterly">3 Months VIP</option><option value="vip-semiannual">6 Months VIP</option><option value="vip-yearly">1 Year VIP</option></select></div></div>
+    <div class="actions"><button class="btn btn-gold" onclick="giftVipToSelectedUser()">🎁 Activate Gift VIP</button></div><div id="vipGiftStatus" class="status"></div>
+  </section>
+  <section class="panel" id="raffleAdminPanel">
+    <h2>🎟️ EMPIRE Raffle Manager</h2>
+    <p style="color:#888;font-size:13px;margin:-8px 0 18px">Create raffles and set their conditions and three prizes. The draw runs automatically when 50 eligible participants join.</p>
+    <div class="form-grid">
+      <div class="field full"><label for="raffleTitle">Raffle title</label><input id="raffleTitle" maxlength="140" placeholder="November VIP Giveaway"></div>
+      <div class="field full"><label for="raffleDescription">Details</label><textarea id="raffleDescription" rows="3" placeholder="Describe this raffle..."></textarea></div>
+      <div class="field full"><label for="raffleConditions">Additional participation conditions</label><textarea id="raffleConditions" rows="3" placeholder="Add any additional conditions..."></textarea></div>
+      <div class="field"><label for="rafflePrize1">🥇 First prize</label><input id="rafflePrize1" maxlength="240" placeholder="1 Year VIP"></div>
+      <div class="field"><label for="rafflePrize2">🥈 Second prize</label><input id="rafflePrize2" maxlength="240" placeholder="6 Months VIP"></div>
+      <div class="field"><label for="rafflePrize3">🥉 Third prize</label><input id="rafflePrize3" maxlength="240" placeholder="3 Months VIP"></div>
+    </div>
+    <div class="actions"><button class="btn btn-gold" onclick="createEmpireRaffle()">＋ Create Draft Raffle</button><button class="btn btn-dark" onclick="loadEmpireRaffles()">↻ Refresh Raffles</button></div>
+    <div id="raffleAdminStatus" class="status"></div><div id="raffleAdminList" class="video-list"><div class="empty">Loading raffles...</div></div>
+  </section>
   <!-- INTERNAL EMPC TREASURY OVERVIEW -->
   <section class="panel" id="treasuryWalletPanel">
     <h2>🏦 EMPIRE Treasury Wallet</h2>
@@ -1252,6 +1277,46 @@ async function loadEmpireRewardHistory(){
  box.innerHTML=data.map(x=>'<div class="video-item"><strong>'+escapeHtml(labels[x.reward_type]||x.reward_type)+'</strong><div>'+escapeHtml(names[x.recipient_user_id]||x.recipient_user_id)+' · '+Number(x.amount).toLocaleString()+" EMPC"+'</div><small>Source: '+escapeHtml(names[x.source_user_id]||"System")+' · '+new Date(x.created_at).toLocaleString()+'</small></div>').join("");
  }catch(error){box.innerHTML='<div class="empty">Could not load reward history: '+escapeHtml(error.message||"Unknown error")+'</div>';}
 }
+
+
+const VIP_PLAN_KEYS=["vip-monthly","vip-quarterly","vip-semiannual","vip-yearly"];
+async function loadVipPlanAdmin(){
+ const box=document.getElementById("vipPlanAdminList");
+ try{
+  const {data,error}=await supabaseClient.from("empire_vip_plan_settings").select("plan_key,plan_name,duration_days,price_usd,is_enabled").order("duration_days");if(error)throw error;
+  box.innerHTML=(data||[]).map(p=>'<div class="video-item" style="display:flex;gap:14px;align-items:center;flex-wrap:wrap"><strong style="min-width:150px">'+escapeHtml(p.plan_name)+'</strong><span>'+p.duration_days+' days</span><label>USD $ <input type="number" min="0" step="0.01" id="vip_price_'+p.plan_key+'" value="'+Number(p.price_usd).toFixed(2)+'" style="width:110px"></label><label><input type="checkbox" id="vip_enabled_'+p.plan_key+'" '+(p.is_enabled?'checked':'')+'> Enabled</label></div>').join("")||'<div class="empty">No VIP plans found.</div>';
+  const {data:users,error:userError}=await supabaseClient.from("profiles").select("id,username,display_name").eq("is_active",true).order("username").limit(1000);if(userError)throw userError;
+  document.getElementById("vipGiftUser").innerHTML='<option value="">Choose a member...</option>'+(users||[]).map(u=>'<option value="'+u.id+'">'+escapeHtml(u.display_name||u.username||u.id)+' (@'+escapeHtml(u.username||"member")+')</option>').join("");
+  const st=document.getElementById("vipPlanAdminStatus");st.textContent="VIP plans and members loaded.";st.className="status show success";
+ }catch(e){box.innerHTML='<div class="empty">Could not load VIP plans: '+escapeHtml(e.message||"Unknown error")+'</div>';}
+}
+async function saveVipPlanAdmin(){
+ const st=document.getElementById("vipPlanAdminStatus");
+ try{for(const key of VIP_PLAN_KEYS){const input=document.getElementById("vip_price_"+key);if(!input)continue;const price=Number(input.value),enabled=document.getElementById("vip_enabled_"+key).checked;if(!Number.isFinite(price)||price<0)throw new Error("Invalid price for "+key);const {error}=await supabaseClient.rpc("admin_update_empire_vip_plan",{p_plan_key:key,p_price_usd:price,p_enabled:enabled});if(error)throw error;}
+ st.textContent="VIP plan prices saved.";st.className="status show success";
+ }catch(e){st.textContent="Save failed: "+(e.message||"Unknown error");st.className="status show error";}
+}
+async function giftVipToSelectedUser(){
+ const userId=document.getElementById("vipGiftUser").value,plan=document.getElementById("vipGiftPlan").value,st=document.getElementById("vipGiftStatus");
+ if(!userId){st.textContent="Choose a member first.";st.className="status show error";return;}
+ if(!confirm("Activate the selected VIP plan as a gift for this member?"))return;
+ try{const {data,error}=await supabaseClient.rpc("admin_gift_empire_vip",{p_user_id:userId,p_plan_key:plan});if(error)throw error;st.textContent="VIP gift activated successfully.";st.className="status show success";}
+ catch(e){st.textContent="Gift activation failed: "+(e.message||"Unknown error");st.className="status show error";}
+}
+async function createEmpireRaffle(){
+ const st=document.getElementById("raffleAdminStatus"),ids=["raffleTitle","raffleDescription","raffleConditions","rafflePrize1","rafflePrize2","rafflePrize3"],v=ids.map(id=>document.getElementById(id).value.trim());
+ try{const {data,error}=await supabaseClient.rpc("admin_save_empire_raffle",{p_raffle_id:null,p_title:v[0],p_description:v[1],p_conditions:v[2],p_prize_1:v[3],p_prize_2:v[4],p_prize_3:v[5],p_action:"create"});if(error)throw error;st.textContent="Draft raffle created. Publish it from the list.";st.className="status show success";ids.forEach(id=>document.getElementById(id).value="");await loadEmpireRaffles();}
+ catch(e){st.textContent="Could not create raffle: "+(e.message||"Unknown error");st.className="status show error";}
+}
+async function loadEmpireRaffles(){
+ const box=document.getElementById("raffleAdminList");if(!box)return;
+ try{const {data,error}=await supabaseClient.from("empire_raffles").select("*").order("created_at",{ascending:false});if(error)throw error;const rows=data||[];if(!rows.length){box.innerHTML='<div class="empty">No raffles have been created.</div>';return;}
+ const counts={};for(const r of rows){const q=await supabaseClient.from("empire_raffle_entries").select("id",{count:"exact",head:true}).eq("raffle_id",r.id);if(q.error)throw q.error;counts[r.id]=q.count||0;}
+ box.innerHTML=rows.map(r=>'<div class="video-item"><strong>'+escapeHtml(r.title)+'</strong><div>Status: '+escapeHtml(r.status)+' · Participants: '+counts[r.id]+'/'+r.target_participants+'</div><small>🥇 '+escapeHtml(r.prize_1)+' · 🥈 '+escapeHtml(r.prize_2)+' · 🥉 '+escapeHtml(r.prize_3)+'</small>'+(r.status==="draft"?'<div class="actions"><button class="btn btn-gold" onclick="publishEmpireRaffle(\''+r.id+'\')">Publish raffle</button><button class="btn btn-dark" onclick="cancelEmpireRaffle(\''+r.id+'\')">Cancel draft</button></div>':"")+'</div>').join("");
+ }catch(e){box.innerHTML='<div class="empty">Could not load raffles: '+escapeHtml(e.message||"Unknown error")+'</div>';}
+}
+async function publishEmpireRaffle(id){if(!confirm("Publish this raffle to all EMPIRE users?"))return;const {error}=await supabaseClient.rpc("admin_set_empire_raffle_status",{p_raffle_id:id,p_status:"open"});if(error){alert(error.message);return;}await loadEmpireRaffles();}
+async function cancelEmpireRaffle(id){const {error}=await supabaseClient.rpc("admin_set_empire_raffle_status",{p_raffle_id:id,p_status:"cancelled"});if(error){alert(error.message);return;}await loadEmpireRaffles();}
 
 async function loadTreasuryWallet(){
   const status=document.getElementById("treasuryWalletStatus");
@@ -2400,6 +2465,8 @@ async function logout(){
     await loadEconomicSettings();
 
     await loadEmpireRewardSettings();
+    await loadVipPlanAdmin();
+    await loadEmpireRaffles();
 
     await loadTreasuryWallet();
 
