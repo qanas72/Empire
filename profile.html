@@ -1303,56 +1303,53 @@
       const image = $("avatarLarge");
       if (!image || !currentUser) return;
 
-      // profiles.avatar_url is the verified source of truth. members.html
-      // uses this same bucket and the same public URL generation method.
-      const avatarPath = profile?.avatar_url
-        ? String(profile.avatar_url).trim().replace(/^\/+/, "").replace(/^avatars\//i, "")
-        : "";
-
-      if (avatarPath) {
-        const { data, error } = supabaseClient.storage
-          .from("avatars")
-          .getPublicUrl(avatarPath);
-
-        if (error) console.warn("Could not create profile avatar URL:", error);
-        if (data?.publicUrl) {
-          setAvatar(data.publicUrl);
-          return;
+      // Try each real Storage URL and verify that the image can load before
+      // assigning it to the visible profile avatar.
+      const savedPath = profile?.avatar_url ? String(profile.avatar_url).trim() : "";
+      if (savedPath) {
+        const candidates = await getAvatarCandidates(savedPath);
+        for (const url of candidates) {
+          if (await avatarImageLoads(url)) {
+            setAvatar(url);
+            return;
+          }
         }
+        console.warn("Saved profile avatar could not be loaded; checking the user's avatar folder.");
       }
 
-      // Fallback only when the profile row has no saved avatar path.
+      // Fallback: locate the newest image in this user's avatars folder.
       try {
-        const { data, error } = await supabaseClient.storage
-          .from("avatars")
-          .list(currentUser.id, {
+        const { data, error } = await withProfileTimeout(
+          supabaseClient.storage.from("avatars").list(currentUser.id, {
             limit: 100,
             sortBy: { column: "created_at", order: "desc" }
-          });
+          }),
+          "Avatar folder request",
+          8000
+        );
         if (error) throw error;
 
         const files = (data || [])
           .filter((file) => file.name && !file.name.startsWith("."))
           .sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
 
-        if (files.length) {
-          const latestPath = currentUser.id + "/" + files[0].name;
-          const { data: latest } = supabaseClient.storage
-            .from("avatars")
-            .getPublicUrl(latestPath);
-          if (latest?.publicUrl) {
-            setAvatar(latest.publicUrl);
-            return;
+        for (const file of files) {
+          const path = currentUser.id + "/" + file.name;
+          const candidates = await getAvatarCandidates(path);
+          for (const url of candidates) {
+            if (await avatarImageLoads(url)) {
+              setAvatar(url);
+              return;
+            }
           }
         }
       } catch (error) {
         console.warn("Avatar storage fallback failed:", error.message);
       }
 
-      console.warn("No saved avatar path found in profiles.avatar_url.");
+      console.error("No loadable profile avatar was found for this account.");
       setAvatar(null);
     }
-
     function withProfileTimeout(promise, label, milliseconds = 12000) {
       let timer;
       return Promise.race([
