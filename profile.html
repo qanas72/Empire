@@ -1552,42 +1552,51 @@
         if (uploadError) throw uploadError;
 
         // Save the Storage path in the new profiles.avatar_url column.
-        const { error: updateError } = await supabaseClient
+        const { data: savedProfile, error: updateError } = await supabaseClient
           .from("profiles")
-          .update({
-            avatar_url: path
-          })
-          .eq("id", currentUser.id);
+          .update({ avatar_url: path })
+          .eq("id", currentUser.id)
+          .select("id, avatar_url")
+          .maybeSingle();
 
-        if (updateError) {
-          console.error("Could not save avatar path:", updateError);
+        if (updateError) throw updateError;
 
-          showNotice(
-            "The photo was uploaded, but its path could not be saved. Please check the profile update policy.",
-            "error"
+        // Supabase may return no error when RLS silently updates zero rows.
+        // Verify that the new Storage path was actually persisted before showing success.
+        if (!savedProfile || savedProfile.avatar_url !== path) {
+          throw new Error(
+            "The photo uploaded, but Supabase did not save its path. Your profile update permission (RLS) must be checked."
           );
-
-          await loadAvatar(currentProfile);
-          return;
         }
 
         currentProfile = {
           ...currentProfile,
-          avatar_url: path
+          avatar_url: savedProfile.avatar_url
         };
 
-        const signedUrl = await getSignedAvatar(path);
+        // Re-read the persisted value exactly as a page refresh will.
+        const { data: confirmedProfile, error: confirmError } = await supabaseClient
+          .from("profiles")
+          .select("avatar_url")
+          .eq("id", currentUser.id)
+          .maybeSingle();
 
-        if (!signedUrl) {
-          throw new Error("The photo was uploaded, but its preview could not be loaded.");
+        if (confirmError) throw confirmError;
+        if (!confirmedProfile?.avatar_url || confirmedProfile.avatar_url !== path) {
+          throw new Error("The avatar path was not retained in your profile record. Please check the profiles SELECT/UPDATE policies.");
         }
 
-        // Both photo sizes receive the exact same image URL.
-        setAvatar(signedUrl);
+        const publicUrl = supabaseClient.storage
+          .from("avatars")
+          .getPublicUrl(confirmedProfile.avatar_url).data?.publicUrl;
 
+        if (!publicUrl) {
+          throw new Error("The photo path was saved, but its public image URL could not be created.");
+        }
+
+        setAvatar(publicUrl);
         input.value = "";
-
-        showNotice("Your profile photo was updated successfully.");
+        showNotice("Your profile photo was saved and verified successfully.");
       } catch (error) {
         console.error("Avatar upload error:", error);
         showNotice(error.message || "Could not upload your photo.", "error");
