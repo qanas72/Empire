@@ -53,7 +53,7 @@ $("videos").addEventListener("click",async e=>{
   const {data:video,error:readError}=await db.from("videos").select("id,creator_id,video_path,thumbnail_url").eq("id",id).eq("creator_id",user.id).single();
   if(readError)throw readError;if(video.creator_id!==user.id)throw new Error("You can delete only your own video.");
   const {error}=await db.from("videos").delete().eq("id",id).eq("creator_id",user.id);if(error)throw error;
-  const paths=[video.video_path,video.thumbnail_url].filter(p=>p&&typeof p==="string"&&!/^https?:\\/\\//i.test(p));
+  const paths=[video.video_path,video.thumbnail_url].filter(p=>p&&typeof p==="string"&&!/^https?:\/\//i.test(p));
   if(paths.length){const {error:storageError}=await db.storage.from("videos").remove(paths);if(storageError)console.warn("Video row deleted, file cleanup needs attention:",storageError);}
   document.getElementById("video-"+id)?.remove();if(!$("videos").querySelector(".video"))$("videos").innerHTML='<div class="empty">You have not submitted any videos yet.</div>';
   notice("Your video was deleted. The publishing fee was not refunded.");
