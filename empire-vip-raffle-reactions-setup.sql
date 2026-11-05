@@ -245,7 +245,7 @@ grant select on public.empire_raffles,public.empire_raffle_entries,public.empire
 create or replace function public.get_empire_raffle_public_data(p_raffle_ids uuid[])
 returns table(raffle_id uuid,participant_count bigint,joined_by_me boolean)
 language sql stable security definer set search_path=public,pg_temp
-as $
+as $$
  select r.id,count(e.id),coalesce(bool_or(e.user_id=auth.uid()),false)
  from public.empire_raffles r
  left join public.empire_raffle_entries e on e.raffle_id=r.id
