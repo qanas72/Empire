@@ -268,14 +268,11 @@
       height: 100% !important;
       min-width: 100%;
       min-height: 100%;
-      object-fit: cover !important;
-      object-position: center !important;
       border: 0 !important;
       border-radius: 0 !important;
-      background: #17130e;
+      background: transparent;
       opacity: 1 !important;
       visibility: visible !important;
-      cursor: zoom-in;
     }
     .avatar-large-wrap {
       isolation: isolate;
@@ -854,7 +851,7 @@
       <div class="profile-main">
         <div class="avatar-stage">
           <div class="avatar-large-wrap">
-            <img id="avatarLarge" class="avatar-large" alt="Profile photo" loading="eager" decoding="async">
+            <iframe id="avatarLarge" class="avatar-large" title="Profile photo" loading="eager" referrerpolicy="no-referrer"></iframe>
             <button type="button" class="avatar-camera" id="choosePhotoButton" aria-label="Change profile photo" title="Change profile photo">📷</button>
           </div>
         </div>
@@ -1215,26 +1212,18 @@
     }
 
     function setAvatar(url) {
-      const avatar = $("avatarLarge");
-      if (!avatar) return;
+      const frame = $("avatarLarge");
+      if (!frame) return;
 
-      avatar.dataset.avatarLoaded = "false";
       if (!url) {
-        avatar.removeAttribute("src");
-        avatar.removeAttribute("data-avatar-url");
+        frame.removeAttribute("src");
+        frame.removeAttribute("data-avatar-url");
         return;
       }
 
-      avatar.onload = () => {
-        avatar.dataset.avatarLoaded = "true";
-        console.info("Profile avatar loaded:", avatar.naturalWidth, avatar.naturalHeight);
-      };
-      avatar.onerror = () => {
-        avatar.dataset.avatarLoaded = "false";
-        console.error("Profile avatar failed:", avatar.currentSrc || avatar.src);
-      };
-      avatar.dataset.avatarUrl = String(url);
-      avatar.src = String(url);
+      const displayUrl = "avatar-display.html?src=" + encodeURIComponent(String(url));
+      frame.dataset.avatarUrl = String(url);
+      frame.src = displayUrl;
     }
 
     function avatarImageLoads(url) {
@@ -1289,11 +1278,6 @@
     }
 
     async function loadAvatar(profile) {
-      const image = $("avatarLarge");
-      if (!image || !currentUser) return;
-
-      // Use the avatar path already loaded with the authenticated profile.
-      // This avoids a second profiles query that can fail independently.
       const savedPath = String(profile?.avatar_url || "").trim();
 
       if (!savedPath) {
@@ -1302,46 +1286,24 @@
       }
 
       const objectPath = savedPath
-        .replace(/^\/+/, "")
-        .replace(/^avatars\//i, "");
+        .replace(/^\\/+/, "")
+        .replace(/^avatars\\//i, "");
 
-      const { data: publicData } = supabaseClient.storage
+      const { data, error } = supabaseClient.storage
         .from("avatars")
         .getPublicUrl(objectPath);
 
-      if (!publicData?.publicUrl) {
-        console.error("Supabase did not return a public avatar URL.");
+      if (error || !data?.publicUrl) {
+        console.error("Could not create the public avatar URL:", error);
         setAvatar(null);
         return;
       }
 
-      // Set the primary URL first, then attach fallback handling so it
-      // cannot be overwritten by setAvatar().
-      setAvatar(publicData.publicUrl);
-
-      image.onerror = async () => {
-        image.onerror = null;
-        try {
-          const { data: signedData, error: signedError } =
-            await supabaseClient.storage
-              .from("avatars")
-              .createSignedUrl(objectPath, 3600);
-
-          if (signedError) throw signedError;
-          if (!signedData?.signedUrl) throw new Error("Signed image URL unavailable.");
-
-          image.dataset.avatarUrl = signedData.signedUrl;
-          image.dataset.avatarLoaded = "false";
-          image.src = signedData.signedUrl;
-          image.onerror = () => {
-            image.dataset.avatarLoaded = "false";
-            console.error("Both public and signed profile avatar URLs failed.");
-          };
-        } catch (fallbackError) {
-          console.error("Profile avatar fallback failed:", fallbackError.message);
-        }
-      };
+      // Render the image in an isolated page so profile-page CSS/scripts
+      // cannot interfere with the browser's image rendering.
+      setAvatar(data.publicUrl);
     }
+
     function withProfileTimeout(promise, label, milliseconds = 12000) {
       let timer;
       return Promise.race([
