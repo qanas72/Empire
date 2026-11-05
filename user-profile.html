@@ -69,15 +69,18 @@ function avatar(url){return url?esc(url):"data:image/svg+xml,%3Csvg xmlns='http:
 async function load(){
  const {data:authData}=await db.auth.getUser();
  const currentUserId=authData?.user?.id||null;
- const username=new URLSearchParams(location.search).get("username");
+ const profileParams=new URLSearchParams(location.search);
+ const username=profileParams.get("username");
+ const previewMode=profileParams.get("preview")==="1";
  if(!username){$("profile").innerHTML='<div class="empty">No member was selected. <a class="gold" href="members.html">Browse members</a>.</div>';return;}
  const {data:user,error}=await db.from("public_user_profiles").select("id,username,display_name,avatar_url,created_at,membership_type,active_vip_plan").eq("username",username).maybeSingle();
  if(error)throw error;
  if(!user){$("profile").innerHTML='<div class="empty">This profile is unavailable or private. <a class="gold" href="members.html">Browse members</a>.</div>';$("posts").textContent="No public profile."; $("videos").textContent="No public profile.";return;}
- if(currentUserId&&currentUserId===user.id){location.replace("profile.html");return;}
+ const isOwnProfile=!!(currentUserId&&currentUserId===user.id);
+ if(isOwnProfile&&!previewMode){location.replace("profile.html");return;}
  document.title="EMPIRE | "+user.display_name;
  async function refreshMemberPresence(){const {data:p,error:presenceError}=await db.from("user_presence").select("last_seen").eq("user_id",user.id).maybeSingle();if(presenceError){$("memberPresence").textContent="Status unavailable";return;}const online=!!p&&new Date(p.last_seen).getTime()>Date.now()-120000;$("memberPresence").innerHTML='<i class="presence-dot '+(online?"online":"")+'"></i>'+(online?"Online":"Offline");}
- $("profile").innerHTML='<img class="avatar" src="'+avatar(user.avatar_url?db.storage.from("avatars").getPublicUrl(user.avatar_url).data?.publicUrl:null)+'" alt="Profile photo"><div><h1 class="name">'+esc(user.display_name)+'</h1><div class="username">@'+esc(user.username)+'</div><span class="badge '+(user.membership_type==="VIP"?"":"regular")+'">'+(user.membership_type==="VIP"?"♛ VIP Member":"Regular Member")+'</span><div class="meta">Member since '+date(user.created_at)+'</div><div style="margin-top:15px"><a class="badge" style="display:inline-block" href="messages.html?user_id='+encodeURIComponent(user.id)+'">✉ Send Message</a></div><div id="memberPresence" class="presence"><i class="presence-dot"></i>Checking status...</div></div>';
+ $("profile").innerHTML='<img class="avatar" src="'+avatar(user.avatar_url?db.storage.from("avatars").getPublicUrl(user.avatar_url).data?.publicUrl:null)+'" alt="Profile photo"><div><h1 class="name">'+esc(user.display_name)+'</h1><div class="username">@'+esc(user.username)+'</div><span class="badge '+(user.membership_type==="VIP"?"":"regular")+'">'+(user.membership_type==="VIP"?"♛ VIP Member":"Regular Member")+'</span><div class="meta">Member since '+date(user.created_at)+'</div><div style="margin-top:15px"><a class="badge" style="display:inline-block" href="'+(isOwnProfile?"profile.html":"messages.html?user_id="+encodeURIComponent(user.id))+'">'+(isOwnProfile?"← Back to My Profile":"✉ Send Message")+'</a></div><div id="memberPresence" class="presence"><i class="presence-dot"></i>Checking status...</div></div>';
  await refreshMemberPresence();setInterval(refreshMemberPresence,60000);
  const [postsResult,videosResult]=await Promise.all([
   db.from("community_posts").select("id,content,image_path,created_at").eq("author_id",user.id).eq("is_removed",false).order("created_at",{ascending:false}).limit(50),
