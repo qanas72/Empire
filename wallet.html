@@ -107,7 +107,7 @@ async function init(){
   }).join("");
  }catch(error){console.error("Wallet load failed:",error);$("balance").textContent="Unavailable";$("transactions").innerHTML='<div class="empty">Wallet information could not be loaded. Please refresh and try again.</div>';notice("Wallet information could not be loaded.");}
 }
-$("logoutLink").addEventListener("click",async e=>{e.preventDefault();await db.auth.signOut();location.href="login.html";});
+// Logout was removed from the wallet navigation; no logout handler is needed.
 
 let activePurchaseOrder=null;
 const copyText=async value=>{try{await navigator.clipboard.writeText(value);notice("Copied successfully.","ok");}catch{notice("Copy is unavailable on this device. Please copy the text manually.");}};
