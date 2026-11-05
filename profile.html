@@ -268,11 +268,14 @@
       height: 100% !important;
       min-width: 100%;
       min-height: 100%;
+      object-fit: cover !important;
+      object-position: center !important;
       border: 0 !important;
       border-radius: 0 !important;
-      background: transparent;
+      background: #17130e;
       opacity: 1 !important;
       visibility: visible !important;
+      cursor: zoom-in;
     }
     .avatar-large-wrap {
       isolation: isolate;
@@ -851,7 +854,7 @@
       <div class="profile-main">
         <div class="avatar-stage">
           <div class="avatar-large-wrap">
-            <iframe id="avatarLarge" class="avatar-large" title="Profile photo" loading="eager" referrerpolicy="no-referrer"></iframe>
+            <img id="avatarLarge" class="avatar-large" alt="Profile photo" loading="eager" decoding="async">
             <button type="button" class="avatar-camera" id="choosePhotoButton" aria-label="Change profile photo" title="Change profile photo">📷</button>
           </div>
         </div>
@@ -1212,18 +1215,26 @@
     }
 
     function setAvatar(url) {
-      const frame = $("avatarLarge");
-      if (!frame) return;
+      const avatar = $("avatarLarge");
+      if (!avatar) return;
 
+      avatar.dataset.avatarLoaded = "false";
       if (!url) {
-        frame.removeAttribute("src");
-        frame.removeAttribute("data-avatar-url");
+        avatar.removeAttribute("src");
+        avatar.removeAttribute("data-avatar-url");
         return;
       }
 
-      const displayUrl = "avatar-display.html?src=" + encodeURIComponent(String(url));
-      frame.dataset.avatarUrl = String(url);
-      frame.src = displayUrl;
+      avatar.onload = () => {
+        avatar.dataset.avatarLoaded = "true";
+        console.info("Profile avatar loaded:", avatar.naturalWidth, avatar.naturalHeight);
+      };
+      avatar.onerror = () => {
+        avatar.dataset.avatarLoaded = "false";
+        console.error("Profile avatar failed:", avatar.currentSrc || avatar.src);
+      };
+      avatar.dataset.avatarUrl = String(url);
+      avatar.src = String(url);
     }
 
     function avatarImageLoads(url) {
@@ -1278,6 +1289,11 @@
     }
 
     async function loadAvatar(profile) {
+      const image = $("avatarLarge");
+      if (!image || !currentUser) return;
+
+      // Use the avatar path already loaded with the authenticated profile.
+      // This avoids a second profiles query that can fail independently.
       const savedPath = String(profile?.avatar_url || "").trim();
 
       if (!savedPath) {
@@ -1286,24 +1302,46 @@
       }
 
       const objectPath = savedPath
-        .replace(/^\\/+/, "")
-        .replace(/^avatars\\//i, "");
+        .replace(/^\/+/, "")
+        .replace(/^avatars\//i, "");
 
-      const { data, error } = supabaseClient.storage
+      const { data: publicData } = supabaseClient.storage
         .from("avatars")
         .getPublicUrl(objectPath);
 
-      if (error || !data?.publicUrl) {
-        console.error("Could not create the public avatar URL:", error);
+      if (!publicData?.publicUrl) {
+        console.error("Supabase did not return a public avatar URL.");
         setAvatar(null);
         return;
       }
 
-      // Render the image in an isolated page so profile-page CSS/scripts
-      // cannot interfere with the browser's image rendering.
-      setAvatar(data.publicUrl);
-    }
+      // Set the primary URL first, then attach fallback handling so it
+      // cannot be overwritten by setAvatar().
+      setAvatar(publicData.publicUrl);
 
+      image.onerror = async () => {
+        image.onerror = null;
+        try {
+          const { data: signedData, error: signedError } =
+            await supabaseClient.storage
+              .from("avatars")
+              .createSignedUrl(objectPath, 3600);
+
+          if (signedError) throw signedError;
+          if (!signedData?.signedUrl) throw new Error("Signed image URL unavailable.");
+
+          image.dataset.avatarUrl = signedData.signedUrl;
+          image.dataset.avatarLoaded = "false";
+          image.src = signedData.signedUrl;
+          image.onerror = () => {
+            image.dataset.avatarLoaded = "false";
+            console.error("Both public and signed profile avatar URLs failed.");
+          };
+        } catch (fallbackError) {
+          console.error("Profile avatar fallback failed:", fallbackError.message);
+        }
+      };
+    }
     function withProfileTimeout(promise, label, milliseconds = 12000) {
       let timer;
       return Promise.race([
@@ -1315,28 +1353,8 @@
     }
 
     async function loadProfile() {
-      $("displayName").textContent = "Connecting to account...";
-      $("heroUsername").textContent = "Please wait";
-
-      let authResult;
-      try {
-        authResult = await withProfileTimeout(
-          supabaseClient.auth.getUser(),
-          "Account authentication request",
-          12000
-        );
-      } catch (authRequestError) {
-        console.error("Account authentication request failed:", authRequestError);
-        $("displayName").textContent = "Connection timed out";
-        $("heroUsername").textContent = "Refresh the page";
-        showNotice(
-          "The profile page could not reach Supabase authentication. Check your internet connection and refresh. No profile or photo data was changed.",
-          "error"
-        );
-        return;
-      }
-
-      const { data: authData, error: authError } = authResult;
+      const { data: authData, error: authError } =
+        await supabaseClient.auth.getUser();
 
       if (authError || !authData?.user) {
         window.location.href = "login.html";
@@ -1357,35 +1375,15 @@
       const membershipPromise = loadMembership();
       const purchasesPromise = loadPurchases();
 
-      let profileResult;
-      try {
-        profileResult = await withProfileTimeout(
-          supabaseClient
-            .from("profiles")
-            .select("*")
-            .eq("id", currentUser.id)
-            .maybeSingle(),
-          "Profile data request",
-          15000
-        );
-      } catch (profileRequestError) {
-        console.error("Profile load request failed:", profileRequestError);
-        $("displayName").textContent = "Profile unavailable";
-        $("heroUsername").textContent = "Please refresh";
-        showNotice(
-          "Your account is signed in, but profile data did not load. Please refresh once. If this continues, the profile database request needs checking.",
-          "error"
-        );
-        return;
-      }
-
-      const { data, error } = profileResult;
+      const { data, error } = await supabaseClient
+        .from("profiles")
+        .select("*")
+        .eq("id", currentUser.id)
+        .maybeSingle();
 
       if (error) {
         console.error("Profile load error:", error);
-        $("displayName").textContent = "Profile unavailable";
-        $("heroUsername").textContent = "Please refresh";
-        showNotice("Could not load your profile: " + (error.message || "database request failed"), "error");
+        showNotice("Could not load your profile. Please refresh the page.", "error");
         return;
       }
 
@@ -2016,14 +2014,8 @@
 
     $("deleteAccountButton").addEventListener("click", deleteAccount);
 
-    // Start the page and surface unexpected startup errors instead of leaving
-    // the profile header permanently stuck on its loading placeholders.
-    loadProfile().catch((error) => {
-      console.error("Unexpected profile startup error:", error);
-      $("displayName").textContent = "Profile could not start";
-      $("heroUsername").textContent = "Please refresh";
-      showNotice("The profile page encountered an unexpected loading error. Please refresh the page.", "error");
-    });
+    // Start the page.
+    loadProfile();
   
 /* Click any profile avatar to view it larger; tap outside or close to dismiss. */
 (function installEmpireAvatarPreview(){
