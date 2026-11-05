@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>EMPIRE | Raffles</title><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{--gold:#e8c36b;--bg:#080808;--panel:#141414;--muted:#aaa;--line:#493b20}
+*{box-sizing:border-box}body{margin:0;background:#080808;color:#f5f5f5;font-family:Arial,sans-serif;min-height:100vh}
+body:before{content:"";position:fixed;inset:0;z-index:-1;background:linear-gradient(#000b,#000e),url("empire-background-desktop.png") center/cover no-repeat}
+a{color:inherit;text-decoration:none}.top{padding:16px 5%;display:flex;justify-content:space-between;align-items:center;gap:12px;border-bottom:1px solid var(--line);background:#090909ed}
+.brand{font-weight:900;letter-spacing:2px;color:var(--gold);font-size:22px}.nav{display:flex;gap:18px;flex-wrap:wrap;color:#ccc;font-size:13px}
+main{width:min(980px,92%);margin:34px auto 60px}.intro{text-align:center;margin-bottom:28px}.intro h1{color:var(--gold);font-size:34px}.intro p{color:var(--muted);line-height:1.8}
+.card{padding:22px;margin:16px 0;border:1px solid var(--gold);border-radius:16px;background:#101010dd}.card h2{margin:0 0 8px;color:var(--gold)}.muted{color:var(--muted);font-size:13px;line-height:1.8;white-space:pre-wrap}
+.prizes{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:18px 0}.prize{border:1px solid #65512b;border-radius:12px;padding:13px;background:#18150f}.prize b{display:block;color:var(--gold);margin-bottom:6px}.meta{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:14px 0;color:#ddd;font-size:13px}
+button{background:linear-gradient(120deg,#f2d486,#c99b3e);color:#111;border:0;border-radius:9px;padding:12px 17px;font-weight:800;cursor:pointer}button:disabled{opacity:.55;cursor:not-allowed}
+.status{margin-top:12px;color:var(--muted);font-size:13px}.winner{padding:10px;border-bottom:1px solid #ffffff18;font-size:13px}.winner b{color:var(--gold)}
+@media(max-width:600px){body:before{background:linear-gradient(#000b,#000e),url("empire-background.png") center/cover no-repeat}.top{align-items:flex-start;flex-direction:column}.prizes{grid-template-columns:1fr}.intro h1{font-size:28px}.card{padding:16px}}
+</style></head><body>
+<header class="top"><a class="brand" href="index.html">👑 EMPIRE</a><nav class="nav"><a href="index.html">Home</a><a href="publishing.html">Publishing</a><a href="premium.html">VIP</a><a href="profile.html">Profile</a></nav></header>
+<main><section class="intro"><h1>EMPIRE Raffles</h1><p>Official giveaways managed by EMPIRE administrators. Each raffle has its own details, prizes and additional conditions.</p></section>
+<div id="raffles"><div class="card">Loading current raffles...</div></div></main>
+<script>
+const db=window.supabase.createClient("https://vubjkwbkuwndkjqfnyom.supabase.co","sb_publishable_Ig1R3dpAKyBfjIGSUhhlKw_uC-QF0QQ");
+const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+async function loadRaffles(){
+ const root=document.getElementById("raffles");
+ try{
+  const {data:rows,error}=await db.from("empire_raffles").select("*").in("status",["open","completed"]).order("created_at",{ascending:false});if(error)throw error;
+  if(!rows?.length){root.innerHTML='<div class="card"><h2>No active raffles</h2><p class="muted">New EMPIRE raffles will appear here when administrators publish them.</p></div>';return;}
+  const {data:{user}}=await db.auth.getUser();
+  const ids=rows.map(r=>r.id);
+  const {data:entries,error:entryError}=await db.from("empire_raffle_entries").select("raffle_id,user_id").in("raffle_id",ids);if(entryError)throw entryError;
+  const {data:winners,error:winnerError}=await db.from("empire_raffle_winners").select("raffle_id,user_id,prize_rank,prize_description").in("raffle_id",ids);if(winnerError)throw winnerError;
+  const userIds=[...new Set((winners||[]).map(w=>w.user_id))];let names={};
+  if(userIds.length){const {data:profiles}=await db.from("public_user_profiles").select("id,username,display_name").in("id",userIds);(profiles||[]).forEach(p=>names[p.id]=p.display_name||p.username||"Member");}
+  root.innerHTML=rows.map(r=>{
+   const count=(entries||[]).filter(e=>e.raffle_id===r.id).length;
+   const mine=(entries||[]).some(e=>e.raffle_id===r.id&&e.user_id===user?.id);
+   const wins=(winners||[]).filter(w=>w.raffle_id===r.id).sort((a,b)=>a.prize_rank-b.prize_rank);
+   const prize=[r.prize_1,r.prize_2,r.prize_3];
+   return '<article class="card"><h2>'+esc(r.title)+'</h2><p class="muted">'+esc(r.description||"")+'</p><div class="prizes">'+prize.map((p,i)=>'<div class="prize"><b>'+["🥇 First Prize","🥈 Second Prize","🥉 Third Prize"][i]+'</b>'+esc(p)+'</div>').join("")+'</div><div class="muted"><b>Entry requirement:</b> Buy at least $5 worth of EMPC through confirmed purchases and keep at least the EMPC equivalent of $5 in your wallet. '+esc(r.conditions||"")+'</div><div class="meta"><span>Participants: '+count+'/'+r.target_participants+'</span><span>Status: '+esc(r.status)+'</span></div>'+(r.status==="open"?'<button '+(mine||!user?'disabled':'')+' onclick="joinRaffle(\''+r.id+'\')">'+(mine?"Already joined":user?"Join raffle":"Sign in to join")+'</button>':'<p class="muted">This raffle has finished.</p>')+'<div class="status" id="status_'+r.id+'">'+(mine?"Your entry is confirmed.":"")+'</div>'+(wins.length?'<h3 style="color:var(--gold);margin-top:18px">🏆 Winners</h3>'+wins.map(w=>'<div class="winner"><b>'+["🥇","🥈","🥉"][w.prize_rank-1]+' '+esc(names[w.user_id]||"Winner")+'</b> — '+esc(w.prize_description)+'</div>').join(""):"")+'</article>';
+  }).join("");
+ }catch(e){root.innerHTML='<div class="card"><h2>Raffles unavailable</h2><p class="muted">'+esc(e.message||"Could not load raffles")+'</p></div>';}
+}
+async function joinRaffle(id){
+ const st=document.getElementById("status_"+id);st.textContent="Checking eligibility...";
+ const {data,error}=await db.rpc("join_empire_raffle",{p_raffle_id:id});
+ if(error){st.textContent=error.message;return;}
+ st.textContent=data.draw_completed?"The participant limit has been reached. The three winners have been selected!":"Entry confirmed. Participants: "+data.participant_count+"/"+data.target_participants;
+ await loadRaffles();
+}
+loadRaffles();
+</script></body></html>
