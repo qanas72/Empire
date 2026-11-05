@@ -817,6 +817,11 @@
 .empire-avatar-lightbox button{position:absolute;top:18px;right:18px;width:42px;height:42px;border:1px solid #d6ad55;border-radius:50%;background:#17130c;color:#f5d98d;font-size:28px;line-height:1;cursor:pointer}
 @keyframes empireAvatarPop{from{transform:scale(.88);opacity:.4}to{transform:scale(1);opacity:1}}
 @media(prefers-reduced-motion:reduce){.empire-avatar-lightbox img{animation:none}}
+
+    .warning-notification-link{position:relative;color:#ffb5b5!important}
+    .warning-notification-count{display:inline-flex;align-items:center;justify-content:center;min-width:19px;height:19px;padding:0 5px;border-radius:99px;background:#b32626;color:#fff;font-size:11px;font-weight:900}
+    .warning-notification-count[hidden]{display:none!important}
+
 </style>
 </head>
 
@@ -831,6 +836,7 @@
       <a href="premium.html">👑 Premium</a>
       <a href="support.html">Support & Help</a>
       <a href="wallet.html">🪙 Wallet</a>
+      <a href="#accountWarningsCard" id="warningNotificationLink" class="warning-notification-link" aria-label="Account warnings">🚫 Warnings <span id="warningNotificationCount" class="warning-notification-count" hidden>0</span></a>
       <div class="nav-secondary">
         <a href="messages.html">💬 Messaging</a>
         <button type="button" class="nav-logout" onclick="document.getElementById('logoutButton').click()">🚪 Logout</button>
@@ -1517,6 +1523,7 @@
       // Load independent account sections immediately after authentication.
       // VIP membership and purchases do not depend on the profiles row.
       loadAccountWarnings().catch((error) => console.warn("Account warnings startup error:", error));
+      startWarningNotificationPolling();
 
       loadEmpireWallet().catch((error) => {
         console.error("EmpireCoin wallet startup error:", error);
@@ -1975,6 +1982,14 @@
         if (error) throw error;
         const warnings = data || [];
         const unread = warnings.filter(item => !item.read_at).length;
+        const notificationBadge = $("warningNotificationCount");
+        if (notificationBadge) {
+          notificationBadge.textContent = String(unread);
+          notificationBadge.hidden = unread === 0;
+          notificationBadge.setAttribute("aria-label", unread + " unread warnings");
+        }
+        const notificationLink = $("warningNotificationLink");
+        if (notificationLink) notificationLink.title = unread ? unread + " new or unread EMPIRE warning(s)" : "No unread EMPIRE warnings";
         count.textContent = unread
           ? unread + " unread · " + warnings.length + " total"
           : warnings.length + " total · You are up to date";
@@ -2018,6 +2033,36 @@
         button.disabled = false;
         button.textContent = "Mark as read";
       }
+    }
+
+    let warningNotificationPollingStarted = false;
+    function startWarningNotificationPolling() {
+      if (warningNotificationPollingStarted || !currentUser) return;
+      warningNotificationPollingStarted = true;
+      // Realtime gives immediate alerts when available; polling is a reliable fallback.
+      try {
+        supabaseClient.channel("profile-warning-notifications-" + currentUser.id)
+          .on("postgres_changes", {
+            event: "INSERT",
+            schema: "public",
+            table: "user_warnings",
+            filter: "user_id=eq." + currentUser.id
+          }, async () => {
+            await loadAccountWarnings();
+            showNotice("🚫 EMPIRE administration has sent you a new account warning. Please review Account Warnings.", "error");
+          })
+          .subscribe();
+      } catch (error) {
+        console.warn("Warning realtime subscription unavailable:", error);
+      }
+      window.setInterval(async () => {
+        const before = Number(($("warningNotificationCount")?.textContent || "0"));
+        await loadAccountWarnings();
+        const after = Number(($("warningNotificationCount")?.textContent || "0"));
+        if (after > before) {
+          showNotice("🚫 You have received a new EMPIRE account warning. Please review Account Warnings.", "error");
+        }
+      }, 20000);
     }
 
     async function loadPurchases() {
@@ -2226,6 +2271,10 @@
     }
 
     // Event handlers
+    $("warningNotificationLink")?.addEventListener("click", () => {
+      $("accountWarningsCard")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+
     $("accountWarningsList").addEventListener("click", (event) => {
       const button = event.target.closest("[data-warning-read]");
       if (button) markAccountWarningRead(button.dataset.warningRead, button);
