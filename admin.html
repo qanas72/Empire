@@ -685,7 +685,15 @@ footer{
 
   </div>
 
-
+<div class="container" id="adminSectionNav" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin:18px auto 24px;">
+  <a class="btn btn-gold" href="admin-support.html" style="text-align:center;text-decoration:none">✉️ Support Messages & Requests</a>
+  <a class="btn btn-gold" href="admin.html?view=economic" style="text-align:center;text-decoration:none">⚙️ Treasury & Economic Settings</a>
+  <a class="btn btn-gold" href="admin.html?view=treasury-wallet" style="text-align:center;text-decoration:none">🏦 Treasury Wallet</a>
+  <a class="btn btn-gold" href="admin.html?view=rewards" style="text-align:center;text-decoration:none">🎁 Engagement & Reward Settings</a>
+  <a class="btn btn-gold" href="admin.html?view=vip" style="text-align:center;text-decoration:none">👑 VIP Plans & Complimentary Memberships</a>
+  <a class="btn btn-gold" href="admin.html?view=raffles" style="text-align:center;text-decoration:none">🎟️ Raffle Manager</a>
+  <a class="btn btn-gold" href="admin.html?view=videos" style="text-align:center;text-decoration:none">🎬 Video Library</a>
+</div>
 
   <!-- ECONOMIC SETTINGS -->
   <section class="panel economic-settings-panel" id="economicSettingsPanel">
@@ -782,7 +790,7 @@ footer{
 
   <!-- UPLOAD -->
 
-  <section class="panel">
+  <section class="panel" id="videoUploadPanel">
 
     <h2>Upload New Video</h2>
 
@@ -997,7 +1005,7 @@ footer{
 
   <!-- VIDEO LIST -->
 
-  <section class="panel">
+  <section class="panel" id="videoLibraryPanel">
 
     <div style="
       display:flex;
@@ -2534,6 +2542,49 @@ async function logout(){
 }
 
 
+
+/* Dedicated admin section views. The dashboard keeps audit history and
+   Upload New Video visible; the larger management panels open separately. */
+function applyAdminSectionView(){
+  const view = new URLSearchParams(window.location.search).get("view") || "dashboard";
+  const panels = [
+    "economicSettingsPanel","treasuryWalletPanel","empireRewardSettingsPanel",
+    "vipPlanAdminPanel","raffleAdminPanel","videoLibraryPanel","videoUploadPanel",
+    "economicAuditPanel"
+  ];
+  const targetByView = {
+    economic:"economicSettingsPanel",
+    "treasury-wallet":"treasuryWalletPanel",
+    rewards:"empireRewardSettingsPanel",
+    vip:"vipPlanAdminPanel",
+    raffles:"raffleAdminPanel",
+    videos:"videoLibraryPanel"
+  };
+  const target = targetByView[view] || null;
+  panels.forEach(id=>{
+    const el=document.getElementById(id);
+    if(!el)return;
+    if(view==="dashboard"){
+      el.style.display = ["economicSettingsPanel","treasuryWalletPanel","empireRewardSettingsPanel","vipPlanAdminPanel","raffleAdminPanel","videoLibraryPanel"].includes(id) ? "none" : "";
+    }else{
+      el.style.display = id===target ? "" : "none";
+    }
+  });
+  const nav=document.getElementById("adminSectionNav");
+  if(nav) nav.style.display = view==="dashboard" ? "grid" : "none";
+  const title=document.querySelector(".page-title h1");
+  if(title) title.textContent = view==="dashboard" ? "Emperor Panel" : ({
+    economic:"EMPIRE Treasury & Economic Settings",
+    "treasury-wallet":"EMPIRE Treasury Wallet",
+    rewards:"EMPIRE Engagement & Reward Settings",
+    vip:"VIP Plans & Complimentary Memberships",
+    raffles:"EMPIRE Raffle Manager",
+    videos:"Video Library"
+  }[view] || "Emperor Panel");
+  const desc=document.querySelector(".page-title p");
+  if(desc && view!=="dashboard") desc.textContent="Manage this EMPIRE section. Use the Website button to return to the public site.";
+}
+
 /* =========================================================
    START
    ========================================================= */
@@ -2546,6 +2597,7 @@ async function logout(){
 
   if(isAdmin){
 
+    applyAdminSectionView();
     updatePriceVisibility();
 
     await loadEconomicSettings();
