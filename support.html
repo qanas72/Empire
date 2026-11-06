@@ -28,6 +28,7 @@
 <button class="email" id="sendSupportRequest" type="submit" style="border:0;cursor:pointer">Send to Management</button>
 <div id="supportRequestStatus" class="muted" role="status" style="margin-top:12px"></div>
 </form></section>
+<section class="card" id="mySupportRequests"><h2 class="gold">My Support Requests</h2><p class="muted">View the status of your requests and replies from EMPIRE management.</p><div id="mySupportRequestList" class="muted">Loading your requests...</div></section>
 <section class="card"><h2 class="gold">Account Warnings</h2><p class="muted">Official notices sent by EMPIRE administration appear here.</p><div id="warnings" class="muted">Checking account notices...</div></section>
 </main>
 <script>
@@ -35,6 +36,16 @@ const db=window.supabase.createClient("https://vubjkwbkuwndkjqfnyom.supabase.co"
 const box=document.getElementById("warnings");
 const requestForm=document.getElementById("supportRequestForm");
 const requestStatus=document.getElementById("supportRequestStatus");
+const myRequestsBox=document.getElementById("mySupportRequestList");
+async function loadMySupportRequests(){
+ const {data:sessionData}=await db.auth.getSession();const user=sessionData?.session?.user;
+ if(!user){myRequestsBox.textContent="Sign in to view your support requests.";return;}
+ const {data:rows,error}=await db.from("support_requests").select("id,subject,category,message,status,admin_reply,replied_at,created_at").eq("user_id",user.id).order("created_at",{ascending:false}).limit(30);
+ if(error){myRequestsBox.textContent="Could not load your requests: "+error.message;return;}
+ if(!rows?.length){myRequestsBox.textContent="You have not sent any support requests yet.";return;}
+ myRequestsBox.innerHTML=rows.map(r=>'<article class="warning"><div class="date">'+new Date(r.created_at).toLocaleString()+' · '+esc(r.status)+'</div><strong>'+esc(r.subject)+'</strong><p>'+esc(r.message)+'</p>'+(r.admin_reply?'<div class="warning"><strong class="gold">Reply from EMPIRE Management</strong><p>'+esc(r.admin_reply)+'</p><div class="date">'+(r.replied_at?new Date(r.replied_at).toLocaleString():"")+'</div></div>':'<p class="muted">No management reply yet.</p>')+'</article>').join("");
+}
+
 requestForm.addEventListener("submit",async(event)=>{
  event.preventDefault();
  requestStatus.textContent="Sending your request...";
@@ -54,7 +65,7 @@ requestForm.addEventListener("submit",async(event)=>{
   const {error}=await db.from("support_requests").insert(payload);
   if(error)throw error;
   requestForm.reset();
-  requestStatus.textContent="Your request has been sent to EMPIRE management.";
+  requestStatus.textContent="Your request has been sent to EMPIRE management.";\n  await loadMySupportRequests();
  }catch(error){requestStatus.textContent=error.message||"Could not send your request. Please try again.";}
  finally{submit.disabled=false;}
 });
@@ -69,4 +80,4 @@ const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&
  const unread=rows.filter(w=>!w.read_at).map(w=>w.id);
  if(unread.length)await db.from("user_warnings").update({read_at:new Date().toISOString()}).in("id",unread);
 })();
-</script></body></html>
+loadMySupportRequests();\n</script></body></html>
