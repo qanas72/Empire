@@ -2,20 +2,21 @@
 <html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>EMPIRE | Support Requests</title><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-*{box-sizing:border-box}body{margin:0;background:#080808;color:#f5f5f5;font-family:Arial,sans-serif}.wrap{width:min(1050px,94%);margin:28px auto}.top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;border-bottom:1px solid #49391e;padding:16px 3%}.brand,.gold{color:#e8c36b}.brand{text-decoration:none;font-weight:900}.btn{display:inline-block;padding:10px 14px;border-radius:8px;border:0;text-decoration:none;cursor:pointer;font-weight:700}.goldbtn{background:#e8c36b;color:#15110a}.dark{background:#242424;color:#eee}.card{border:1px solid rgba(245,217,139,.82);border-radius:12px;padding:17px;margin:14px 0;background:transparent}.muted{color:#aaa;font-size:13px;line-height:1.7}.meta{font-size:12px;color:#bba36d;margin:8px 0}.message{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.7;background:#111;padding:13px;border-radius:8px;margin:12px 0}.status{padding:7px 10px;border-radius:7px;background:#2a2110;color:#f1c75a;display:inline-block;font-size:12px}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}select,textarea{width:100%;padding:11px;border-radius:8px;background:#080808;color:#fff;border:1px solid #80642f;margin-top:7px}textarea{min-height:80px}.empty{padding:24px;text-align:center;color:#999;border:1px dashed #66532d;border-radius:10px}
+*{box-sizing:border-box}body{margin:0;background:#080808;color:#f5f5f5;font-family:Arial,sans-serif}.wrap{width:min(1050px,94%);margin:28px auto}.top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;border-bottom:1px solid #49391e;padding:16px 3%}.brand,.gold{color:#e8c36b}.brand{text-decoration:none;font-weight:900}.btn{display:inline-block;padding:10px 14px;border-radius:8px;border:0;text-decoration:none;cursor:pointer;font-weight:700}.goldbtn{background:#e8c36b;color:#15110a}.dark{background:#242424;color:#eee}.card{border:1px solid rgba(245,217,139,.82);border-radius:12px;padding:17px;margin:14px 0;background:transparent}.muted{color:#aaa;font-size:13px;line-height:1.7}.meta{font-size:12px;color:#bba36d;margin:8px 0}.message{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.7;background:#111;padding:13px;border-radius:8px;margin:12px 0}.status{padding:7px 10px;border-radius:7px;background:#2a2110;color:#f1c75a;display:inline-block;font-size:12px}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}select,textarea{width:100%;padding:11px;border-radius:8px;background:#080808;color:#fff;border:1px solid #80642f;margin-top:7px}textarea{min-height:90px}.empty{padding:24px;text-align:center;color:#999;border:1px dashed #66532d;border-radius:10px}
 </style></head><body>
-<header class="top"><a class="brand" href="admin.html">♛ EMPIRE — Emperor</a><div><a class="btn dark" href="admin.html">Back to Management</a></div></header>
-<main class="wrap"><h1 class="gold">Support Messages & Requests</h1><p class="muted">Messages sent from the public Support page. Review requests and update their status here.</p>
+<header class="top"><a class="brand" href="admin.html">♛ EMPIRE — Emperor</a><div><button class="btn dark" type="button" onclick="history.length>1?history.back():location.href='admin.html'">← Back</button></div></header>
+<main class="wrap"><h1 class="gold">Support Messages & Requests</h1><p class="muted">Review user requests, send a reply, and update each request status.</p>
 <div class="actions"><button class="btn goldbtn" id="refreshBtn">Refresh</button><select id="statusFilter" style="width:auto;margin:0"><option value="all">All requests</option><option value="new">New</option><option value="in_progress">In progress</option><option value="resolved">Resolved</option></select></div>
 <div id="notice" class="muted" style="margin:14px 0">Checking administrator access...</div><div id="requests"><div class="empty">Loading...</div></div></main>
 <script>
 const db=window.supabase.createClient("https://vubjkwbkuwndkjqfnyom.supabase.co","sb_publishable_Ig1R3dpAKyBfjIGSUhhlKw_uC-QF0QQ");
 const notice=document.getElementById("notice"),list=document.getElementById("requests");
 const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
-let authorized=false;
+let authorized=false,currentAdminId=null;
 async function init(){
  const {data,error}=await db.auth.getSession();
  if(error||!data?.session){notice.textContent="Please sign in as an administrator.";location.href="login.html";return;}
+ currentAdminId=data.session.user.id;
  const {data:isAdmin,error:adminError}=await db.rpc("is_admin");
  if(adminError||isAdmin!==true){notice.textContent="Admin access denied.";return;}
  authorized=true;notice.textContent="Administrator access confirmed.";await loadRequests();
@@ -23,17 +24,24 @@ async function init(){
 async function loadRequests(){
  if(!authorized)return;
  list.innerHTML='<div class="empty">Loading requests...</div>';
- let q=db.from("support_requests").select("id,user_id,user_email,category,subject,message,status,created_at,updated_at").order("created_at",{ascending:false}).limit(200);
+ let q=db.from("support_requests").select("id,user_id,user_email,category,subject,message,status,admin_reply,replied_at,created_at,updated_at").order("created_at",{ascending:false}).limit(200);
  const filter=document.getElementById("statusFilter").value;if(filter!=="all")q=q.eq("status",filter);
  const {data,error}=await q;
  if(error){list.innerHTML='<div class="empty">Could not load requests: '+esc(error.message)+'</div>';return;}
  if(!data?.length){list.innerHTML='<div class="empty">No support requests found.</div>';return;}
- list.innerHTML=data.map(r=>'<article class="card"><h3 class="gold">'+esc(r.subject)+'</h3><div class="meta">From: '+esc(r.user_email||r.user_id)+' · '+esc(r.category)+' · '+new Date(r.created_at).toLocaleString()+'</div><span class="status">'+esc(r.status)+'</span><div class="message">'+esc(r.message)+'</div><label class="muted">Update status</label><select id="status-'+esc(r.id)+'"><option value="new" '+(r.status==="new"?"selected":"")+'>New</option><option value="in_progress" '+(r.status==="in_progress"?"selected":"")+'>In progress</option><option value="resolved" '+(r.status==="resolved"?"selected":"")+'>Resolved</option></select><div class="actions"><button class="btn goldbtn" onclick="updateRequest(\''+esc(r.id)+'\')">Save status</button></div></article>').join("");
+ list.innerHTML=data.map(r=>'<article class="card"><h3 class="gold">'+esc(r.subject)+'</h3><div class="meta">From: '+esc(r.user_email||r.user_id)+' · '+esc(r.category)+' · '+new Date(r.created_at).toLocaleString()+'</div><span class="status">'+esc(r.status)+'</span><div class="message">'+esc(r.message)+'</div><label class="muted" for="reply-'+esc(r.id)+'">Management reply</label><textarea id="reply-'+esc(r.id)+'" maxlength="5000" placeholder="Write a reply to this user...">'+esc(r.admin_reply||"")+'</textarea>'+(r.replied_at?'<div class="meta">Last reply: '+new Date(r.replied_at).toLocaleString()+'</div>':'')+'<label class="muted" for="status-'+esc(r.id)+'">Request status</label><select id="status-'+esc(r.id)+'"><option value="new" '+(r.status==="new"?"selected":"")+'>New</option><option value="in_progress" '+(r.status==="in_progress"?"selected":"")+'>In progress</option><option value="resolved" '+(r.status==="resolved"?"selected":"")+'>Resolved</option></select><div class="actions"><button class="btn goldbtn" onclick="saveReply(\''+esc(r.id)+'\')">Send / Save Reply</button><button class="btn dark" onclick="updateRequestStatus(\''+esc(r.id)+'\')">Save Status</button></div></article>').join("");
 }
-async function updateRequest(id){
+async function saveReply(id){
+ const reply=document.getElementById("reply-"+id)?.value.trim();
+ if(!reply){notice.textContent="Please write a reply before sending.";return;}
+ const {error}=await db.from("support_requests").update({admin_reply:reply,replied_at:new Date().toISOString(),replied_by:currentAdminId,updated_at:new Date().toISOString()}).eq("id",id);
+ if(error){notice.textContent="Reply failed: "+error.message;return;}
+ notice.textContent="Your reply has been saved and is visible to the user on the Support page.";await loadRequests();
+}
+async function updateRequestStatus(id){
  const status=document.getElementById("status-"+id)?.value;if(!status)return;
  const {error}=await db.from("support_requests").update({status,updated_at:new Date().toISOString()}).eq("id",id);
- if(error){notice.textContent="Update failed: "+error.message;return;}
+ if(error){notice.textContent="Status update failed: "+error.message;return;}
  notice.textContent="Request status updated.";await loadRequests();
 }
 document.getElementById("refreshBtn").addEventListener("click",loadRequests);
