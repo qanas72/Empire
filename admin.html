@@ -1301,7 +1301,7 @@ async function loadEmpireRewardHistory(){
  if(!data?.length){box.innerHTML='<div class="empty">No reward payments have been recorded yet.</div>';return;}
  const ids=[...new Set(data.flatMap(x=>[x.recipient_user_id,x.source_user_id]).filter(Boolean))];let names={};
  if(ids.length){const {data:profiles}=await supabaseClient.from("profiles").select("id,username,display_name").in("id",ids);(profiles||[]).forEach(p=>names[p.id]=p.display_name||p.username||p.id);}
- const labels={post_like:"Post like",signup:"Account signup",referral:"Referral"};
+ const labels={post_like:"Post like milestone",video_like:"Video like milestone",signup:"Account signup",referral:"Referral"};
  box.innerHTML=data.map(x=>'<div class="video-item"><strong>'+escapeHtml(labels[x.reward_type]||x.reward_type)+'</strong><div>'+escapeHtml(names[x.recipient_user_id]||x.recipient_user_id)+' · '+Number(x.amount).toLocaleString()+" EMPC"+'</div><small>Source: '+escapeHtml(names[x.source_user_id]||"System")+' · '+new Date(x.created_at).toLocaleString()+'</small></div>').join("");
  }catch(error){box.innerHTML='<div class="empty">Could not load reward history: '+escapeHtml(error.message||"Unknown error")+'</div>';}
 }
