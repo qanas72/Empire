@@ -397,6 +397,8 @@ input[type=file]{
   gap:12px;
 }
 
+.video-thumb-preview{width:132px;height:76px;flex:0 0 132px;object-fit:cover;border:1px solid #80642f;border-radius:9px;background:#111}.video-thumb-placeholder{width:132px;height:76px;flex:0 0 132px;display:grid;place-items:center;border:1px dashed #80642f;border-radius:9px;color:#d6ad55;font-size:28px;background:#111}
+
 .video-row{
   display:flex;
   align-items:center;
@@ -695,6 +697,7 @@ footer{
 
 <div class="container" id="adminSectionNav" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin:18px auto 24px;">
   <a class="btn btn-gold" href="admin-support.html" style="text-align:center;text-decoration:none">✉️ Support Messages & Requests</a>
+  <a class="btn btn-gold" href="admin-notifications.html" style="text-align:center;text-decoration:none">📥 User Activity Notifications</a>
   <a class="btn btn-gold" href="admin.html?view=economic" style="text-align:center;text-decoration:none">⚙️ Treasury & Economic Settings</a>
   <a class="btn btn-gold" href="admin.html?view=treasury-wallet" style="text-align:center;text-decoration:none">🏦 Treasury Wallet</a>
   <a class="btn btn-gold" href="admin.html?view=rewards" style="text-align:center;text-decoration:none">🎁 Engagement & Reward Settings</a>
@@ -729,7 +732,7 @@ footer{
     <h2>🎁 EMPIRE Engagement &amp; Reward Settings</h2>
     <p style="color:#888;font-size:13px;margin:-8px 0 18px">Control EMPC rewards paid from the internal treasury. Each reward can be disabled independently.</p>
     <div class="form-grid">
-      <div class="field"><label for="reward_post_like_reward">👍 Reward for each eligible post like (EMPC)</label><input id="reward_post_like_reward" type="number" min="0" max="1000000000" step="0.00000001"><label style="display:flex;align-items:center;gap:8px;margin-top:8px"><input id="reward_enabled_post_like_reward" type="checkbox"> Enable like reward</label></div>
+      <div class="field"><label for="reward_post_like_reward">👍 Reward for each 5 likes on a publication (EMPC)</label><input id="reward_post_like_reward" type="number" min="0" max="1000000000" step="0.00000001"><label style="display:flex;align-items:center;gap:8px;margin-top:8px"><input id="reward_enabled_post_like_reward" type="checkbox"> Enable like reward</label></div>
       <div class="field"><label for="reward_signup_reward">🎉 Verified account signup reward (EMPC)</label><input id="reward_signup_reward" type="number" min="0" max="1000000000" step="0.00000001"><label style="display:flex;align-items:center;gap:8px;margin-top:8px"><input id="reward_enabled_signup_reward" type="checkbox"> Enable signup reward</label></div>
       <div class="field"><label for="reward_referral_reward_regular">👥 Referral reward — regular inviter (EMPC)</label><input id="reward_referral_reward_regular" type="number" min="0" max="1000000000" step="0.00000001"><label style="display:flex;align-items:center;gap:8px;margin-top:8px"><input id="reward_enabled_referral_reward_regular" type="checkbox"> Enable regular referral reward</label></div>
       <div class="field"><label for="reward_referral_reward_vip">👑 Referral reward — VIP inviter (EMPC)</label><input id="reward_referral_reward_vip" type="number" min="0" max="1000000000" step="0.00000001"><label style="display:flex;align-items:center;gap:8px;margin-top:8px"><input id="reward_enabled_referral_reward_vip" type="checkbox"> Enable VIP referral reward</label></div>
@@ -738,7 +741,7 @@ footer{
     <div class="status" id="empireRewardSettingsStatus"></div>
     <h3 style="margin-top:22px">🧾 Reward Payment History</h3>
     <div id="empireRewardHistory" class="video-list"><div class="empty">Loading reward history...</div></div>
-    <p style="color:#777;font-size:11px;margin-top:12px">Rewards are internal EMPC transfers from the treasury, not cash payments. A like reward is paid only once per person per publication, even if they remove and add their like again. Dislikes do not earn EMPC.</p>
+    <p style="color:#777;font-size:11px;margin-top:12px">Rewards are internal EMPC transfers from the treasury, not cash payments. The configured reward is paid once for each complete group of 5 permanent likes on a post or video (5, 10, 15, and so on). Dislikes do not earn EMPC.</p>
   </section>
 
   <!-- VIP PLAN PRICING AND GIFT ACTIVATION -->
@@ -1993,6 +1996,26 @@ async function loadVideos(){
     videos =
       data || [];
 
+    const videoThumbnailUrls = new Map();
+    for (const video of videos) {
+      const raw = video.thumbnail_url;
+      if (!raw) continue;
+      if (/^https?:\/\//i.test(String(raw))) {
+        videoThumbnailUrls.set(video.id, String(raw));
+        continue;
+      }
+      try {
+        const fresh = await supabaseClient.storage.from("video-thumbnails").createSignedUrl(raw, 3600);
+        if (!fresh.error && fresh.data?.signedUrl) {
+          videoThumbnailUrls.set(video.id, fresh.data.signedUrl);
+          continue;
+        }
+      } catch (thumbError) { console.warn("Video thumbnail lookup failed:", thumbError); }
+      try {
+        const legacy = await supabaseClient.storage.from("videos").createSignedUrl(raw, 3600);
+        if (!legacy.error && legacy.data?.signedUrl) videoThumbnailUrls.set(video.id, legacy.data.signedUrl);
+      } catch (thumbError) { console.warn("Legacy video thumbnail lookup failed:", thumbError); }
+    }
 
     if(
       videos.length === 0
@@ -2040,6 +2063,8 @@ async function loadVideos(){
             return `
 
               <div class="video-row">
+
+                ${videoThumbnailUrls.get(video.id) ? `<img class="video-thumb-preview" src="${escapeHtml(videoThumbnailUrls.get(video.id))}" alt="Video thumbnail" loading="lazy">` : '<div class="video-thumb-placeholder">♛</div>'}
 
                 <div class="video-info">
 
