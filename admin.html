@@ -736,6 +736,7 @@ footer{
       <div class="field"><label for="reward_signup_reward">🎉 Verified account signup reward (EMPC)</label><input id="reward_signup_reward" type="number" min="0" max="1000000000" step="0.00000001"><label style="display:flex;align-items:center;gap:8px;margin-top:8px"><input id="reward_enabled_signup_reward" type="checkbox"> Enable signup reward</label></div>
       <div class="field"><label for="reward_referral_reward_regular">👥 Referral reward — regular inviter (EMPC)</label><input id="reward_referral_reward_regular" type="number" min="0" max="1000000000" step="0.00000001"><label style="display:flex;align-items:center;gap:8px;margin-top:8px"><input id="reward_enabled_referral_reward_regular" type="checkbox"> Enable regular referral reward</label></div>
       <div class="field"><label for="reward_referral_reward_vip">👑 Referral reward — VIP inviter (EMPC)</label><input id="reward_referral_reward_vip" type="number" min="0" max="1000000000" step="0.00000001"><label style="display:flex;align-items:center;gap:8px;margin-top:8px"><input id="reward_enabled_referral_reward_vip" type="checkbox"> Enable VIP referral reward</label></div>
+      <div class="field"><label for="reward_video_purchase_reward">🎬 Reward for each paid-video purchase (EMPC)</label><input id="reward_video_purchase_reward" type="number" min="0" max="1000000000" step="0.00000001"><label style="display:flex;align-items:center;gap:8px;margin-top:8px"><input id="reward_enabled_video_purchase_reward" type="checkbox"> Enable paid-video purchase reward</label></div>
     </div>
     <div class="actions"><button class="btn btn-gold" id="saveEmpireRewardSettingsBtn" onclick="saveEmpireRewardSettings()">💾 Save Reward Settings</button><button class="btn btn-dark" onclick="loadEmpireRewardSettings()">↻ Reload</button></div>
     <div class="status" id="empireRewardSettingsStatus"></div>
@@ -1270,7 +1271,7 @@ async function loadEconomicSettings(){
 }
 
 
-const EMPIRE_REWARD_KEYS=["post_like_reward","signup_reward","referral_reward_regular","referral_reward_vip"];
+const EMPIRE_REWARD_KEYS=["post_like_reward","signup_reward","referral_reward_regular","referral_reward_vip","video_purchase_reward"];
 async function loadEmpireRewardSettings(){
  const status=document.getElementById("empireRewardSettingsStatus");
  try{
@@ -1301,7 +1302,7 @@ async function loadEmpireRewardHistory(){
  if(!data?.length){box.innerHTML='<div class="empty">No reward payments have been recorded yet.</div>';return;}
  const ids=[...new Set(data.flatMap(x=>[x.recipient_user_id,x.source_user_id]).filter(Boolean))];let names={};
  if(ids.length){const {data:profiles}=await supabaseClient.from("profiles").select("id,username,display_name").in("id",ids);(profiles||[]).forEach(p=>names[p.id]=p.display_name||p.username||p.id);}
- const labels={post_like:"Post like milestone",video_like:"Video like milestone",signup:"Account signup",referral:"Referral"};
+ const labels={post_like:"Post like milestone",video_like:"Video like milestone",signup:"Account signup",referral:"Referral",video_purchase:"Paid-video purchase"};
  box.innerHTML=data.map(x=>'<div class="video-item"><strong>'+escapeHtml(labels[x.reward_type]||x.reward_type)+'</strong><div>'+escapeHtml(names[x.recipient_user_id]||x.recipient_user_id)+' · '+Number(x.amount).toLocaleString()+" EMPC"+'</div><small>Source: '+escapeHtml(names[x.source_user_id]||"System")+' · '+new Date(x.created_at).toLocaleString()+'</small></div>').join("");
  }catch(error){box.innerHTML='<div class="empty">Could not load reward history: '+escapeHtml(error.message||"Unknown error")+'</div>';}
 }
