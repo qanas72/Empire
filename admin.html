@@ -1829,6 +1829,10 @@ async function uploadVideo(){
 
     const videoData = {
 
+      creator_id: currentUser.id,
+
+      approval_status: "approved",
+
       title:title,
 
       description:
