@@ -81,7 +81,8 @@ header{
   gap:20px;  
 }  
   
-.brand-raffles{display:inline-flex;align-items:center;margin-left:12px;padding:8px 12px;border:1px solid rgba(232,195,107,.55);border-radius:9px;color:var(--gold);font-size:13px;font-weight:800;white-space:nowrap}.brand{  
+.brand-cluster{display:flex;align-items:center;gap:10px;flex:0 0 auto;min-width:0}
+.brand-raffles{display:inline-flex;align-items:center;margin-left:0;padding:8px 12px;border:1px solid rgba(232,195,107,.55);border-radius:9px;color:var(--gold);font-size:13px;font-weight:800;white-space:nowrap;flex:0 0 auto}.brand{  
   display:flex;  
   align-items:center;  
   gap:10px;  
@@ -721,6 +722,8 @@ footer{
 }  
   
 @media(max-width:390px){  
+  .brand-cluster{gap:6px}
+  .brand-raffles{padding:6px 7px;font-size:11px}
   .brand{  
     font-size:18px;  
   }  
@@ -831,18 +834,21 @@ text-shadow: 0 0 12px rgba(90, 170, 255, 0.4);
 
 </style>  </head>  <body>  <header>  
   <div class="container nav"> 
-    <a class="brand" href="#home" aria-label="Empire Home">
-  <span class="brand-mark" aria-hidden="true">👑</span>
-  <span class="brand-name">𝑬𝒎𝒑𝒊𝒓𝒆</span>
-    </a>
-    <a class="brand-raffles" href="raffle.html">🎟️ Raffles</a>
+    <div class="brand-cluster">
+      <a class="brand" href="#home" aria-label="Empire Home">
+        <span class="brand-mark" aria-hidden="true">👑</span>
+        <span class="brand-name">𝑬𝒎𝒑𝒊𝒓𝒆</span>
+      </a>
+      <a class="brand-raffles" href="raffle.html">🎟️ Raffles</a>
+    </div>
 
 <nav class="links" id="mainLinks">  
   <a href="profile.html" onclick="closeMenu()">Profile</a>
   <a href="messages.html" onclick="closeMenu()">Messages</a>
   <a href="notifications.html" onclick="closeMenu()">🔔 Notifications</a>
   <a href="members.html" onclick="closeMenu()">Members</a>
-  <a href="all-publications.html" onclick="closeMenu()">Explore All</a>
+  <a href="index.html" onclick="closeMenu()">Following Feed</a>
+  <a href="all-publications.html" onclick="closeMenu()">All Publications</a>
   <a href="publishing.html" onclick="closeMenu()">Publishing</a>
   <a href="my-publications.html" onclick="closeMenu()">My Publications</a>
   <a href="premium.html" onclick="closeMenu()">Premium / VIP</a>
