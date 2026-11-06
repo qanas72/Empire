@@ -1658,6 +1658,8 @@ function closeMenu(){
 }
 
 async function logoutFromMenu(){
+  const confirmed=window.confirm("Are you sure you want to log out of EMPIRE?");
+  if(!confirmed)return;
   closeMenu();
   const {error}=await supabaseClient.auth.signOut();
   if(error){alert("Could not log out: "+(error.message||"Please try again."));return;}
