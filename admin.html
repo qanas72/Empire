@@ -647,7 +647,7 @@ footer{
         class="btn btn-dark"
         style="display:none"
         type="button"
-        onclick="window.location.href='admin.html'">
+        onclick="new URLSearchParams(location.search).has('view')?location.href='admin.html':(history.length>1?history.back():location.href='index.html')">
         ← Back to Management
       </button>
 
@@ -2581,7 +2581,7 @@ function applyAdminSectionView(){
   const nav=document.getElementById("adminSectionNav");
   if(nav) nav.style.display = view==="dashboard" ? "grid" : "none";
   const backButton=document.getElementById("adminBackButton");
-  if(backButton) backButton.style.display=view==="dashboard" ? "none" : "inline-flex";
+  if(backButton) backButton.style.display="inline-flex";
   const title=document.querySelector(".page-title h1");
   if(title) title.textContent = view==="dashboard" ? "Emperor Panel" : ({
     economic:"EMPIRE Treasury & Economic Settings",
