@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>EMPIRE | My Team</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{--gold:#e8c36b;--line:#49391d;--muted:#aaa;--green:#55d69a;--red:#ff9b9b}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:#080808;color:#f5f5f5;font-family:Arial,sans-serif}
+body:before{content:"";position:fixed;inset:0;z-index:-1;background:linear-gradient(#000b,#000e),url("profile-background-desktop.png") center/cover no-repeat}
+a{color:inherit;text-decoration:none}
+.top{padding:15px 5%;display:flex;justify-content:space-between;align-items:center;gap:14px;background:#090909ed;border-bottom:1px solid var(--line)}
+.brand{font-size:22px;font-weight:900;letter-spacing:2px;color:var(--gold)}
+.nav{display:flex;gap:15px;flex-wrap:wrap;color:#bbb;font-size:13px}
+.nav a:hover{color:var(--gold)}
+main{width:min(1000px,92%);margin:30px auto 60px}
+h1{margin:0 0 8px;font-size:30px}.muted{color:var(--muted);line-height:1.7;font-size:13px}
+.card{padding:20px;margin:17px 0;border:1px solid rgba(245,217,139,.78);border-radius:15px;background:rgba(10,10,10,.35)}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.stat{padding:17px;border:1px solid #49391d;border-radius:12px;background:#1119}
+.stat strong{display:block;color:var(--gold);font-size:25px;margin-bottom:5px}.stat span{font-size:12px;color:#bbb}
+.linkrow{display:flex;gap:9px;align-items:center;flex-wrap:wrap}
+input{min-width:0;flex:1;padding:12px;background:#090909;color:#fff;border:1px solid #514125;border-radius:9px;font:inherit}
+button{padding:11px 15px;border:0;border-radius:9px;background:linear-gradient(135deg,#f2d58a,#bc8c32);color:#17120a;font-weight:800;cursor:pointer}
+.list{display:grid;gap:10px}.member{display:flex;align-items:center;gap:12px;padding:13px;border:1px solid #3d321f;border-radius:12px;min-width:0}
+.avatar{width:48px;height:48px;flex:0 0 48px;border-radius:50%;object-fit:cover;background:#222;border:1px solid var(--gold)}
+.member-main{min-width:0;flex:1}.name{font-weight:800;overflow-wrap:anywhere}.handle,.meta{font-size:12px;color:#aaa;margin-top:4px}
+.badge{display:inline-block;margin-top:5px;padding:4px 8px;border:1px solid #80642f;border-radius:20px;color:var(--gold);font-size:10px}
+.reward{text-align:right;white-space:nowrap;color:var(--green);font-weight:800;font-size:13px}
+.pending{color:var(--gold)}.empty{padding:22px;text-align:center;color:#aaa;border:1px dashed #444;border-radius:12px;line-height:1.7}
+@media(max-width:600px){body:before{background:linear-gradient(#000b,#000e),url("profile-background-mobile.png") center/cover no-repeat}.top{padding:13px 4%;flex-wrap:wrap}.brand{font-size:19px}.nav{width:100%;justify-content:space-between;padding-top:8px;border-top:1px solid #302817}.stats{grid-template-columns:1fr 1fr}.stat:last-child{grid-column:1/-1}h1{font-size:26px}.card{padding:15px}.member{align-items:flex-start}.reward{font-size:12px}}
+</style>
+</head>
+<body>
+<header class="top">
+<a class="brand" href="index.html">👑 EMPIRE</a>
+<nav class="nav"><a href="index.html">Home</a><a href="publishing.html">Community</a><a href="profile.html">My Profile</a><a href="wallet.html">Wallet</a><a href="notifications.html">Notifications</a></nav>
+</header>
+<main>
+<h1>🤝 My <span style="color:var(--gold)">Team</span></h1>
+<p class="muted">Members who joined EMPIRE using your personal referral link, with the referral reward status recorded for each member.</p>
+<section class="card">
+<div class="stats">
+<div class="stat"><strong id="teamCount">—</strong><span>Direct team members</span></div>
+<div class="stat"><strong id="paidCount">—</strong><span>Successful referrals</span></div>
+<div class="stat"><strong id="totalReward">—</strong><span>Total referral rewards (EMPC)</span></div>
+</div>
+</section>
+<section class="card">
+<h2 style="margin:0 0 8px;color:var(--gold);font-size:18px">Your invitation link</h2>
+<p class="muted">Share this link so new members can join your team. Referral rewards are credited after the invited member confirms their email and completes a verified EMPC purchase of at least $2.</p>
+<div class="linkrow"><input id="referralLink" readonly value="Loading referral link..."><button id="copyLink" type="button">Copy link</button></div>
+<p id="referralStatus" class="muted" aria-live="polite"></p>
+</section>
+<section class="card">
+<h2 style="margin:0 0 14px;color:var(--gold);font-size:18px">Team members</h2>
+<div id="teamList" class="list"><div class="empty">Loading your team...</div></div>
+</section>
+</main>
+<script>
+const SUPABASE_URL="https://vubjkwbkuwndkjqfnyom.supabase.co";
+const SUPABASE_KEY="sb_publishable_Ig1R3dpAKyBfjIGSUhhlKw_uC-QF0QQ";
+const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+const $=id=>document.getElementById(id);
+function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+function date(v){return v?new Date(v).toLocaleDateString(undefined,{year:"numeric",month:"short",day:"numeric"}):"—";}
+function photo(path){
+ if(!path)return "";
+ let p=String(path);while(p.startsWith("/"))p=p.slice(1);if(p.startsWith("avatars/"))p=p.slice(8);
+ return db.storage.from("avatars").getPublicUrl(p).data?.publicUrl||"";
+}
+function showError(message){$("teamList").innerHTML='<div class="empty">'+esc(message)+'</div>';}
+async function loadTeam(){
+ const {data:authData,error:authError}=await db.auth.getUser();
+ const user=authData?.user;
+ if(authError||!user){location.href="login.html";return;}
+ const [codeResult,refResult]=await Promise.all([
+  db.rpc("get_my_empire_referral_code"),
+  db.from("empire_referrals").select("id,referred_user_id,status,reward_amount,paid_at,created_at").eq("referrer_user_id",user.id).order("created_at",{ascending:false})
+ ]);
+ if(codeResult.error)throw codeResult.error;
+ if(refResult.error)throw refResult.error;
+ const code=codeResult.data;
+ const link=new URL("login.html",location.href);link.searchParams.set("ref",code);
+ $("referralLink").value=link.toString();
+ const referrals=refResult.data||[];
+ const paid=referrals.filter(r=>r.status==="paid");
+ const total=paid.reduce((sum,r)=>sum+Number(r.reward_amount||0),0);
+ $("teamCount").textContent=referrals.length;
+ $("paidCount").textContent=paid.length;
+ $("totalReward").textContent=total.toLocaleString(undefined,{maximumFractionDigits:8});
+ $("referralStatus").textContent=paid.length+" successful · "+(referrals.length-paid.length)+" pending";
+ if(!referrals.length){$("teamList").innerHTML='<div class="empty">You do not have any referred team members yet. Share your invitation link to grow your team.</div>';return;}
+ const ids=referrals.map(r=>r.referred_user_id);
+ const {data:profiles,error:profilesError}=await db.from("public_user_profiles").select("id,username,display_name,avatar_url,created_at,membership_type").in("id",ids);
+ if(profilesError)throw profilesError;
+ const byId=new Map((profiles||[]).map(p=>[p.id,p]));
+ $("teamList").innerHTML=referrals.map(r=>{
+  const p=byId.get(r.referred_user_id);
+  const name=p?.display_name||p?.username||"EMPIRE Member";
+  const status=r.status==="paid"?"Reward paid":"Awaiting qualifying purchase";
+  const amount=r.status==="paid"?Number(r.reward_amount||0).toLocaleString(undefined,{maximumFractionDigits:8})+" EMPC":"Pending";
+  const image=photo(p?.avatar_url);
+  return '<article class="member">'+(image?'<img class="avatar" src="'+esc(image)+'" alt="">':'<div class="avatar" aria-hidden="true"></div>')+
+   '<div class="member-main"><div class="name">'+esc(name)+'</div><div class="handle">'+(p?.username?'@'+esc(p.username):'Referred member')+'</div><span class="badge">'+(p?.membership_type==="VIP"?"VIP Member":"Member")+'</span><div class="meta">Joined '+date(r.created_at)+' · '+esc(status)+(r.paid_at?' · '+date(r.paid_at):'')+'</div></div>'+
+   '<div class="reward '+(r.status==="paid"?"":"pending")+'">'+esc(amount)+'</div></article>';
+ }).join("");
+}
+$("copyLink").addEventListener("click",async()=>{
+ const value=$("referralLink").value;
+ if(!value||value==="Loading referral link...")return;
+ try{await navigator.clipboard.writeText(value);$("referralStatus").textContent="Invitation link copied.";}
+ catch(e){$("referralLink").focus();$("referralLink").select();$("referralStatus").textContent="Select and copy the invitation link.";}
+});
+loadTeam().catch(error=>{console.error("My Team error:",error);showError("Could not load your team: "+(error.message||"Unknown error"));});
+</script>
+</body>
+</html>
