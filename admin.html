@@ -643,6 +643,14 @@ footer{
         Checking...
       </span>
 
+      <button id="adminBackButton"
+        class="btn btn-dark"
+        style="display:none"
+        type="button"
+        onclick="window.location.href='admin.html'">
+        ← Back to Management
+      </button>
+
       <button
         class="btn btn-dark"
         onclick="goHome()">
@@ -2572,6 +2580,8 @@ function applyAdminSectionView(){
   });
   const nav=document.getElementById("adminSectionNav");
   if(nav) nav.style.display = view==="dashboard" ? "grid" : "none";
+  const backButton=document.getElementById("adminBackButton");
+  if(backButton) backButton.style.display=view==="dashboard" ? "none" : "inline-flex";
   const title=document.querySelector(".page-title h1");
   if(title) title.textContent = view==="dashboard" ? "Emperor Panel" : ({
     economic:"EMPIRE Treasury & Economic Settings",
