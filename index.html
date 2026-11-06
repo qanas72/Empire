@@ -842,6 +842,7 @@ text-shadow: 0 0 12px rgba(90, 170, 255, 0.4);
   <a href="messages.html" onclick="closeMenu()">Messages</a>
   <a href="notifications.html" onclick="closeMenu()">🔔 Notifications</a>
   <a href="members.html" onclick="closeMenu()">Members</a>
+  <a href="all-publications.html" onclick="closeMenu()">Explore All</a>
   <a href="publishing.html" onclick="closeMenu()">Publishing</a>
   <a href="my-publications.html" onclick="closeMenu()">My Publications</a>
   <a href="premium.html" onclick="closeMenu()">Premium / VIP</a>
@@ -861,7 +862,7 @@ text-shadow: 0 0 12px rgba(90, 170, 255, 0.4);
     <input
       id="videoSearch"
       type="search"
-      placeholder="Search all publications..."
+      placeholder="Search this feed..."
       autocomplete="off"
       aria-label="Search all publications">
   </label>
@@ -873,7 +874,7 @@ text-shadow: 0 0 12px rgba(90, 170, 255, 0.4);
 
   <section id="community" class="community-section">
     <div class="container">
-      <div class="section-head"><div><div class="section-label">Community</div><h2>Latest Publications</h2><p>Everything shared by the Empire community, in one place.</p></div><a class="btn btn-dark" href="publishing.html">Create a post</a></div>
+      <div class="section-head"><div><div class="section-label">Community</div><h2>Following Feed</h2><p>Posts and videos from people you follow or who follow you, plus EMPIRE management.</p></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-dark" type="button" onclick="loadCommunityFeed(true)">↻ Refresh</button><a class="btn btn-dark" href="publishing.html">Create a post</a></div></div>
       <div id="communityFeed" class="community-feed"><div class="status">Loading publications...</div></div>
     </div>
   </section>
@@ -1006,6 +1007,9 @@ async function checkAuth(){
 let unifiedFeedItems = [];
 let unifiedPostReactions = new Map();
 let unifiedVideoReactions = new Map();
+const EMPIRE_ADMIN_IDS = ["8166f8a9-fdc3-43a4-85c7-53ec1dbbde0e","7c5f5c13-b106-4c7c-9bd5-9339576bfe7a"];
+const EMPIRE_FEED_MODE = document.body.dataset.feedMode || "following";
+let feedLoadInProgress = false;
 
 async function resolveVideoThumbnail(rawPath){
   if(!rawPath)return "";
@@ -1024,18 +1028,38 @@ async function resolveVideoThumbnail(rawPath){
   return "";
 }
 
-async function loadCommunityFeed(){
-  const box=document.getElementById("communityFeed"); if(!box)return;
-  box.innerHTML='<div class="status">Loading all publications...</div>';
+async function loadCommunityFeed(forceRefresh=false){
+  const box=document.getElementById("communityFeed"); if(!box||feedLoadInProgress)return;
+  if(!unifiedFeedItems.length)box.innerHTML='<div class="status">Loading publications...</div>';
+  feedLoadInProgress=true;
   try{
-    const [postResult,videoResult]=await Promise.all([
-      supabaseClient.from("community_posts")
-        .select("id,author_id,author_name,content,image_path,image_paths,created_at")
-        .eq("is_removed",false).order("created_at",{ascending:false}).limit(60),
-      supabaseClient.from("videos")
-        .select("id,title,description,thumbnail_url,video_path,access_type,price,creator_id,created_at")
-        .eq("approval_status","approved").order("created_at",{ascending:false}).limit(60)
-    ]);
+    let visibleAuthorIds=null;
+    if(EMPIRE_FEED_MODE==="following"&&currentSession){
+      const [followersResult,followingResult]=await Promise.all([
+        supabaseClient.from("user_follows").select("follower_id").eq("following_id",currentSession.user.id),
+        supabaseClient.from("user_follows").select("following_id").eq("follower_id",currentSession.user.id)
+      ]);
+      if(followersResult.error)throw followersResult.error;
+      if(followingResult.error)throw followingResult.error;
+      const connectedIds=[
+        ...(followersResult.data||[]).map(row=>row.follower_id),
+        ...(followingResult.data||[]).map(row=>row.following_id),
+        ...EMPIRE_ADMIN_IDS
+      ];
+      visibleAuthorIds=[...new Set(connectedIds)];
+    }
+
+    let postQuery=supabaseClient.from("community_posts")
+      .select("id,author_id,author_name,content,image_path,image_paths,created_at")
+      .eq("is_removed",false).order("created_at",{ascending:false}).limit(100);
+    let videoQuery=supabaseClient.from("videos")
+      .select("id,title,description,thumbnail_url,video_path,access_type,price,creator_id,created_at")
+      .eq("approval_status","approved").order("created_at",{ascending:false}).limit(100);
+    if(visibleAuthorIds){
+      postQuery=postQuery.in("author_id",visibleAuthorIds);
+      videoQuery=videoQuery.in("creator_id",visibleAuthorIds);
+    }
+    const [postResult,videoResult]=await Promise.all([postQuery,videoQuery]);
     if(postResult.error)throw postResult.error;
     if(videoResult.error)throw videoResult.error;
     const posts=postResult.data||[];
@@ -1044,10 +1068,10 @@ async function loadCommunityFeed(){
       ...video,type:"video",author_id:video.creator_id,
       thumbnail_display_url:await resolveVideoThumbnail(video.thumbnail_url)
     })));
-    unifiedFeedItems=[
+    const nextItems=[
       ...posts.map(post=>({...post,type:"post"})),
       ...videoItems
-    ].sort((a,b)=>new Date(b.created_at).getTime()-new Date(a.created_at).getTime()).slice(0,80);
+    ].sort((a,b)=>new Date(b.created_at).getTime()-new Date(a.created_at).getTime()).slice(0,100);
 
     const postIds=posts.map(p=>p.id), videoIds=videos.map(v=>v.id);
     const [postReactionResult,videoReactionResult]=await Promise.all([
@@ -1056,41 +1080,43 @@ async function loadCommunityFeed(){
     ]);
     if(postReactionResult.error)throw postReactionResult.error;
     if(videoReactionResult.error)throw videoReactionResult.error;
-    unifiedPostReactions=new Map();
+    const nextPostReactions=new Map();
     (postReactionResult.data||[]).forEach(r=>{
-      if(!unifiedPostReactions.has(r.post_id))unifiedPostReactions.set(r.post_id,{likes:0,dislikes:0,mine:null});
-      const s=unifiedPostReactions.get(r.post_id);
-      if(r.reaction==="like")s.likes++;else s.dislikes++;
-      if(currentSession&&r.user_id===currentSession.user.id)s.mine=r.reaction;
+      if(!nextPostReactions.has(r.post_id))nextPostReactions.set(r.post_id,{likes:0,dislikes:0,mine:null});
+      const state=nextPostReactions.get(r.post_id);
+      if(r.reaction==="like")state.likes++;else state.dislikes++;
+      if(currentSession&&r.user_id===currentSession.user.id)state.mine=r.reaction;
     });
-    unifiedVideoReactions=new Map();
+    const nextVideoReactions=new Map();
     (videoReactionResult.data||[]).forEach(r=>{
-      if(!unifiedVideoReactions.has(r.video_id))unifiedVideoReactions.set(r.video_id,{likes:0,dislikes:0,mine:null});
-      const s=unifiedVideoReactions.get(r.video_id);
-      if(r.reaction==="like")s.likes++;else s.dislikes++;
-      if(currentSession&&r.user_id===currentSession.user.id)s.mine=r.reaction;
+      if(!nextVideoReactions.has(r.video_id))nextVideoReactions.set(r.video_id,{likes:0,dislikes:0,mine:null});
+      const state=nextVideoReactions.get(r.video_id);
+      if(r.reaction==="like")state.likes++;else state.dislikes++;
+      if(currentSession&&r.user_id===currentSession.user.id)state.mine=r.reaction;
     });
 
-    const authorIds=[...new Set(unifiedFeedItems.map(p=>p.author_id).filter(Boolean))];
+    const authorIds=[...new Set(nextItems.map(p=>p.author_id).filter(Boolean))];
     const {data:authors,error:authorsError}=authorIds.length
       ?await supabaseClient.from("public_user_profiles").select("id,username,display_name,avatar_url").in("id",authorIds)
       :{data:[],error:null};
     if(authorsError)console.warn("Could not load public author profiles:",authorsError.message);
     const authorMap=new Map((authors||[]).map(a=>[a.id,a]));
-    const adminIds=new Set(["8166f8a9-fdc3-43a4-85c7-53ec1dbbde0e","7c5f5c13-b106-4c7c-9bd5-9339576bfe7a"]);
-    const fallbackAvatar="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 80'%3E%3Crect width='80' height='80' fill='%23222222'/%3E%3Ctext x='40' y='52' text-anchor='middle' font-size='38' fill='%23e6bd58'%3E%E2%98%BB%3C/text%3E%3C/svg%3E";
-
+    unifiedFeedItems=nextItems;
+    unifiedPostReactions=nextPostReactions;
+    unifiedVideoReactions=nextVideoReactions;
     unifiedFeedItems=unifiedFeedItems.map(item=>({...item,author_profile:authorMap.get(item.author_id)||null}));
     window.empireFeedAuthorMap=authorMap;
-    window.empireFeedAdminIds=adminIds;
-    window.empireFeedFallbackAvatar=fallbackAvatar;
+    window.empireFeedAdminIds=new Set(EMPIRE_ADMIN_IDS);
+    window.empireFeedFallbackAvatar="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 80'%3E%3Crect width='80' height='80' fill='%23222222'/%3E%3Ctext x='40' y='52' text-anchor='middle' font-size='38' fill='%23e6bd58'%3E%E2%98%BB%3C/text%3E%3C/svg%3E";
     renderUnifiedFeed();
   }catch(error){
     console.error("UNIFIED FEED ERROR:",error);
-    box.innerHTML='<div class="status error">Could not load publications: '+escapeHtml(error.message||"Unknown error")+'</div>';
+    if(!unifiedFeedItems.length)box.innerHTML='<div class="status error">Could not load publications: '+escapeHtml(error.message||"Unknown error")+'</div>';
+    else alert("Feed refresh failed. Your current publications remain visible.");
+  }finally{
+    feedLoadInProgress=false;
   }
 }
-
 function renderUnifiedFeed(){
   const box=document.getElementById("communityFeed");if(!box)return;
   const query=(document.getElementById("videoSearch")?.value||"").trim().toLowerCase();
@@ -1153,10 +1179,21 @@ function renderUnifiedFeed(){
       const {data,error}=await supabaseClient.rpc("toggle_community_post_reaction",{p_post_id:button.dataset.post,p_reaction:button.dataset.react});
       if(error)throw error;
       const result=Array.isArray(data)?data[0]:data;
+      const state=unifiedPostReactions.get(button.dataset.post)||{likes:0,dislikes:0,mine:null};
+      if(button.dataset.react==="like")state.likes++;else state.dislikes++;
+      state.mine=button.dataset.react;
+      unifiedPostReactions.set(button.dataset.post,state);
+      const foot=button.closest(".community-post-foot");
+      const report=foot?.querySelector("[data-report-post]");
+      foot?.querySelectorAll("[data-react]").forEach(el=>el.remove());
+      if(foot){
+        const summary=document.createElement("span");
+        summary.className="feed-count";
+        summary.textContent="👍 "+state.likes+" · 👎 "+state.dislikes+" · "+(state.mine==="like"?"Liked":"Disliked");
+        foot.insertBefore(summary,report||null);
+      }
       if(result?.rewarded)alert("You reached "+result.reward_milestone+" likes. 1 EMPC was sent to the publication owner.");
-      await loadCommunityFeed();
-    }catch(error){alert(error.message||"Reaction could not be saved.");}
-    finally{button.disabled=false;}
+    }catch(error){alert(error.message||"Reaction could not be saved.");button.disabled=false;}
   }));
   box.querySelectorAll("[data-video-like]").forEach(button=>button.addEventListener("click",async()=>{
     button.disabled=true;
@@ -1164,10 +1201,19 @@ function renderUnifiedFeed(){
       const {data,error}=await supabaseClient.rpc("react_to_empire_video",{p_video_id:button.dataset.videoLike,p_reaction:"like"});
       if(error)throw error;
       const result=Array.isArray(data)?data[0]:data;
+      const state=unifiedVideoReactions.get(button.dataset.videoLike)||{likes:0,dislikes:0,mine:null};
+      state.likes++;
+      state.mine="like";
+      unifiedVideoReactions.set(button.dataset.videoLike,state);
+      const foot=button.closest(".community-post-foot");
+      if(foot){
+        const summary=document.createElement("span");
+        summary.className="feed-count";
+        summary.textContent="👍 "+state.likes+" · Liked";
+        button.replaceWith(summary);
+      }
       if(result?.rewarded)alert("The video reached "+result.reward_milestone+" likes. 1 EMPC was sent to its creator.");
-      await loadCommunityFeed();
-    }catch(error){alert(error.message||"Video like could not be saved.");}
-    finally{button.disabled=false;}
+    }catch(error){alert(error.message||"Video like could not be saved.");button.disabled=false;}
   }));
   box.querySelectorAll("[data-video-watch]").forEach(b=>b.addEventListener("click",()=>watchVideo(b.dataset.videoWatch)));
   box.querySelectorAll("[data-video-buy]").forEach(b=>b.addEventListener("click",()=>openBuy(b.dataset.videoBuy)));
