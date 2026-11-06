@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>EMPIRE | Admin Activity Inbox</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#080808;color:#eee;font-family:Arial,sans-serif}
+.top{padding:15px 4%;border-bottom:1px solid #66502b;display:flex;justify-content:space-between;align-items:center;gap:12px}
+.brand{color:#e8c36b;text-decoration:none;font-weight:900;letter-spacing:1px}
+.btn{padding:10px 14px;border:1px solid #80642f;border-radius:8px;background:#181818;color:#e8c36b;cursor:pointer;text-decoration:none;font:inherit}
+.wrap{width:min(900px,94%);margin:26px auto}
+h1{color:#e8c36b;margin-bottom:8px}
+.muted{color:#aaa;font-size:13px;line-height:1.7}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:16px 0}
+.notice{border:1px solid #5c4826;border-radius:11px;padding:16px;margin:11px 0;background:#101010}
+.notice.unread{border-left:4px solid #e8c36b;background:#17130c}
+.notice h3{font-size:16px;margin:0 0 8px;color:#f0d18a}
+.notice p{line-height:1.6;margin:0 0 9px;white-space:pre-wrap;overflow-wrap:anywhere}
+.meta{font-size:12px;color:#999}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.empty{text-align:center;padding:32px;border:1px dashed #66502b;border-radius:10px;color:#aaa}
+.count{color:#e8c36b;font-weight:800}
+</style>
+</head>
+<body>
+<header class="top"><a class="brand" href="admin.html">♛ EMPIRE · ADMIN</a><a class="btn" href="admin.html">← Management</a></header>
+<main class="wrap">
+<h1>📥 User Activity Inbox</h1>
+<p class="muted">A central inbox for new video submissions, VIP payment requests, support requests, publication reports and new community publications.</p>
+<div class="toolbar"><button class="btn" id="refresh">↻ Refresh</button><button class="btn" id="readAll">Mark all as read</button><span class="muted" id="summary"></span></div>
+<div class="muted" id="status">Checking administrator access...</div>
+<section id="items"><div class="empty">Loading notifications...</div></section>
+</main>
+<script>
+const db=window.supabase.createClient("https://vubjkwbkuwndkjqfnyom.supabase.co","sb_publishable_Ig1R3dpAKyBfjIGSUhhlKw_uC-QF0QQ");
+const box=document.getElementById("items"),statusBox=document.getElementById("status"),summary=document.getElementById("summary");
+let adminUser=null;
+const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
+const icons={admin_video_pending:"🎬",admin_vip_request:"👑",admin_support_request:"✉️",admin_post_report:"🚩",admin_new_publication:"📝"};
+async function load(){
+ if(!adminUser)return;
+ box.innerHTML='<div class="empty">Loading...</div>';
+ const {data,error}=await db.from("empire_notifications")
+  .select("id,notification_type,title,body,target_url,created_at,read_at")
+  .eq("user_id",adminUser.id).order("created_at",{ascending:false}).limit(150);
+ if(error){box.innerHTML='<div class="empty">Could not load inbox: '+esc(error.message)+'</div>';return;}
+ const rows=data||[],unread=rows.filter(x=>!x.read_at).length;
+ summary.innerHTML='<span class="count">'+unread+'</span> unread · '+rows.length+' total';
+ if(!rows.length){box.innerHTML='<div class="empty">No user activity notifications yet.</div>';return;}
+ box.innerHTML=rows.map(n=>'<article class="notice '+(!n.read_at?'unread':'')+'"><h3>'+(icons[n.notification_type]||"🔔")+' '+esc(n.title)+'</h3><p>'+esc(n.body)+'</p><div class="meta">'+new Date(n.created_at).toLocaleString()+' · '+(n.read_at?'Read':'Unread')+'</div><div class="actions"><a class="btn" href="'+esc(n.target_url||"admin.html")+'" data-open="'+esc(n.id)+'">Open request</a>'+(!n.read_at?'<button class="btn" data-read="'+esc(n.id)+'">Mark as read</button>':'')+'</div></article>').join("");
+ box.querySelectorAll("[data-read]").forEach(b=>b.addEventListener("click",()=>markRead(b.dataset.read)));
+ box.querySelectorAll("[data-open]").forEach(a=>a.addEventListener("click",async()=>{const n=rows.find(x=>x.id===a.dataset.open);if(n&&!n.read_at)await db.from("empire_notifications").update({read_at:new Date().toISOString()}).eq("id",n.id).eq("user_id",adminUser.id);}));
+}
+async function markRead(id){
+ const {error}=await db.from("empire_notifications").update({read_at:new Date().toISOString()}).eq("id",id).eq("user_id",adminUser.id);
+ if(error){statusBox.textContent=error.message;return;}await load();
+}
+document.getElementById("refresh").onclick=load;
+document.getElementById("readAll").onclick=async()=>{
+ const {error}=await db.from("empire_notifications").update({read_at:new Date().toISOString()}).eq("user_id",adminUser.id).is("read_at",null);
+ if(error){statusBox.textContent=error.message;return;}statusBox.textContent="All notifications marked as read.";await load();
+};
+(async()=>{
+ const {data,error}=await db.auth.getSession();adminUser=data?.session?.user;
+ if(error||!adminUser){statusBox.textContent="Please sign in with an administrator account.";box.innerHTML='<a class="btn" href="login.html">Sign in</a>';return;}
+ const {data:isAdmin,error:adminError}=await db.rpc("is_admin");
+ if(adminError||isAdmin!==true){statusBox.textContent="Admin access denied.";box.innerHTML='<a class="btn" href="index.html">Return to EMPIRE</a>';return;}
+ statusBox.textContent="Administrator access verified. New requests appear here automatically.";
+ await load();
+ db.channel("empire-admin-inbox-"+adminUser.id).on("postgres_changes",{event:"INSERT",schema:"public",table:"empire_notifications",filter:"user_id=eq."+adminUser.id},load).subscribe();
+ window.setInterval(load,30000);
+})();
+</script>
+</body>
+</html>
