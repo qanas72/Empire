@@ -1397,7 +1397,7 @@ async function loadEmpireRaffles(){
       return '<div class="raffle-admin-winner-row"><span><b>'+prizeLabel+'</b> · '+escapeHtml(profileMap[w.user_id]||"Winner")+'</span><small>'+escapeHtml(w.prize_description||"Prize")+escapeHtml(amount)+'</small></div>';
      }).join("")+'</div>'
     :'<div class="raffle-admin-no-winners">No winners selected yet. Winners will appear here after the draw.</div>';
-   return '<div class="video-item"><strong>'+escapeHtml(r.title)+'</strong><div>Status: '+escapeHtml(r.status)+' · Participants: '+counts[r.id]+'/'+r.target_participants+'</div><small>🥇 '+escapeHtml(r.prize_1)+' · 🥈 '+escapeHtml(r.prize_2)+' · 🥉 '+escapeHtml(r.prize_3)+'</small>'+winnerHtml+(r.status==="draft"?'<div class="actions"><button class="btn btn-gold" onclick="publishEmpireRaffle(\\''+r.id+'\\')">Publish raffle</button><button class="btn btn-dark" onclick="cancelEmpireRaffle(\\''+r.id+'\\')">Cancel draft</button></div>':"")+'</div>';
+   return '<div class="video-item"><strong>'+escapeHtml(r.title)+'</strong><div>Status: '+escapeHtml(r.status)+' · Participants: '+counts[r.id]+'/'+r.target_participants+'</div><small>🥇 '+escapeHtml(r.prize_1)+' · 🥈 '+escapeHtml(r.prize_2)+' · 🥉 '+escapeHtml(r.prize_3)+'</small>'+winnerHtml+(r.status==="draft"?'<div class="actions"><button class="btn btn-gold" onclick="publishEmpireRaffle(\''+r.id+'\')">Publish raffle</button><button class="btn btn-dark" onclick="cancelEmpireRaffle(\''+r.id+'\')">Cancel draft</button></div>':"")+'</div>';
   }).join("");
  }catch(e){box.innerHTML='<div class="empty">Could not load raffles and winners: '+escapeHtml(e.message||"Unknown error")+'</div>';}
 }
