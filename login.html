@@ -509,6 +509,35 @@
         SUPABASE_KEY
       );
 
+    // If Android/browser Back returns to this login entry while the
+    // Supabase session is still valid, keep the user signed in and
+    // replace this history entry with the home page.
+    let empireSessionRedirecting = false;
+
+    async function empireReturnToHomeIfSignedIn() {
+      if (empireSessionRedirecting) return;
+      try {
+        const { data, error } = await supabase.auth.getSession();
+        if (error) {
+          console.warn("Could not check existing Empire session:", error.message);
+          return;
+        }
+        if (data && data.session) {
+          empireSessionRedirecting = true;
+          window.location.replace("index.html");
+        }
+      } catch (error) {
+        console.warn("Existing Empire session check failed:", error);
+      }
+    }
+
+    // Run on normal page load and also when Android restores this page
+    // from the back-forward cache.
+    empireReturnToHomeIfSignedIn();
+    window.addEventListener("pageshow", function() {
+      empireReturnToHomeIfSignedIn();
+    });
+
 
     // ==========================================
     // ELEMENTS
