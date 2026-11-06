@@ -11,7 +11,7 @@ async function load(){
  if(error){box.innerHTML='<div class="empty">Could not load notifications: '+esc(error.message)+'</div>';return;}
  const unread=(data||[]).filter(n=>!n.read_at).length;summary.innerHTML='<span class="count">'+unread+'</span> unread · '+(data?.length||0)+' total';
  if(!data?.length){box.innerHTML='<div class="empty">You have no notifications yet.</div>';return;}
- const icons={new_message:"💬",admin_warning:"⚠️",raffle_winner:"🏆",support_reply:"🎧",account_update:"👤",wallet_update:"💰"};
+ const icons={new_message:"💬",admin_warning:"⚠️",raffle_winner:"🏆",support_reply:"🎧",account_update:"👤",wallet_update:"💰",video_review:"🎬",vip_request_update:"👑"};
  box.innerHTML=data.map(n=>'<article class="notice '+(!n.read_at?'unread':'')+'"><h3>'+ (icons[n.notification_type]||"🔔")+' '+esc(n.title)+'</h3><p>'+esc(n.body)+'</p><div class="meta">'+new Date(n.created_at).toLocaleString()+' · '+(n.read_at?'Read':'Unread')+'</div><div class="actions"><a class="btn" href="'+esc(n.target_url||"notifications.html")+'" data-id="'+esc(n.id)+'">Open</a>'+(!n.read_at?'<button class="btn" data-read="'+esc(n.id)+'">Mark as read</button>':'')+'</div></article>').join("");
  box.querySelectorAll("[data-read]").forEach(b=>b.addEventListener("click",()=>markRead(b.dataset.read)));
  box.querySelectorAll("a[data-id]").forEach(a=>a.addEventListener("click",async()=>{const n=data.find(x=>x.id===a.dataset.id);if(n&&!n.read_at)await db.from("empire_notifications").update({read_at:new Date().toISOString()}).eq("id",n.id).eq("user_id",user.id);}));
