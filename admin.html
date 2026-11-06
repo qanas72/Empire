@@ -620,6 +620,12 @@ footer{
   -webkit-backdrop-filter:none!important;
 }
 
+.raffle-admin-winners{margin-top:14px;padding:13px;border:1px solid rgba(230,189,88,.35);border-radius:10px;background:rgba(10,10,10,.45)}
+.raffle-admin-winners>strong{display:block;color:#e8c36b;margin-bottom:8px}
+.raffle-admin-winner-row{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:8px 0;border-top:1px solid #ffffff14;font-size:12px}
+.raffle-admin-winner-row b{color:#e8c36b}
+.raffle-admin-winner-row small{color:#aaa}
+.raffle-admin-no-winners{margin-top:12px;padding:10px;border:1px dashed #66532d;border-radius:9px;color:#aaa;font-size:12px}
 </style>
 </head>
 
@@ -732,7 +738,7 @@ footer{
   </section>
   <section class="panel" id="raffleAdminPanel">
     <h2>🎟️ EMPIRE Raffle Manager</h2>
-    <p style="color:#888;font-size:13px;margin:-8px 0 18px">Create raffles and set their conditions and three prizes. The draw runs automatically when 50 eligible participants join.</p>
+    <p style="color:#888;font-size:13px;margin:-8px 0 18px">Create raffles and set their conditions and three main prizes. The draw selects 21 winners; all selected winners, including the 18 EMPC prize recipients, are listed below.</p>
     <div class="form-grid">
       <div class="field full"><label for="raffleTitle">Raffle title</label><input id="raffleTitle" maxlength="140" placeholder="November EMPIRE Giveaway"></div>
       <div class="field full"><label for="raffleDescription">Details</label><textarea id="raffleDescription" rows="3" placeholder="Describe this raffle..."></textarea></div>
@@ -1355,10 +1361,45 @@ async function createEmpireRaffle(){
 }
 async function loadEmpireRaffles(){
  const box=document.getElementById("raffleAdminList");if(!box)return;
- try{const {data,error}=await supabaseClient.from("empire_raffles").select("*").order("created_at",{ascending:false});if(error)throw error;const rows=data||[];if(!rows.length){box.innerHTML='<div class="empty">No raffles have been created.</div>';return;}
- const counts={};for(const r of rows){const q=await supabaseClient.from("empire_raffle_entries").select("id",{count:"exact",head:true}).eq("raffle_id",r.id);if(q.error)throw q.error;counts[r.id]=q.count||0;}
- box.innerHTML=rows.map(r=>'<div class="video-item"><strong>'+escapeHtml(r.title)+'</strong><div>Status: '+escapeHtml(r.status)+' · Participants: '+counts[r.id]+'/'+r.target_participants+'</div><small>🥇 '+escapeHtml(r.prize_1)+' · 🥈 '+escapeHtml(r.prize_2)+' · 🥉 '+escapeHtml(r.prize_3)+'</small>'+(r.status==="draft"?'<div class="actions"><button class="btn btn-gold" onclick="publishEmpireRaffle(\''+r.id+'\')">Publish raffle</button><button class="btn btn-dark" onclick="cancelEmpireRaffle(\''+r.id+'\')">Cancel draft</button></div>':"")+'</div>').join("");
- }catch(e){box.innerHTML='<div class="empty">Could not load raffles: '+escapeHtml(e.message||"Unknown error")+'</div>';}
+ try{
+  const {data,error}=await supabaseClient.from("empire_raffles").select("*").order("created_at",{ascending:false});
+  if(error)throw error;
+  const rows=data||[];
+  if(!rows.length){box.innerHTML='<div class="empty">No raffles have been created.</div>';return;}
+  const counts={};
+  for(const r of rows){
+   const q=await supabaseClient.from("empire_raffle_entries").select("id",{count:"exact",head:true}).eq("raffle_id",r.id);
+   if(q.error)throw q.error;
+   counts[r.id]=q.count||0;
+  }
+  const raffleIds=rows.map(r=>r.id);
+  const {data:winners,error:winnerError}=await supabaseClient.from("empire_raffle_winners")
+   .select("raffle_id,user_id,prize_rank,prize_description,empc_amount,selected_at")
+   .in("raffle_id",raffleIds).order("prize_rank",{ascending:true});
+  if(winnerError)throw winnerError;
+  const userIds=[...new Set((winners||[]).map(w=>w.user_id).filter(Boolean))];
+  const profileMap={};
+  if(userIds.length){
+   const {data:profiles,error:profileError}=await supabaseClient.from("public_user_profiles")
+    .select("id,username,display_name").in("id",userIds);
+   if(profileError)throw profileError;
+   (profiles||[]).forEach(p=>profileMap[p.id]=p.display_name||p.username||"Member");
+  }
+  const winnerGroups={};
+  (winners||[]).forEach(w=>{if(!winnerGroups[w.raffle_id])winnerGroups[w.raffle_id]=[];winnerGroups[w.raffle_id].push(w);});
+  box.innerHTML=rows.map(r=>{
+   const winnerList=winnerGroups[r.id]||[];
+   const winnerHtml=winnerList.length
+    ?'<div class="raffle-admin-winners"><strong>🏆 Selected winners ('+winnerList.length+'/21)</strong>'+winnerList.map(w=>{
+      const rank=Number(w.prize_rank);
+      const prizeLabel=rank===1?'🥇 1st — USDT':rank===2?'🥈 2nd — USDT':rank===3?'🥉 3rd — VIP':'🪙 EMPC winner #'+(rank-3);
+      const amount=w.empc_amount!==null&&w.empc_amount!==undefined?' · '+Number(w.empc_amount).toLocaleString("en-US")+' EMPC':'';
+      return '<div class="raffle-admin-winner-row"><span><b>'+prizeLabel+'</b> · '+escapeHtml(profileMap[w.user_id]||"Winner")+'</span><small>'+escapeHtml(w.prize_description||"Prize")+escapeHtml(amount)+'</small></div>';
+     }).join("")+'</div>'
+    :'<div class="raffle-admin-no-winners">No winners selected yet. Winners will appear here after the draw.</div>';
+   return '<div class="video-item"><strong>'+escapeHtml(r.title)+'</strong><div>Status: '+escapeHtml(r.status)+' · Participants: '+counts[r.id]+'/'+r.target_participants+'</div><small>🥇 '+escapeHtml(r.prize_1)+' · 🥈 '+escapeHtml(r.prize_2)+' · 🥉 '+escapeHtml(r.prize_3)+'</small>'+winnerHtml+(r.status==="draft"?'<div class="actions"><button class="btn btn-gold" onclick="publishEmpireRaffle(\\''+r.id+'\\')">Publish raffle</button><button class="btn btn-dark" onclick="cancelEmpireRaffle(\\''+r.id+'\\')">Cancel draft</button></div>':"")+'</div>';
+  }).join("");
+ }catch(e){box.innerHTML='<div class="empty">Could not load raffles and winners: '+escapeHtml(e.message||"Unknown error")+'</div>';}
 }
 async function publishEmpireRaffle(id){if(!confirm("Publish this raffle to all EMPIRE users?"))return;const {error}=await supabaseClient.rpc("admin_set_empire_raffle_status",{p_raffle_id:id,p_status:"open"});if(error){alert(error.message);return;}await loadEmpireRaffles();}
 async function cancelEmpireRaffle(id){const {error}=await supabaseClient.rpc("admin_set_empire_raffle_status",{p_raffle_id:id,p_status:"cancelled"});if(error){alert(error.message);return;}await loadEmpireRaffles();}
