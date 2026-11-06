@@ -9,7 +9,7 @@
 <div class="actions"><button class="btn goldbtn" id="refreshBtn">Refresh</button><select id="statusFilter" style="width:auto;margin:0"><option value="all">All requests</option><option value="new">New</option><option value="in_progress">In progress</option><option value="resolved">Resolved</option></select></div>
 <div id="notice" class="muted" style="margin:14px 0">Checking administrator access...</div><div id="requests"><div class="empty">Loading...</div></div></main>
 <script>
-const db=window.supabase.createClient("https://vubjkwbkuwndkjqfnyom.supabase.co","sb_publishable_Ig1R3dpAKyBfjIGSUhhlKw_uC-QF0QQ);
+const db=window.supabase.createClient("https://vubjkwbkuwndkjqfnyom.supabase.co","sb_publishable_Ig1R3dpAKyBfjIGSUhhlKw_uC-QF0QQ");
 const notice=document.getElementById("notice"),list=document.getElementById("requests");
 const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
 let authorized=false;
