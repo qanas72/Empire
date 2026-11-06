@@ -608,19 +608,8 @@
       line-height: 1.7;
       border: 1px dashed #333;
       border-radius: 12px;
-    }
-
-    .danger-card {
-      border-color: rgba(255, 100, 100, .24);
-    }
-
-    .danger-card p {
-      color: var(--muted);
-      font-size: 13px;
-      line-height: 1.7;
-    }
-
-    .notice {
+    } 
+.notice {
       display: none;
       margin-bottom: 18px;
       padding: 13px 15px;
@@ -1156,39 +1145,6 @@
       <div class="form-actions">
         <button type="button" class="btn btn-dark" id="logoutButton">
           Log Out
-        </button>
-      </div>
-
-    </section>
-
-    <!-- Danger zone -->
-    <section class="card danger-card">
-
-      <h2 class="section-title">
-        Danger Zone
-        <small>Permanent account action</small>
-      </h2>
-
-      <p>
-        Deleting your account is permanent. Your account and associated
-        data may be removed by the account deletion service.
-      </p>
-
-      <div class="field" style="max-width: 380px;">
-        <label for="deleteConfirmation">
-          Type DELETE to confirm
-        </label>
-        <input
-          id="deleteConfirmation"
-          type="text"
-          autocomplete="off"
-          placeholder="DELETE"
-        >
-      </div>
-
-      <div class="form-actions">
-        <button type="button" class="btn btn-danger" id="deleteAccountButton">
-          Delete Account
         </button>
       </div>
 
@@ -2287,82 +2243,7 @@
       window.location.href = "login.html";
     }
 
-    async function deleteAccount() {
-      if (!currentUser) return;
-
-      const confirmation = $("deleteConfirmation").value.trim();
-
-      if (confirmation !== "DELETE") {
-        showNotice(
-          'Please type DELETE exactly to confirm account deletion.',
-          "error"
-        );
-        return;
-      }
-
-      const confirmed = window.confirm(
-        "Are you sure you want to permanently delete your account? This action cannot be undone."
-      );
-
-      if (!confirmed) return;
-
-      const button = $("deleteAccountButton");
-
-      button.disabled = true;
-      button.textContent = "Deleting account...";
-
-      try {
-        const { data: sessionData, error: sessionError } =
-          await supabaseClient.auth.getSession();
-
-        if (sessionError) throw sessionError;
-
-        const accessToken = sessionData?.session?.access_token;
-
-        if (!accessToken) {
-          throw new Error("Your session has expired. Please sign in again.");
-        }
-
-        const response = await fetch(
-          `${SUPABASE_URL}/functions/v1/delete-account`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "Authorization": `Bearer ${accessToken}`,
-              "apikey": SUPABASE_KEY
-            },
-            body: JSON.stringify({
-              confirmation: "DELETE"
-            })
-          }
-        );
-
-        const result = await response.json().catch(() => ({}));
-
-        if (!response.ok) {
-          throw new Error(
-            result.error || result.message || "Account deletion failed."
-          );
-        }
-
-        await supabaseClient.auth.signOut();
-
-        window.location.href = "login.html";
-      } catch (error) {
-        console.error("Delete account error:", error);
-
-        showNotice(
-          error.message || "Could not delete your account.",
-          "error"
-        );
-
-        button.disabled = false;
-        button.textContent = "Delete Account";
-      }
-    }
-
-    // Event handlers
+// Event handlers
     $("warningNotificationLink")?.addEventListener("click", () => {
       $("accountWarningsCard")?.scrollIntoView({ behavior: "smooth", block: "start" });
     });
@@ -2387,10 +2268,7 @@
     });
 
     $("logoutButton").addEventListener("click", logout);
-
-    $("deleteAccountButton").addEventListener("click", deleteAccount);
-
-    // Start the page.
+// Start the page.
     loadProfile();
   
 /* Click any profile avatar to view it larger; tap outside or close to dismiss. */
