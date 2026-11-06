@@ -1,0 +1,1888 @@
+<!DOCTYPE html>  <html lang="en">  
+<head>  
+<meta charset="UTF-8">  
+<meta name="viewport" content="width=device-width, initial-scale=1.0">  <title>Empire | Royal Video Experience</title>  <meta name="description" content="Discover free and premium videos on Empire.">  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>  <style>  
+:root{  
+  --gold:#e6bd58;  
+  --gold-light:#fff0b0;  
+  --bg:#080808;  
+  --panel:rgba(16,16,16,.88);  
+  --muted:#aaa;  
+  --border:rgba(255,255,255,.12);  
+}  
+  
+*{  
+  box-sizing:border-box;  
+  margin:0;  
+  padding:0;  
+}  
+  
+html{  
+  scroll-behavior:smooth;  
+}  
+  
+body{  
+  font-family:Inter,Arial,Helvetica,sans-serif;  
+  background:var(--bg);  
+  color:#f7f7f7;  
+  line-height:1.6;  
+  min-height:100vh;  
+}  
+  
+body::before{  
+  content:"";  
+  position:fixed;  
+  inset:0;  
+  z-index:-1;  
+  pointer-events:none;  
+  background:  
+    linear-gradient(  
+      180deg,  
+      rgba(0,0,0,.78),  
+      rgba(0,0,0,.93)  
+    ),  
+    url("empire-background-desktop.png") center/cover no-repeat;  
+}  
+  
+a{  
+  color:inherit;  
+  text-decoration:none;  
+}  
+  
+button,input{  
+  font:inherit;  
+}  
+  
+button{  
+  cursor:pointer;  
+}  
+  
+.container{  
+  width:min(1180px,92%);  
+  margin:auto;  
+}  
+  
+/* HEADER */  
+  
+header{  
+  position:sticky;  
+  top:0;  
+  z-index:100;  
+  background:rgba(5,5,5,.88);  
+  backdrop-filter:blur(18px);  
+  border-bottom:1px solid var(--border);  
+}  
+  
+.nav{  
+  min-height:72px;  
+  display:flex;  
+  align-items:center;  
+  justify-content:space-between;  
+  gap:20px;  
+}  
+  
+.brand-raffles{display:inline-flex;align-items:center;margin-left:12px;padding:8px 12px;border:1px solid rgba(232,195,107,.55);border-radius:9px;color:var(--gold);font-size:13px;font-weight:800;white-space:nowrap}.brand{  
+  display:flex;  
+  align-items:center;  
+  gap:10px;  
+  font-size:23px;  
+  font-weight:900;  
+  letter-spacing:2px;  
+}  
+  
+.brand-mark{  
+  color:var(--gold);  
+  font-size:27px;  
+}  
+  
+.links{  
+  display:flex;  
+  align-items:center;  
+  gap:26px;  
+  color:#ccc;  
+  font-size:14px;  
+}  
+  
+.links a:hover,.links button:hover{color:var(--gold)}
+.menu-logout{display:block;width:100%;padding:12px 8px;border:0;border-top:1px solid var(--border);background:transparent;color:#e8b8a8;text-align:left;font:inherit;cursor:pointer}
+  
+  
+.nav-actions{  
+  display:flex;  
+  align-items:center;  
+  gap:16px;  
+  font-size:13px;  
+}  
+  
+.menu{  
+  display:none;  
+  border:1px solid var(--border);  
+  border-radius:9px;  
+  padding:7px 11px;  
+  background:#111;  
+  color:white;  
+  font-size:22px;  
+}  
+  
+/* BUTTONS */  
+  
+.btn{  
+  display:inline-flex;  
+  align-items:center;  
+  justify-content:center;  
+  gap:8px;  
+  padding:11px 18px;  
+  border:1px solid transparent;  
+  border-radius:10px;  
+  font-weight:800;  
+  transition:.2s;  
+}  
+  
+.btn:hover{  
+  transform:translateY(-2px);  
+}  
+  
+.btn-gold{  
+  color:#111;  
+  background:linear-gradient(135deg,var(--gold-light),#bd8524);  
+}  
+  
+.btn-dark{  
+  color:white;  
+  background:#ffffff0b;  
+  border-color:var(--border);  
+}  
+  
+.btn:disabled{  
+  opacity:.55;  
+  cursor:not-allowed;  
+  transform:none;  
+}  
+  
+/* HERO */  
+  
+.hero{  
+  min-height:540px;  
+  display:flex;  
+  align-items:center;  
+  position:relative;  
+  overflow:hidden;  
+  border-bottom:1px solid rgba(255,255,255,.07);  
+}  
+  
+.hero::before{  
+  content:"";  
+  position:absolute;  
+  width:480px;  
+  height:480px;  
+  right:-100px;  
+  top:0;  
+  border-radius:50%;  
+  background:rgba(207,157,52,.10);  
+  filter:blur(100px);  
+  pointer-events:none;  
+}  
+  
+.hero-content{  
+  position:relative;  
+  padding:85px 0;  
+  max-width:780px;  
+}  
+  
+.eyebrow{  
+  color:var(--gold);  
+  font-size:12px;  
+  font-weight:900;  
+  letter-spacing:3px;  
+  text-transform:uppercase;  
+  margin-bottom:18px;  
+}  
+  
+.hero h1{  
+  font-size:clamp(44px,7vw,82px);  
+  line-height:1.04;  
+  letter-spacing:-2px;  
+  margin-bottom:23px;  
+}  
+  
+.gold{  
+  background:linear-gradient(90deg,#fff2b9,#d29a2d);  
+  -webkit-background-clip:text;  
+  background-clip:text;  
+  color:transparent;  
+}  
+  
+.hero p{  
+  max-width:600px;  
+  color:#b3b3b3;  
+  font-size:17px;  
+  margin-bottom:28px;  
+}  
+  
+.hero-actions{  
+  display:flex;  
+  gap:12px;  
+  flex-wrap:wrap;  
+}  
+  
+.hero-note{  
+  margin-top:35px;  
+  font-size:12px;  
+  color:#929292;  
+}  
+  
+/* SEARCH */  
+  
+.search-area{
+position: static;
+top: 0;
+z-index: 100;
+padding: 12px 0 10px;
+background: rgba(8,8,8,.94);
+backdrop-filter: blur(14px);
+-webkit-backdrop-filter: blur(14px);
+}
+  
+.search-box{  
+  display:flex;  
+  align-items:center;  
+  gap:12px;  
+  width:100%;  
+  padding:5px 15px;  
+  background:rgba(15,15,15,.92);  
+  border: 1px solid rgba(255, 215, 0, 0.45);
+  border-radius:13px;  
+}  
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+.search-icon {
+color: #ffd700;
+font-size: 25px;
+text-shadow: 0 0 8px rgba(255, 215, 0, 0.35);
+transition: transform 0.25s ease;
+}
+
+.search-box:focus-within .search-icon {
+transform: scale(1.12);
+}
+  
+.search-box input{  
+  flex:1;  
+  min-width:0;  
+  padding:12px 0;  
+  background:transparent;  
+  border:0;  
+  outline:none;  
+  color:white;  
+}  
+  
+.search-box input::placeholder{  
+  color:#777;  
+}  
+  .search-box:focus-within {
+border-color: #ffd700;
+box-shadow: 0 0 10px rgba(255, 215, 0, 0.18);
+transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+/* SECTIONS */  
+  
+section{  
+  padding:65px 0;  
+}  
+  
+.section-head{  
+  display:flex;  
+  justify-content:space-between;  
+  align-items:end;  
+  gap:15px;  
+  margin-bottom:26px;  
+}  
+  
+.section-head h2{  
+  font-size:clamp(25px,4vw,34px);  
+  letter-spacing:-.5px;  
+}  
+  
+.section-head p{  
+  color:#909090;  
+  font-size:13px;  
+  margin-top:5px;  
+}  
+  
+.section-label{  
+  color:var(--gold);  
+  font-size:11px;  
+  font-weight:800;  
+  letter-spacing:2px;  
+  text-transform:uppercase;  
+  margin-bottom:6px;  
+}  
+  
+/* VIDEO GRID */  
+  
+.grid{  
+  display:grid;  
+  grid-template-columns:repeat(3,minmax(0,1fr));  
+  gap:20px;  
+}  
+  
+.card{  
+  min-width:0;  
+  overflow:hidden;  
+  border:1px solid var(--border);  
+  border-radius:15px;  
+  background:var(--panel);  
+  transition:transform .22s,border-color .22s;  
+}  
+  
+.card:hover{  
+  transform:translateY(-4px);  
+  border-color:rgba(230,189,88,.42);  
+}  
+  
+.thumb{  
+  height:205px;  
+  position:relative;  
+  display:flex;  
+  align-items:center;  
+  justify-content:center;  
+  overflow:hidden;  
+  background:  
+    radial-gradient(circle at 65% 35%,#b58b3944,transparent 35%),  
+    linear-gradient(135deg,#252525,#090909);  
+}  
+  
+.thumb img{  
+  position:absolute;  
+  inset:0;  
+  width:100%;  
+  height:100%;  
+  object-fit:cover;  
+}  
+  
+.thumb-overlay{  
+  position:absolute;  
+  inset:0;  
+  background:linear-gradient(to top,#000c,transparent 70%);  
+  pointer-events:none;  
+}  
+  
+.play{  
+  width:55px;  
+  height:55px;  
+  position:relative;  
+  z-index:2;  
+  display:grid;  
+  place-items:center;  
+  padding-left:3px;  
+  border-radius:50%;  
+  color:#111;  
+  background:#ffffffdf;  
+  font-size:21px;  
+}  
+  
+.lock-icon{  
+  width:55px;  
+  height:55px;  
+  position:relative;  
+  z-index:2;  
+  display:grid;  
+  place-items:center;  
+  border:1px solid #ffffff2a;  
+  border-radius:50%;  
+  color:var(--gold);  
+  background:#080808d9;  
+  font-size:23px;  
+}  
+  
+.video-badge{  
+  position:absolute;  
+  top:11px;  
+  right:11px;  
+  z-index:3;  
+  padding:5px 10px;  
+  border:1px solid #ffffff20;  
+  border-radius:50px;  
+  background:#080808e8;  
+  font-size:11px;  
+  font-weight:800;  
+}  
+  
+.video-badge.free{  
+  color:var(--gold);  
+}  
+  
+.video-badge.paid{  
+  color:#fff0b0;  
+}  
+  
+.card-body{  
+  padding:17px;  
+}  
+  
+.card-body h3{  
+  font-size:17px;  
+  line-height:1.4;  
+  margin-bottom:7px;  
+  overflow-wrap:anywhere;  
+}  
+  
+.card-description{  
+  min-height:42px;  
+  color:#999;  
+  font-size:13px;  
+  overflow-wrap:anywhere;  
+  white-space:pre-line;  
+}  
+  
+.card-foot{  
+  display:flex;  
+  align-items:center;  
+  justify-content:space-between;  
+  gap:10px;  
+  margin-top:17px;  
+}  
+  
+.tag{  
+  color:var(--gold);  
+  font-size:11px;  
+  font-weight:800;  
+}  
+  
+.card-foot .btn{  
+  padding:9px 13px;  
+  font-size:12px;  
+}  
+  
+.status{  
+  grid-column:1/-1;  
+  padding:38px 20px;  
+  text-align:center;  
+  border:1px solid var(--border);  
+  border-radius:15px;  
+  background:rgba(15,15,15,.9);  
+  color:#999;  
+  overflow-wrap:anywhere;  
+}  
+  
+.status strong{  
+  display:block;  
+  color:#eee;  
+  font-size:18px;  
+  margin-bottom:6px;  
+}  
+  
+.error{  
+  color:#e9a0a0;  
+}  
+  
+/* FEATURED */  
+  
+.featured{  
+  background:rgba(9,9,9,.72);  
+  border-top:1px solid var(--border);  
+  border-bottom:1px solid var(--border);  
+}  
+  
+.feature-box{  
+  display:grid;  
+  grid-template-columns:1.2fr 1fr;  
+  gap:35px;  
+  align-items:center;  
+}  
+  
+.feature-video{  
+  min-height:300px;  
+  position:relative;  
+  display:grid;  
+  place-items:center;  
+  overflow:hidden;  
+  border:1px solid var(--border);  
+  border-radius:17px;  
+  background:  
+    radial-gradient(circle,#bd8e3540,transparent 40%),  
+    #111;  
+}  
+  
+.feature-video img{  
+  position:absolute;  
+  inset:0;  
+  width:100%;  
+  height:100%;  
+  object-fit:cover;  
+}  
+  
+.feature-copy h2{  
+  font-size:clamp(28px,4vw,42px);  
+  line-height:1.15;  
+  margin:9px 0 14px;  
+  overflow-wrap:anywhere;  
+}  
+  
+.feature-copy p{  
+  color:#aaa;  
+  margin-bottom:22px;  
+  font-size:14px;  
+  overflow-wrap:anywhere;  
+}  
+  
+.feature-list{  
+  display:grid;  
+  gap:9px;  
+  list-style:none;  
+  color:#b7b7b7;  
+  font-size:13px;  
+  margin-bottom:24px;  
+}  
+  
+.feature-list li::before{  
+  content:"✓";  
+  color:var(--gold);  
+  margin-right:9px;  
+}  
+  
+/* FOOTER */  
+  
+footer{  
+  border-top:1px solid var(--border);  
+  padding:30px 0;  
+  color:#858585;  
+  font-size:12px;  
+}  
+  
+.footer-inner{  
+  display:flex;  
+  justify-content:space-between;  
+  gap:18px;  
+  flex-wrap:wrap;  
+}  
+  
+.footer-note{  
+  margin-top:13px;  
+  color:#666;  
+  max-width:750px;  
+}  
+  
+/* VIDEO MODAL */  
+  
+.modal{  
+  position:fixed;  
+  inset:0;  
+  z-index:500;  
+  display:none;  
+  align-items:center;  
+  justify-content:center;  
+  padding:18px;  
+  background:#000e;  
+}  
+  
+.modal.open{  
+  display:flex;  
+}  
+  
+.video-modal-box{  
+  position:relative;  
+  width:min(950px,100%);  
+  max-height:95vh;  
+  overflow:auto;  
+  padding:20px;  
+  border:1px solid var(--border);  
+  border-radius:17px;  
+  background:#101010;  
+}  
+  
+.video-modal-box h2{  
+  padding-right:40px;  
+  font-size:23px;  
+  overflow-wrap:anywhere;  
+}  
+  
+.video-modal-box p{  
+  margin:6px 0 15px;  
+  color:#999;  
+  font-size:13px;  
+  overflow-wrap:anywhere;  
+}  
+  
+.video-player{  
+  display:block;  
+  width:100%;  
+  max-height:70vh;  
+  border-radius:10px;  
+  background:#000;  
+}  
+  
+.close{  
+  position:absolute;  
+  top:12px;  
+  right:15px;  
+  border:0;  
+  background:transparent;  
+  color:#aaa;  
+  font-size:29px;  
+}  
+  
+.close:hover{  
+  color:white;  
+}  
+  
+/* MOBILE */  
+  
+@media(max-width:850px){
+  body::before{
+    background:linear-gradient(180deg,rgba(0,0,0,.78),rgba(0,0,0,.93)),url("empire-background.png") center/cover no-repeat;
+  }
+  
+  .nav{  
+    min-height:65px;  
+  }  
+  
+  .menu{  
+    display:block;  
+  }  
+  
+  .links{  
+    display:none;  
+    position:absolute;  
+    top:65px;  
+    left:4%;  
+    right:4%;  
+    padding:17px;  
+    flex-direction:column;  
+    align-items:stretch;  
+    gap:0;  
+    border:1px solid var(--border);  
+    border-radius:12px;  
+    background:#101010;  
+  }  
+  
+  .links a{  
+    padding:12px 8px;  
+  }  
+  
+  .nav-actions{  
+    gap:11px;  
+  }  
+  
+  .nav-actions .user-name{  
+    display:none;  
+  }  
+  
+  .hero{  
+    min-height:480px;  
+  }  
+  
+  .hero-content{  
+    padding:65px 0;  
+  }  
+  
+  .grid{  
+    grid-template-columns:repeat(2,minmax(0,1fr));  
+    gap:12px;  
+  }  
+  
+  .thumb{  
+    height:155px;  
+  }  
+  
+  .card-body{  
+    padding:12px;  
+  }  
+  
+  .card-body h3{  
+    font-size:14px;  
+  }  
+  
+  .card-description{  
+    font-size:12px;  
+    min-height:48px;  
+  }  
+  
+  .card-foot{  
+    align-items:flex-start;  
+    flex-direction:column;  
+  }  
+  
+  .card-foot .btn{  
+    width:100%;  
+  }  
+  
+  .feature-box{  
+    grid-template-columns:1fr;  
+    gap:22px;  
+  }  
+  
+  .feature-video{  
+    min-height:230px;  
+  }  
+  
+  section{  
+    padding:45px 0;  
+  }  
+}  
+  
+@media(max-width:390px){  
+  .brand{  
+    font-size:18px;  
+  }  
+  
+  .nav-actions{  
+    gap:8px;  
+    font-size:12px;  
+  }  
+  
+  .grid{  
+    gap:9px;  
+  }  
+  
+  .thumb{  
+    height:125px;  
+  }  
+  
+  .hero h1{  
+    font-size:42px;  
+  }  
+  
+  .btn{  
+    padding:10px 13px;  
+  }  
+}  
+  /* Empire Royal Crown Effect */
+.brand-mark {
+display: inline-block;
+font-size: 30px;
+margin-right: 8px;
+filter:
+drop-shadow(0 0 4px #ffd700)
+drop-shadow(0 0 9px rgba(255, 40, 160, 0.8))
+drop-shadow(0 0 14px rgba(80, 180, 255, 0.65));
+transform: perspective(300px) rotateY(-12deg);
+animation: crownGlow 3s ease-in-out infinite alternate;
+}
+
+.brand-name {
+color: #ffe39a;
+font-weight: 900;
+letter-spacing: 1px;
+text-shadow:
+0 0 5px rgba(255, 215, 0, 0.8),
+0 0 12px rgba(255, 70, 170, 0.35);
+}
+
+@keyframes crownGlow {
+from {
+filter:
+drop-shadow(0 0 4px #ffd700)
+drop-shadow(0 0 7px rgba(255, 40, 160, 0.5));
+transform: perspective(300px) rotateY(-12deg) translateY(0);
+}
+to {
+filter:
+drop-shadow(0 0 8px #ffd700)
+drop-shadow(0 0 13px rgba(255, 40, 160, 0.9))
+drop-shadow(0 0 17px rgba(80, 180, 255, 0.7));
+transform: perspective(300px) rotateY(12deg) translateY(-2px);
+}
+}
+  .empire-slogan {
+text-align: center;
+padding: 28px 16px 20px;
+position: relative;
+overflow: hidden;
+}
+
+.empire-slogan p {
+margin: 0;
+color: #ffe5a0;
+font-size: clamp(20px, 3.5vw, 32px);
+font-weight: 800;
+letter-spacing: 0.5px;
+text-shadow:
+0 0 8px rgba(255, 205, 80, 0.35),
+0 0 18px rgba(255, 70, 170, 0.2);
+}
+
+.empire-slogan span {
+display: block;
+margin-top: 8px;
+color: #c9dfff;
+font-size: clamp(14px, 2.2vw, 18px);
+letter-spacing: 2px;
+text-shadow: 0 0 12px rgba(90, 170, 255, 0.4);
+  }
+
+.community-section{padding:22px 0 38px}#videos{display:none!important}.community-feed{display:flex;flex-direction:column;gap:16px;width:min(850px,100%);margin:0 auto}.community-post{min-width:0;background:rgba(15,15,15,.92);border:1px solid rgba(230,189,88,.22);border-radius:16px;padding:18px;box-shadow:0 12px 30px rgba(0,0,0,.22)}.community-author{display:flex;align-items:center;gap:9px;min-width:0}.community-author img{width:38px;height:38px;border-radius:50%;object-fit:cover;border:2px solid #e6bd58;background:#222}.community-author a{display:flex;align-items:center;gap:9px;min-width:0}.community-author-name{font-weight:800;color:#f3d78f;overflow-wrap:anywhere}.community-admin{display:flex;align-items:center;gap:8px;color:#e6bd58;font-weight:800}.community-admin-mark{width:38px;height:38px;display:grid;place-items:center;border:1px solid #80642f;border-radius:50%;background:#211a0d}.community-post-head{display:flex;justify-content:space-between;align-items:center;gap:12px;color:#aaa;font-size:12px;margin-bottom:12px}.community-post-body{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.75}.community-post img{width:100%;max-height:430px;object-fit:contain;background:#080808;border-radius:11px;margin-top:12px}.community-post .community-author img{width:42px;height:42px;flex:0 0 42px;max-height:42px;object-fit:cover;border-radius:50%;margin-top:0}.community-author-fallback{display:flex;align-items:center;gap:9px;min-width:0}.community-post-foot{display:flex;justify-content:flex-end;margin-top:12px}.community-post button{background:#282020;color:#ffbaba;border:1px solid #633333;border-radius:8px;padding:8px 12px;cursor:pointer}.community-empty{grid-column:1/-1;text-align:center;color:#aaa;padding:24px;border:1px dashed #444;border-radius:12px}.community-video-thumb{display:block;width:100%;aspect-ratio:16/9;max-height:480px;object-fit:cover;background:#080808;border-radius:12px;margin-top:12px}.community-video-placeholder{display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;aspect-ratio:16/9;margin-top:12px;border:1px dashed #80642f;border-radius:12px;color:#d6ad55;font-size:42px}.community-video-placeholder span{font-size:12px;letter-spacing:3px}.feed-video-title{font-size:19px;font-weight:800;color:#f3d78f;margin:8px 0}.community-post-foot{justify-content:flex-start;gap:8px;flex-wrap:wrap}.community-post button.feed-action{background:#211b10;color:#f3d78f;border:1px solid #80642f}.feed-count{color:#d6ad55;font-size:13px;padding:8px 4px}@media(max-width:680px){.community-section{padding:14px 0 28px}}
+
+
+/* EMPIRE avatar image preview */
+.empire-avatar-zoom{cursor:zoom-in!important}
+.empire-avatar-lightbox{position:fixed;inset:0;z-index:99999;display:none;align-items:center;justify-content:center;padding:22px;background:rgba(0,0,0,.88);backdrop-filter:blur(5px)}
+.empire-avatar-lightbox.is-open{display:flex}
+.empire-avatar-lightbox img{display:block;max-width:min(88vw,620px);max-height:82vh;width:auto;height:auto;object-fit:contain;border-radius:16px;border:2px solid #d6ad55;box-shadow:0 18px 70px #000;animation:empireAvatarPop .18s ease-out}
+.empire-avatar-lightbox button{position:absolute;top:18px;right:18px;width:42px;height:42px;border:1px solid #d6ad55;border-radius:50%;background:#17130c;color:#f5d98d;font-size:28px;line-height:1;cursor:pointer}
+@keyframes empireAvatarPop{from{transform:scale(.88);opacity:.4}to{transform:scale(1);opacity:1}}
+@media(prefers-reduced-motion:reduce){.empire-avatar-lightbox img{animation:none}}
+
+/* EMPIRE unified transparent cards — gold outline only */
+:is(.card,.panel,.box,.vip-card,.feature-box,.feature-card,.stat-card,.profile-about,.date-box,.list-item,.video-row,.video-info,.access-box,.form-section,.status-box,.video-item,.post){
+  background:transparent!important;background-image:none!important;
+  border:1px solid rgba(245,217,139,.82)!important;box-shadow:none!important;
+  backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
+}
+
+</style>  </head>  <body data-feed-mode="all">  <header>  
+  <div class="container nav"> 
+    <a class="brand" href="#home" aria-label="Empire Home">
+  <span class="brand-mark" aria-hidden="true">👑</span>
+  <span class="brand-name">𝑬𝒎𝒑𝒊𝒓𝒆</span>
+    </a>
+    <a class="brand-raffles" href="raffle.html">🎟️ Raffles</a>
+
+<nav class="links" id="mainLinks">  
+  <a href="profile.html" onclick="closeMenu()">Profile</a>
+  <a href="messages.html" onclick="closeMenu()">Messages</a>
+  <a href="notifications.html" onclick="closeMenu()">🔔 Notifications</a>
+  <a href="members.html" onclick="closeMenu()">Members</a>
+  <a href="index.html" onclick="closeMenu()">Following</a>
+  <a href="publishing.html" onclick="closeMenu()">Publishing</a>
+  <a href="my-publications.html" onclick="closeMenu()">My Publications</a>
+  <a href="premium.html" onclick="closeMenu()">Premium / VIP</a>
+  <a href="wallet.html" onclick="closeMenu()">Wallet</a>
+  <a href="raffle.html" onclick="closeMenu()">Raffles</a>
+  <a href="support.html" onclick="closeMenu()">Support</a>
+  <button type="button" class="menu-logout" onclick="logoutFromMenu()">Log out</button>
+</nav>  
+
+<button class="menu" type="button" onclick="toggleMenu()" aria-label="Open menu">☰</button>
+
+  </div>  
+</header> 
+  <div class="container search-area">
+  <label class="search-box">
+    <span class="search-icon">⌕</span>
+    <input
+      id="videoSearch"
+      type="search"
+      placeholder="Search all publications..."
+      autocomplete="off"
+      aria-label="Search all publications">
+  </label>
+  </div>
+  <div class="empire-slogan">
+  <p>Building Tomorrow’s Civilization.</p>
+  <span>A Haven for All.</span>
+</div>
+
+  <section id="community" class="community-section">
+    <div class="container">
+      <div class="section-head"><div><div class="section-label">Community</div><h2>All Publications</h2><p>Explore posts, photos and videos shared by all EMPIRE members, plus EMPIRE management.</p></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-dark" type="button" onclick="loadCommunityFeed(true)">↻ Refresh</button><a class="btn btn-dark" href="publishing.html">Create a post</a></div></div>
+      <div id="communityFeed" class="community-feed"><div class="status">Loading publications...</div></div>
+    </div>
+  </section>
+
+  <main id="home">  
+  
+    <section id="videos">  
+    <div class="container">  <div class="section-head">  
+    <div>  
+      <div class="section-label">Discover</div>  
+      <h2>Latest Videos</h2>  
+      <p>Explore the latest content available on Empire.</p>  
+    </div>  
+
+    <button class="btn btn-dark" type="button" onclick="loadVideos()">↻ Refresh</button>  
+  </div>  
+
+  <div class="grid" id="videoGrid">  
+    <div class="status">  
+      <strong>Loading videos...</strong>  
+      Please wait.  
+    </div>  
+  </div>  
+
+</div>
+
+  </section>  
+    
+  </main>  <footer>  
+  <div class="container">  <div class="footer-inner">  
+  <div>© 2026 Empire. All rights reserved.</div>  
+  <div>Royal Cinematic Video Experience</div>  
+</div>  
+
+<p class="footer-note">  
+  Premium access is subject to payment verification.  
+  Features shown as planned on the About page may not yet be available.  
+</p>
+
+  </div>  
+</footer>  <div class="modal" id="videoModal" onclick="outsideClose(event)">  
+  <div class="video-modal-box">  <button class="close" type="button" onclick="closeVideo()" aria-label="Close video">×</button>  
+
+<h2 id="modalTitle">Video</h2>  
+<p id="modalDescription">Loading...</p>  
+
+<video  
+  id="videoPlayer"  
+  class="video-player"  
+  controls  
+  playsinline  
+  preload="metadata">  
+</video>
+
+  </div>  
+</div>  <script>  
+const SUPABASE_URL = "https://vubjkwbkuwndkjqfnyom.supabase.co";  
+const SUPABASE_KEY = "sb_publishable_Ig1R3dpAKyBfjIGSUhhlKw_uC-QF0QQ";  
+  
+const supabaseClient = window.supabase.createClient(  
+  SUPABASE_URL,  
+  SUPABASE_KEY  
+);  
+  
+let videos = [];  
+let featuredVideo = null;
+let currentSession = null;  
+  
+async function checkAuth(){  
+  try{  
+    const {data,error} = await supabaseClient.auth.getSession();  
+    if(error) throw error;  
+  
+    const session = data?.session;
+    currentSession = session || null;  
+    const nameElement = document.getElementById("userName");  
+  
+    if(!session){  
+      if(nameElement) nameElement.textContent = "Guest";  
+      return true;  
+    }  
+  
+    const {data:profiles,error:profileError} = await supabaseClient  
+      .from("profiles")  
+      .select("id, username, display_name, is_active")  
+      .eq("id",session.user.id)  
+      .limit(1);  
+  
+    if(profileError) throw profileError;  
+  
+    if(!profiles || profiles.length === 0){  
+      await supabaseClient.auth.signOut();  
+      if(nameElement) nameElement.textContent = "Guest";  
+      return true;  
+    }  
+  
+    const profile = profiles[0];  
+  
+    if(!profile.is_active){  
+      await supabaseClient.auth.signOut();  
+      alert("Your account is currently inactive.");  
+      window.location.href = "login.html";  
+      return false;  
+    }
+
+    // Claim the verified-signup reward once; the database enforces idempotency.
+    try {
+      const {error: rewardError} = await supabaseClient.rpc("claim_empire_signup_reward");
+      if (rewardError) console.warn("Signup reward not claimed:", rewardError.message);
+    } catch (rewardError) {
+      console.warn("Signup reward claim unavailable:", rewardError);
+    }  
+  
+    if(nameElement){  
+      nameElement.textContent =  
+        profile.display_name || profile.username || "User";  
+    }  
+  
+    return true;  
+  
+  }catch(error){  
+    console.error("AUTH CHECK ERROR:",error);  
+    const nameElement = document.getElementById("userName");  
+    if(nameElement) nameElement.textContent = "Guest";  
+    return true;  
+  }  
+}  
+  
+
+let unifiedFeedItems = [];
+let unifiedPostReactions = new Map();
+let unifiedVideoReactions = new Map();
+const EMPIRE_ADMIN_IDS = ["8166f8a9-fdc3-43a4-85c7-53ec1dbbde0e","7c5f5c13-b106-4c7c-9bd5-9339576bfe7a"];
+const EMPIRE_FEED_MODE = document.body.dataset.feedMode || "following";
+let feedLoadInProgress = false;
+
+async function resolveVideoThumbnail(rawPath){
+  if(!rawPath)return "";
+  const value=String(rawPath);
+  if(/^https?:\/\//i.test(value))return value;
+  // New thumbnails live in a dedicated public bucket; older uploads are
+  // supported through short-lived signed URLs from the private videos bucket.
+  try{
+    const fresh=await supabaseClient.storage.from("video-thumbnails").createSignedUrl(value,3600);
+    if(!fresh.error&&fresh.data?.signedUrl)return fresh.data.signedUrl;
+  }catch(error){console.warn("New thumbnail lookup failed:",error);}
+  try{
+    const legacy=await supabaseClient.storage.from("videos").createSignedUrl(value,3600);
+    if(!legacy.error&&legacy.data?.signedUrl)return legacy.data.signedUrl;
+  }catch(error){console.warn("Legacy thumbnail lookup failed:",error);}
+  return "";
+}
+
+async function loadCommunityFeed(forceRefresh=false){
+  const box=document.getElementById("communityFeed"); if(!box||feedLoadInProgress)return;
+  if(!unifiedFeedItems.length)box.innerHTML='<div class="status">Loading publications...</div>';
+  feedLoadInProgress=true;
+  try{
+    let visibleAuthorIds=null;
+    if(EMPIRE_FEED_MODE==="following"&&currentSession){
+      const [followersResult,followingResult]=await Promise.all([
+        supabaseClient.from("user_follows").select("follower_id").eq("following_id",currentSession.user.id),
+        supabaseClient.from("user_follows").select("following_id").eq("follower_id",currentSession.user.id)
+      ]);
+      if(followersResult.error)throw followersResult.error;
+      if(followingResult.error)throw followingResult.error;
+      const connectedIds=[
+        ...(followersResult.data||[]).map(row=>row.follower_id),
+        ...(followingResult.data||[]).map(row=>row.following_id),
+        ...EMPIRE_ADMIN_IDS
+      ];
+      visibleAuthorIds=[...new Set(connectedIds)];
+    }
+
+    let postQuery=supabaseClient.from("community_posts")
+      .select("id,author_id,author_name,content,image_path,image_paths,created_at")
+      .eq("is_removed",false).order("created_at",{ascending:false}).limit(100);
+    let videoQuery=supabaseClient.from("videos")
+      .select("id,title,description,thumbnail_url,video_path,access_type,price,creator_id,created_at")
+      .eq("approval_status","approved").order("created_at",{ascending:false}).limit(100);
+    if(visibleAuthorIds){
+      postQuery=postQuery.in("author_id",visibleAuthorIds);
+      videoQuery=videoQuery.in("creator_id",visibleAuthorIds);
+    }
+    const [postResult,videoResult]=await Promise.all([postQuery,videoQuery]);
+    if(postResult.error)throw postResult.error;
+    if(videoResult.error)throw videoResult.error;
+    const posts=postResult.data||[];
+    videos=videoResult.data||[];
+    const videoItems=await Promise.all(videos.map(async video=>({
+      ...video,type:"video",author_id:video.creator_id,
+      thumbnail_display_url:await resolveVideoThumbnail(video.thumbnail_url)
+    })));
+    const nextItems=[
+      ...posts.map(post=>({...post,type:"post"})),
+      ...videoItems
+    ].sort((a,b)=>new Date(b.created_at).getTime()-new Date(a.created_at).getTime()).slice(0,100);
+
+    const postIds=posts.map(p=>p.id), videoIds=videos.map(v=>v.id);
+    const [postReactionResult,videoReactionResult]=await Promise.all([
+      postIds.length?supabaseClient.from("community_post_reactions").select("post_id,user_id,reaction").in("post_id",postIds):Promise.resolve({data:[],error:null}),
+      videoIds.length?supabaseClient.from("video_reactions").select("video_id,user_id,reaction").in("video_id",videoIds):Promise.resolve({data:[],error:null})
+    ]);
+    if(postReactionResult.error)throw postReactionResult.error;
+    if(videoReactionResult.error)throw videoReactionResult.error;
+    const nextPostReactions=new Map();
+    (postReactionResult.data||[]).forEach(r=>{
+      if(!nextPostReactions.has(r.post_id))nextPostReactions.set(r.post_id,{likes:0,dislikes:0,mine:null});
+      const state=nextPostReactions.get(r.post_id);
+      if(r.reaction==="like")state.likes++;else state.dislikes++;
+      if(currentSession&&r.user_id===currentSession.user.id)state.mine=r.reaction;
+    });
+    const nextVideoReactions=new Map();
+    (videoReactionResult.data||[]).forEach(r=>{
+      if(!nextVideoReactions.has(r.video_id))nextVideoReactions.set(r.video_id,{likes:0,dislikes:0,mine:null});
+      const state=nextVideoReactions.get(r.video_id);
+      if(r.reaction==="like")state.likes++;else state.dislikes++;
+      if(currentSession&&r.user_id===currentSession.user.id)state.mine=r.reaction;
+    });
+
+    const authorIds=[...new Set(nextItems.map(p=>p.author_id).filter(Boolean))];
+    const {data:authors,error:authorsError}=authorIds.length
+      ?await supabaseClient.from("public_user_profiles").select("id,username,display_name,avatar_url").in("id",authorIds)
+      :{data:[],error:null};
+    if(authorsError)console.warn("Could not load public author profiles:",authorsError.message);
+    const authorMap=new Map((authors||[]).map(a=>[a.id,a]));
+    unifiedFeedItems=nextItems;
+    unifiedPostReactions=nextPostReactions;
+    unifiedVideoReactions=nextVideoReactions;
+    unifiedFeedItems=unifiedFeedItems.map(item=>({...item,author_profile:authorMap.get(item.author_id)||null}));
+    window.empireFeedAuthorMap=authorMap;
+    window.empireFeedAdminIds=new Set(EMPIRE_ADMIN_IDS);
+    window.empireFeedFallbackAvatar="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 80'%3E%3Crect width='80' height='80' fill='%23222222'/%3E%3Ctext x='40' y='52' text-anchor='middle' font-size='38' fill='%23e6bd58'%3E%E2%98%BB%3C/text%3E%3C/svg%3E";
+    renderUnifiedFeed();
+  }catch(error){
+    console.error("UNIFIED FEED ERROR:",error);
+    if(!unifiedFeedItems.length)box.innerHTML='<div class="status error">Could not load publications: '+escapeHtml(error.message||"Unknown error")+'</div>';
+    else alert("Feed refresh failed. Your current publications remain visible.");
+  }finally{
+    feedLoadInProgress=false;
+  }
+}
+function renderUnifiedFeed(){
+  const box=document.getElementById("communityFeed");if(!box)return;
+  const query=(document.getElementById("videoSearch")?.value||"").trim().toLowerCase();
+  const items=unifiedFeedItems.filter(item=>{
+    const text=[item.content,item.title,item.description].join(" ").toLowerCase();
+    return !query||text.includes(query);
+  });
+  if(!items.length){
+    box.innerHTML='<div class="community-empty">'+(query?'No publications match your search.':'No publications yet. Be the first to share something.')+'</div>';
+    return;
+  }
+  const authorMap=window.empireFeedAuthorMap||new Map();
+  const adminIds=window.empireFeedAdminIds||new Set();
+  const fallbackAvatar=window.empireFeedFallbackAvatar||"";
+  box.innerHTML=items.map(item=>{
+    const author=item.author_profile||authorMap.get(item.author_id);
+    const own=!!currentSession&&currentSession.user.id===item.author_id;
+    let authorHtml='';
+    if(adminIds.has(item.author_id))authorHtml='<div class="community-admin"><span class="community-admin-mark">♛</span><span>EMPIRE</span></div>';
+    else{
+      const name=author?.display_name||author?.username||item.author_name||"Empire Member";
+      const avatar=author?.avatar_url?supabaseClient.storage.from("avatars").getPublicUrl(author.avatar_url).data?.publicUrl:null;
+      const inner='<img src="'+escapeAttribute(avatar||fallbackAvatar)+'" alt="Profile photo" loading="lazy" onerror="this.onerror=null;this.src=\''+fallbackAvatar+'\'"><span class="community-author-name">'+escapeHtml(name)+'</span>';
+      authorHtml=author?.username?'<a href="'+(own?"profile.html":"user-profile.html?username="+encodeURIComponent(author.username))+'">'+inner+'</a>':'<div class="community-author-fallback">'+inner+'</div>';
+    }
+    const head='<div class="community-post-head"><div class="community-author">'+authorHtml+'</div><span>'+new Date(item.created_at).toLocaleString()+'</span></div>';
+    if(item.type==="video"){
+      const stats=unifiedVideoReactions.get(item.id)||{likes:0,dislikes:0,mine:null};
+      const canLike=!!currentSession&&!own&&!stats.mine;
+      const thumb=item.thumbnail_display_url
+        ?'<img class="community-video-thumb" src="'+escapeAttribute(item.thumbnail_display_url)+'" alt="'+escapeAttribute(item.title||"Video thumbnail")+'" loading="lazy">'
+        :'<div class="community-video-placeholder">♛<span>VIDEO</span></div>';
+      const paid=item.access_type==="paid";
+      const price=Number(item.price||0);
+      const watch=paid
+        ?'<button type="button" class="feed-action" data-video-buy="'+escapeAttribute(item.id)+'">🔒 Buy · '+price.toFixed(2)+' USDT</button>'
+        :'<button type="button" class="feed-action" data-video-watch="'+escapeAttribute(item.id)+'">▶ Watch video</button>';
+      const like=canLike
+        ?'<button type="button" class="feed-action" data-video-like="'+escapeAttribute(item.id)+'">👍 Like ('+stats.likes+')</button>'
+        :'<span class="feed-count">👍 '+stats.likes+(stats.mine?' · Liked':'')+'</span>';
+      return '<article class="community-post community-video">'+head+'<div class="feed-video-title">'+escapeHtml(item.title||"Untitled video")+'</div>'+thumb+'<div class="community-post-body">'+escapeHtml(item.description||"")+'</div><div class="community-post-foot">'+watch+like+'</div></article>';
+    }
+    const paths=Array.isArray(item.image_paths)&&item.image_paths.length?item.image_paths:(item.image_path?[item.image_path]:[]);
+    const images=paths.map(path=>{
+      const url=supabaseClient.storage.from("post-images").getPublicUrl(path).data?.publicUrl;
+      return url?'<img src="'+escapeAttribute(url)+'" alt="Community publication" loading="lazy">':'';
+    }).join("");
+    const stats=unifiedPostReactions.get(item.id)||{likes:0,dislikes:0,mine:null};
+    const canReact=!!currentSession&&!own&&!stats.mine;
+    const actions=canReact
+      ?'<button type="button" data-react="like" data-post="'+escapeAttribute(item.id)+'">👍 Like ('+stats.likes+')</button><button type="button" data-react="dislike" data-post="'+escapeAttribute(item.id)+'">👎 Dislike ('+stats.dislikes+')</button>'
+      :'<span class="feed-count">👍 '+stats.likes+' · 👎 '+stats.dislikes+(stats.mine?' · '+(stats.mine==="like"?"Liked":"Disliked"):'')+'</span>';
+    const report=currentSession?'<button type="button" data-report-post="'+escapeAttribute(item.id)+'">Report</button>':'';
+    return '<article class="community-post">'+head+'<div class="community-post-body">'+escapeHtml(item.content||"")+'</div>'+images+'<div class="community-post-foot">'+actions+report+'</div></article>';
+  }).join("");
+
+  box.querySelectorAll("[data-react]").forEach(button=>button.addEventListener("click",async()=>{
+    button.disabled=true;
+    try{
+      const {data,error}=await supabaseClient.rpc("toggle_community_post_reaction",{p_post_id:button.dataset.post,p_reaction:button.dataset.react});
+      if(error)throw error;
+      const result=Array.isArray(data)?data[0]:data;
+      const state=unifiedPostReactions.get(button.dataset.post)||{likes:0,dislikes:0,mine:null};
+      if(button.dataset.react==="like")state.likes++;else state.dislikes++;
+      state.mine=button.dataset.react;
+      unifiedPostReactions.set(button.dataset.post,state);
+      const foot=button.closest(".community-post-foot");
+      const report=foot?.querySelector("[data-report-post]");
+      foot?.querySelectorAll("[data-react]").forEach(el=>el.remove());
+      if(foot){
+        const summary=document.createElement("span");
+        summary.className="feed-count";
+        summary.textContent="👍 "+state.likes+" · 👎 "+state.dislikes+" · "+(state.mine==="like"?"Liked":"Disliked");
+        foot.insertBefore(summary,report||null);
+      }
+      if(result?.rewarded)alert("You reached "+result.reward_milestone+" likes. 1 EMPC was sent to the publication owner.");
+    }catch(error){alert(error.message||"Reaction could not be saved.");button.disabled=false;}
+  }));
+  box.querySelectorAll("[data-video-like]").forEach(button=>button.addEventListener("click",async()=>{
+    button.disabled=true;
+    try{
+      const {data,error}=await supabaseClient.rpc("react_to_empire_video",{p_video_id:button.dataset.videoLike,p_reaction:"like"});
+      if(error)throw error;
+      const result=Array.isArray(data)?data[0]:data;
+      const state=unifiedVideoReactions.get(button.dataset.videoLike)||{likes:0,dislikes:0,mine:null};
+      state.likes++;
+      state.mine="like";
+      unifiedVideoReactions.set(button.dataset.videoLike,state);
+      const foot=button.closest(".community-post-foot");
+      if(foot){
+        const summary=document.createElement("span");
+        summary.className="feed-count";
+        summary.textContent="👍 "+state.likes+" · Liked";
+        button.replaceWith(summary);
+      }
+      if(result?.rewarded)alert("The video reached "+result.reward_milestone+" likes. 1 EMPC was sent to its creator.");
+    }catch(error){alert(error.message||"Video like could not be saved.");button.disabled=false;}
+  }));
+  box.querySelectorAll("[data-video-watch]").forEach(b=>b.addEventListener("click",()=>watchVideo(b.dataset.videoWatch)));
+  box.querySelectorAll("[data-video-buy]").forEach(b=>b.addEventListener("click",()=>openBuy(b.dataset.videoBuy)));
+  box.querySelectorAll("[data-report-post]").forEach(b=>b.addEventListener("click",()=>reportCommunityPost(b.dataset.reportPost)));
+}
+
+async function reportCommunityPost(postId){
+  if(!currentSession){alert("Please sign in to report a publication.");return;}
+  const reason=prompt("Why are you reporting this publication?");
+  if(reason===null)return;
+  if(!reason.trim()){alert("Please enter a reason.");return;}
+  const {error}=await supabaseClient.from("post_reports").insert({post_id:postId,reporter_id:currentSession.user.id,reason:reason.trim()});
+  if(error){alert(error.code==="23505"?"You have already reported this publication.":error.message);return;}
+  alert("Report submitted. Thank you.");
+}
+
+async function loadVideos(){  
+  const grid = document.getElementById("videoGrid");  
+  if(!grid) return;  
+  
+  grid.innerHTML = `  
+    <div class="status">  
+      <strong>Loading videos...</strong>  
+      Please wait.  
+    </div>`;  
+  
+  try{  
+    const {data,error} = await supabaseClient  
+      .from("videos")  
+      .select(`  
+        id,  
+        title,  
+        description,  
+        thumbnail_url,  
+        video_path,  
+        access_type,  
+        price,  
+        created_at  
+      `)  
+      .eq("approval_status","approved")
+      .order("created_at",{ascending:false});  
+  
+    if(error) throw error;  
+  
+    videos = data || [];  
+  
+    if(videos.length === 0){  
+      grid.innerHTML = `  
+        <div class="status">  
+          <strong>No videos yet</strong>  
+          Your Empire video library is currently empty.  
+        </div>`;  
+      resetFeatured();  
+      return;  
+    }  
+  
+    renderVideos();  
+  
+  }catch(error){  
+    console.error("LOAD VIDEOS ERROR:",error);  
+    grid.innerHTML = `  
+      <div class="status error">  
+        <strong>Could not load videos</strong>  
+        ${escapeHtml(error.message || "Unknown error")}  
+      </div>`;  
+  }  
+}  
+  
+function renderVideos(){  
+  const grid = document.getElementById("videoGrid");  
+  if(!grid) return;  
+  
+  const searchInput = document.getElementById("videoSearch");  
+  const query = (searchInput?.value || "").trim().toLowerCase();  
+  
+  const filteredVideos = videos.filter(video => {  
+    const title = String(video.title || "").toLowerCase();  
+    const description = String(video.description || "").toLowerCase();  
+    return title.includes(query) || description.includes(query);  
+  });  
+  
+  if(filteredVideos.length === 0){  
+    grid.innerHTML = `  
+      <div class="status">  
+        <strong>No matching videos</strong>  
+        Try another title or search term.  
+      </div>`;  
+    return;  
+  }  
+  
+  grid.innerHTML = filteredVideos.map((video,index) => {  
+    const isPaid = video.access_type === "paid";  
+    const price = Number(video.price || 0);  
+    const thumbnail = video.thumbnail_url  
+      ? `<img src="${escapeAttribute(video.thumbnail_url)}"  
+              alt="${escapeAttribute(video.title)}"  
+              loading="lazy">`  
+      : "";  
+  
+    return `  
+      <article class="card">  
+        <div class="thumb">  
+          ${thumbnail}  
+          ${thumbnail ? '<div class="thumb-overlay"></div>' : ''}  
+  
+          <span class="video-badge ${isPaid ? 'paid' : 'free'}">  
+            ${isPaid ? `${price.toFixed(2)} USDT` : 'FREE'}  
+          </span>  
+  
+          <span class="${isPaid ? 'lock-icon' : 'play'}">  
+            ${isPaid ? '🔒' : '▶'}  
+          </span>  
+        </div>  
+  
+        <div class="card-body">  
+          <h3>${escapeHtml(video.title || "Untitled video")}</h3>  
+  
+          <p class="card-description">  
+            ${escapeHtml(video.description || "Empire video content.")}  
+          </p>  
+  
+          <div class="card-foot">  
+            <span class="tag">${isPaid ? "PREMIUM" : "FREE VIDEO"}</span>  
+  
+            ${isPaid  
+              ? `<button class="btn btn-gold" onclick="openBuy('${escapeAttribute(video.id)}')">Buy Now</button>`  
+              : `<button class="btn btn-gold" onclick="watchVideo('${escapeAttribute(video.id)}')">▶ Watch</button>`  
+            }  
+          </div>  
+        </div>  
+      </article>`;  
+  }).join("");  
+}  
+  
+document.getElementById("videoSearch")?.addEventListener("input",renderUnifiedFeed);  
+  
+async function watchVideo(videoId){  
+  const video = videos.find(item => String(item.id) === String(videoId));  
+  
+  if(!video){  
+    alert("Video not found.");  
+    return;  
+  }  
+  
+  const modal = document.getElementById("videoModal");  
+  const player = document.getElementById("videoPlayer");  
+  const title = document.getElementById("modalTitle");  
+  const description = document.getElementById("modalDescription");  
+  
+  title.textContent = video.title || "Video";  
+  description.textContent = video.description || "Empire video content.";  
+  
+  player.pause();  
+  player.removeAttribute("src");  
+  player.load();  
+  modal.classList.add("open");  
+  
+  try{  
+    const {data,error} = await supabaseClient.auth.getSession();  
+    if(error) throw error;  
+  
+    const session = data?.session;  
+  
+    if(!session){  
+      closeVideo();  
+      alert("Please sign in to watch this video.");  
+      window.location.href = "login.html";  
+      return;  
+    }  
+  
+    const response = await fetch(  
+      SUPABASE_URL + "/functions/v1/get-video-url",  
+      {  
+        method:"POST",  
+        headers:{  
+          "Authorization":"Bearer " + session.access_token,  
+          "apikey":SUPABASE_KEY,  
+          "Content-Type":"application/json"  
+        },  
+        body:JSON.stringify({video_id:video.id})  
+      }  
+    );  
+  
+    const result = await response.json();  
+  
+    if(!response.ok){  
+      if(result?.code === "PURCHASE_REQUIRED"){  
+        closeVideo();  
+        await openBuy(video.id);  
+        return;  
+      }  
+      throw new Error(result?.error || "Could not get secure video URL.");  
+    }  
+  
+    if(!result?.signed_url){  
+      throw new Error("Secure video URL was not created.");  
+    }  
+  
+    player.src = result.signed_url;  
+    player.load();  
+    await player.play().catch(()=>{});  
+  
+  }catch(error){  
+    console.error("VIDEO ERROR:",error);  
+    description.textContent = error.message || "Could not load this video.";  
+  }  
+}  
+  
+
+function chooseVideoPaymentNetwork(){
+  return new Promise(resolve=>{
+    document.getElementById("empireNetworkModal")?.remove();
+    const modal=document.createElement("div");
+    modal.id="empireNetworkModal";
+    modal.style.cssText="position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.88);display:flex;align-items:center;justify-content:center;padding:18px;font-family:Arial,sans-serif";
+    modal.innerHTML=`
+      <div style="width:100%;max-width:460px;background:linear-gradient(145deg,#171717,#090909);color:#fff;border:1px solid rgba(230,189,88,.55);border-radius:20px;padding:22px;box-shadow:0 20px 70px #000">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <div><div style="color:#e6bd58;font-size:11px;letter-spacing:2px">EMPIRE CHECKOUT</div><h2 style="margin:7px 0 0;font-size:23px">Choose payment network</h2></div>
+          <button id="empNetClose" style="background:#252525;color:#bbb;border:1px solid #444;border-radius:9px;width:36px;height:36px;font-size:22px">×</button>
+        </div>
+        <p style="color:#aaa;font-size:13px;line-height:1.5;margin:8px 0 18px">Select the network that matches your wallet and the asset you will send.</p>
+        <div id="empNetOptions" style="display:grid;gap:10px">
+          <button data-network="TRON" style="text-align:left;padding:15px;border-radius:12px;border:1px solid #b64b4b;background:#211616;color:#fff;cursor:pointer"><b style="font-size:15px">TRON</b><div style="color:#d6aaaa;font-size:12px;margin-top:5px">USDT · TRC20</div></button>
+          <button data-network="BSC" style="text-align:left;padding:15px;border-radius:12px;border:1px solid #a88738;background:#211e14;color:#fff;cursor:pointer"><b style="font-size:15px">BNB Smart Chain</b><div style="color:#d9c58f;font-size:12px;margin-top:5px">Binance-Peg BSC-USD · BEP20</div></button>
+          <button data-network="TON" style="text-align:left;padding:15px;border-radius:12px;border:1px solid #477eaa;background:#14202a;color:#fff;cursor:pointer"><b style="font-size:15px">TON</b><div style="color:#a9cbe5;font-size:12px;margin-top:5px">USDT · TON Jetton</div></button>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:18px">
+          <button id="empNetCancel" style="flex:1;padding:13px;border-radius:10px;background:#242424;color:#ddd;border:1px solid #444">Cancel</button>
+          <button id="empNetContinue" disabled style="flex:1;padding:13px;border-radius:10px;background:#e6bd58;color:#111;border:0;font-weight:bold;opacity:.45">Continue</button>
+        </div>
+        <div style="font-size:11px;color:#888;text-align:center;margin-top:13px">Only send the exact asset on the selected network.</div>
+      </div>`;
+    document.body.appendChild(modal);
+    let selected="";
+    const finish=value=>{modal.remove();resolve(value);};
+    modal.querySelector("#empNetClose").onclick=()=>finish(null);
+    modal.querySelector("#empNetCancel").onclick=()=>finish(null);
+    modal.addEventListener("click",e=>{if(e.target===modal)finish(null);});
+    const go=modal.querySelector("#empNetContinue");
+    modal.querySelectorAll("[data-network]").forEach(btn=>{
+      btn.onclick=()=>{
+        selected=btn.dataset.network;
+        modal.querySelectorAll("[data-network]").forEach(item=>{item.style.outline="none";item.style.boxShadow="none";});
+        btn.style.outline="2px solid #e6bd58";
+        btn.style.boxShadow="0 0 0 3px rgba(230,189,88,.15)";
+        go.disabled=false;go.style.opacity="1";
+      };
+    });
+    go.onclick=()=>{if(selected)finish(selected);};
+  });
+}
+
+async function openBuy(videoId){
+  const selectedNetwork = await chooseVideoPaymentNetwork();
+  if(!selectedNetwork) return;  
+  const video = videos.find(item => String(item.id) === String(videoId));  
+  
+  if(!video){  
+    alert("Video not found.");  
+    return;  
+  }  
+  
+  if(Number(video.price || 0) <= 0){  
+    alert("Invalid video price.");  
+    return;  
+  }  
+  
+  try{  
+    const {data:{session}} = await supabaseClient.auth.getSession();  
+  
+    if(!session){  
+      alert("Please sign in to continue with your purchase.");  
+      window.location.href = "login.html";  
+      return;  
+    }  
+  
+    const response = await fetch(  
+      SUPABASE_URL + "/functions/v1/create-purchase",  
+      {  
+        method:"POST",  
+        headers:{  
+          "Authorization":"Bearer " + session.access_token,  
+          "apikey":SUPABASE_KEY,  
+          "Content-Type":"application/json"  
+        },  
+        body:JSON.stringify({video_id:videoId,network:selectedNetwork})  
+      }  
+    );  
+  
+    const result = await response.json();  
+  
+    if(!response.ok){  
+      alert(result.error || "Could not create purchase.");  
+      return;  
+    }  
+  
+    if(result.already_paid){  
+      alert("You already purchased this video.");  
+      await watchVideo(videoId);  
+      return;  
+    }  
+  
+    if(!result.payment_address){  
+      alert("Payment address is not configured.");  
+      return;  
+    }  
+  
+    showPaymentModal(videoId,session,result);  
+  
+  }catch(error){  
+    console.error("BUY ERROR:",error);  
+    alert("Could not connect to payment system.");  
+  }  
+}  
+    
+/* PAYMENT MODAL */  
+  
+function showPaymentModal(videoId, session, result){  
+  
+  const paymentAddress = result.payment_address;  
+  const amount = Number(result.amount || 0).toFixed(2);
+  const network = String(result.network || "").toUpperCase();
+  const networkLabel = ({TRON:"TRON (TRC20)",BSC:"BNB Smart Chain (BEP20)",TON:"TON"}[network] || result.network_label || network);
+  const assetLabel = network === "BSC" ? "Binance-Peg BSC-USD" : (network === "TON" ? "USDT (TON Jetton)" : "USDT (TRC20)");
+  const tokenContract = result.token_contract || "";  
+  
+  const expiresAt = result.expires_at  
+    ? new Date(result.expires_at)  
+    : new Date(Date.now() + 30 * 60 * 1000);  
+  
+  document.getElementById("empirePaymentModal")?.remove();  
+  
+  const modal = document.createElement("div");  
+  modal.id = "empirePaymentModal";  
+  
+  modal.style.cssText = `  
+    position:fixed;  
+    inset:0;  
+    z-index:99999;  
+    background:rgba(0,0,0,.88);  
+    display:flex;  
+    align-items:center;  
+    justify-content:center;  
+    padding:16px;  
+    overflow:auto;  
+  `;  
+  
+  modal.innerHTML = `  
+    <div style="  
+      width:100%;  
+      max-width:460px;  
+      background:#101010;  
+      color:#fff;  
+      border:1px solid rgba(230,189,88,.45);  
+      border-radius:16px;  
+      padding:16px;  
+      font-family:Arial,sans-serif;  
+    ">  
+  
+      <div style="  
+        display:flex;  
+        justify-content:space-between;  
+        align-items:center;  
+        gap:10px;  
+        margin-bottom:12px;  
+      ">  
+        <h2 style="color:#e6bd58;margin:0;font-size:20px">Empire Payment</h2>  
+        <button id="paymentClose" type="button"  
+          style="background:none;border:0;color:#aaa;font-size:28px">  
+          ×  
+        </button>  
+      </div>  
+  
+      <div style="  
+        background:#1a1a1a;  
+        padding:11px;  
+        border-radius:10px;  
+        margin-bottom:10px;  
+      ">  
+        <div style="font-size:13px;color:#aaa">Amount to pay</div>  
+        <div style="font-size:22px;font-weight:bold;color:#e6bd58;margin:5px 0">  
+          ${amount} ${assetLabel}  
+        </div>  
+        <div style="font-size:13px;color:#aaa">Network: ${networkLabel}</div>  
+      </div>  
+  
+      <div style="font-size:11px;color:#999;margin:0 0 8px;overflow-wrap:anywhere">${tokenContract ? `Token contract: ${tokenContract}` : ""}</div>
+      <label for="paymentAddress" style="font-size:12px;color:#aaa">  
+        Payment address  
+      </label>  
+  
+      <div style="display:flex;gap:8px;margin:6px 0 10px">  
+        <input id="paymentAddress" readonly  
+          style="  
+            flex:1;min-width:0;background:#1a1a1a;color:#fff;  
+            border:1px solid #333;border-radius:8px;padding:9px;  
+          ">  
+        <button id="paymentCopy" type="button"  
+          style="  
+            background:#e6bd58;color:#111;border:0;border-radius:8px;  
+            padding:0 11px;font-weight:bold;  
+          ">Copy</button>  
+      </div>  
+  
+      <p style="font-size:11px;color:#aaa;margin-bottom:10px">  
+        Send exactly ${amount} ${assetLabel} on ${networkLabel}. Make sure the network  
+        and amount are correct before sending.  
+      </p>  
+  
+      <div style="  
+        background:#1a1a1a;border-radius:9px;padding:9px;  
+        text-align:center;margin-bottom:10px;  
+      ">  
+        <div style="font-size:12px;color:#aaa">Payment request expires in</div>  
+        <div id="paymentTimer"  
+          style="font-size:19px;color:#e6bd58;font-weight:bold;margin-top:4px">  
+          30:00  
+        </div>  
+      </div>  
+  
+      <label for="paymentTxid" style="font-size:13px;color:#aaa">  
+        Transaction ID (TXID)  
+      </label>  
+  
+      <input id="paymentTxid" type="text" autocomplete="off"  
+        placeholder="Enter transaction hash / ID"  
+        style="  
+          display:block;width:100%;margin:6px 0 10px;padding:10px;  
+          background:#1a1a1a;color:#fff;border:1px solid #333;  
+          border-radius:9px;box-sizing:border-box;  
+        ">  
+  
+      <button id="paymentVerify" type="button"  
+        style="  
+          width:100%;padding:11px;background:#e6bd58;color:#111;  
+          border:0;border-radius:10px;font-weight:bold;  
+        ">Verify Payment</button>  
+  
+      <p id="paymentMessage"  
+        style="min-height:16px;margin-top:8px;text-align:center;  
+        color:#aaa;font-size:13px;overflow-wrap:anywhere"></p>  
+  
+    </div>  
+  `;  
+  
+  document.body.appendChild(modal);  
+  
+  const addressInput = document.getElementById("paymentAddress");  
+  const copyButton = document.getElementById("paymentCopy");  
+  const closeButton = document.getElementById("paymentClose");  
+  const txidInput = document.getElementById("paymentTxid");  
+  const verifyButton = document.getElementById("paymentVerify");  
+  const message = document.getElementById("paymentMessage");  
+  const timer = document.getElementById("paymentTimer");  
+  
+  addressInput.value = paymentAddress;  
+  
+  let timerInterval = null;  
+  
+  function closePayment(){  
+    if(timerInterval) clearInterval(timerInterval);  
+    modal.remove();  
+  }  
+  
+  closeButton.onclick = closePayment;  
+  
+  copyButton.onclick = async () => {  
+    try{  
+      await navigator.clipboard.writeText(paymentAddress);  
+      copyButton.textContent = "Copied!";  
+    }catch(error){  
+      addressInput.select();  
+      try{  
+        document.execCommand("copy");  
+        copyButton.textContent = "Copied!";  
+      }catch(copyError){  
+        message.textContent = "Please copy the address manually.";  
+      }  
+    }  
+  
+    setTimeout(() => {  
+      if(copyButton.isConnected) copyButton.textContent = "Copy";  
+    },1800);  
+  };  
+  
+  function updatePaymentTimer(){  
+    const remaining = expiresAt.getTime() - Date.now();  
+  
+    if(remaining <= 0){  
+      timer.textContent = "Expired";  
+      verifyButton.disabled = true;  
+      message.textContent = "This payment request has expired. Create a new purchase.";  
+      if(timerInterval) clearInterval(timerInterval);  
+      return;  
+    }  
+  
+    const totalSeconds = Math.floor(remaining / 1000);  
+    const minutes = Math.floor(totalSeconds / 60);  
+    const seconds = totalSeconds % 60;  
+  
+    timer.textContent =  
+      String(minutes).padStart(2,"0") + ":" +  
+      String(seconds).padStart(2,"0");  
+  }  
+  
+  updatePaymentTimer();  
+  timerInterval = setInterval(updatePaymentTimer,1000);  
+  
+  verifyButton.onclick = async () => {  
+    const txid = txidInput.value.trim();  
+  
+    if(!txid){  
+      message.textContent = "Please enter the transaction TXID.";  
+      return;  
+    }  
+  
+    if(Date.now() >= expiresAt.getTime()){  
+      message.textContent = "This payment request has expired.";  
+      return;  
+    }  
+  
+    verifyButton.disabled = true;  
+    verifyButton.textContent = "Verifying...";  
+    message.textContent = "Checking transaction. Please wait...";  
+  
+    try{  
+      const verifyResponse = await fetch(  
+        SUPABASE_URL + "/functions/v1/verify-payment",  
+        {  
+          method:"POST",  
+          headers:{  
+            "Authorization":"Bearer " + session.access_token,  
+            "apikey":SUPABASE_KEY,  
+            "Content-Type":"application/json"  
+          },  
+          body:JSON.stringify({  
+            purchase_id:result.purchase_id,  
+            txid:txid  
+          })  
+        }  
+      );  
+  
+      const verifyResult = await verifyResponse.json();  
+  
+      if(  
+        verifyResponse.ok &&  
+        verifyResult.success &&  
+        verifyResult.status === "paid"  
+      ){  
+        message.textContent = "Payment verified successfully!";  
+  
+        if(timerInterval) clearInterval(timerInterval);  
+  
+        setTimeout(async () => {  
+          closePayment();  
+          await watchVideo(videoId);  
+        },900);  
+  
+        return;  
+      }  
+  
+      message.textContent =  
+        verifyResult.message ||  
+        verifyResult.error ||  
+        "Payment has not been verified yet.";  
+  
+    }catch(error){  
+      console.error("PAYMENT VERIFICATION ERROR:",error);  
+      message.textContent = "Could not connect to the payment system.";  
+    }  
+  
+    verifyButton.disabled = false;  
+    verifyButton.textContent = "Verify Payment";  
+  };  
+}  
+  
+/* CLOSE VIDEO */  
+  
+function closeVideo(){  
+  const modal = document.getElementById("videoModal");  
+  const player = document.getElementById("videoPlayer");  
+  
+  if(player){  
+    player.pause();  
+    player.removeAttribute("src");  
+    player.load();  
+  }  
+  
+  if(modal) modal.classList.remove("open");  
+}  
+  
+function outsideClose(event){  
+  if(event.target.id === "videoModal"){  
+    closeVideo();  
+  }  
+}  
+  
+/* MOBILE MENU */  
+  
+function toggleMenu(){  
+  const links = document.getElementById("mainLinks");  
+  if(!links) return;  
+  
+  links.style.display =  
+    links.style.display === "flex" ? "none" : "flex";  
+}  
+  
+function closeMenu(){  
+  const links = document.getElementById("mainLinks");  
+  
+  if(window.innerWidth <= 850 && links){  
+    links.style.display = "none";  
+  }  
+}
+
+async function logoutFromMenu(){
+  const confirmed=window.confirm("Are you sure you want to log out of EMPIRE?");
+  if(!confirmed)return;
+  closeMenu();
+  const {error}=await supabaseClient.auth.signOut();
+  if(error){alert("Could not log out: "+(error.message||"Please try again."));return;}
+  window.location.href="login.html";
+}  
+  
+/* SAFE TEXT OUTPUT */  
+  
+function escapeHtml(value){  
+  return String(value ?? "")  
+    .replaceAll("&","&amp;")  
+    .replaceAll("<","&lt;")  
+    .replaceAll(">","&gt;")  
+    .replaceAll('"',"&quot;")  
+    .replaceAll("'","&#039;");  
+}  
+  
+function escapeAttribute(value){  
+  return escapeHtml(value);  
+}  
+  
+/* START */  
+  
+(async function(){  
+  const authenticated = await checkAuth();  
+  
+  if(!authenticated) return;  
+  
+  await loadCommunityFeed();  
+})();  
+
+/* Click any profile avatar to view it larger; tap outside or close to dismiss. */
+(function installEmpireAvatarPreview(){
+  if(document.getElementById("empireAvatarLightbox"))return;
+  const box=document.createElement("div");box.id="empireAvatarLightbox";box.className="empire-avatar-lightbox";box.setAttribute("role","dialog");box.setAttribute("aria-modal","true");box.setAttribute("aria-label","Profile photo preview");
+  box.innerHTML='<button type="button" aria-label="Close photo preview">&times;</button><img alt="Profile photo enlarged">';
+  document.body.appendChild(box);
+  const preview=box.querySelector("img");
+  function close(){box.classList.remove("is-open");preview.removeAttribute("src");}
+  box.addEventListener("click",e=>{if(e.target===box||e.target.tagName==="BUTTON")close();});
+  document.addEventListener("keydown",e=>{if(e.key==="Escape"&&box.classList.contains("is-open"))close();});
+  document.addEventListener("click",e=>{
+    const img=e.target.closest('img.avatar,img.avatar-large,img.avatar-small,img.community-author-avatar,img.post-author-avatar,.community-author img,.post-author img,.chat-head img.avatar');
+    if(!img||!img.src||img.src.startsWith("data:"))return;
+    e.preventDefault();e.stopPropagation();
+    preview.src=img.currentSrc||img.src;box.classList.add("is-open");
+  },true);
+  document.querySelectorAll('img.avatar,img.avatar-large,img.avatar-small,.community-author img,.post-author img,.chat-head img.avatar').forEach(img=>img.classList.add("empire-avatar-zoom"));
+})();
+</script> 
+</body>  
+</html>  
+
