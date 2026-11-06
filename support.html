@@ -65,7 +65,8 @@ requestForm.addEventListener("submit",async(event)=>{
   const {error}=await db.from("support_requests").insert(payload);
   if(error)throw error;
   requestForm.reset();
-  requestStatus.textContent="Your request has been sent to EMPIRE management.";\n  await loadMySupportRequests();
+  requestStatus.textContent="Your request has been sent to EMPIRE management.";
+  await loadMySupportRequests();
  }catch(error){requestStatus.textContent=error.message||"Could not send your request. Please try again.";}
  finally{submit.disabled=false;}
 });
@@ -80,4 +81,5 @@ const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&
  const unread=rows.filter(w=>!w.read_at).map(w=>w.id);
  if(unread.length)await db.from("user_warnings").update({read_at:new Date().toISOString()}).in("id",unread);
 })();
-loadMySupportRequests();\n</script></body></html>
+loadMySupportRequests();
+</script></body></html>
