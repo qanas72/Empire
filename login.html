@@ -617,6 +617,11 @@
       }
     );
 
+    // Referral links should open the Create Account tab automatically.
+    if (referralFromLink) {
+      signupTab.click();
+    }
+
 
     // ==========================================
     // LOGIN
