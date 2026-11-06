@@ -103,10 +103,9 @@ header{
   font-size:14px;  
 }  
   
-.links a:hover,  
-.nav-actions a:hover{  
-  color:var(--gold);  
-}  
+.links a:hover,.links button:hover{color:var(--gold)}
+.menu-logout{display:block;width:100%;padding:12px 8px;border:0;border-top:1px solid var(--border);background:transparent;color:#e8b8a8;text-align:left;font:inherit;cursor:pointer}
+  
   
 .nav-actions{  
   display:flex;  
@@ -839,18 +838,17 @@ text-shadow: 0 0 12px rgba(90, 170, 255, 0.4);
     <a class="brand-raffles" href="raffle.html">🎟️ Raffles</a>
 
 <nav class="links" id="mainLinks">  
-  <a href="#home" onclick="closeMenu()">Home</a>  
-  <a href="#community" onclick="closeMenu()">Community</a>  
-  <a href="#videos" onclick="closeMenu()">Videos</a>  <a href="raffle.html">Raffles</a>  
-  <a href="members.html">Members</a>  
-  <a href="about.html">About</a>  
+  <a href="profile.html" onclick="closeMenu()">Profile</a>
+  <a href="messages.html" onclick="closeMenu()">Messages</a>
+  <a href="members.html" onclick="closeMenu()">Members</a>
+  <a href="publishing.html" onclick="closeMenu()">Publishing</a>
+  <a href="my-publications.html" onclick="closeMenu()">My Publications</a>
+  <a href="premium.html" onclick="closeMenu()">Premium / VIP</a>
+  <a href="wallet.html" onclick="closeMenu()">Wallet</a>
+  <a href="raffle.html" onclick="closeMenu()">Raffles</a>
+  <a href="support.html" onclick="closeMenu()">Support</a>
+  <button type="button" class="menu-logout" onclick="logoutFromMenu()">Log out</button>
 </nav>  
-
-<div class="nav-actions">  
-  <a href="premium.html">Premium</a>  
-  <a href="profile.html">Profile</a>  
-  <span class="user-name" id="userName">Loading...</span>  
-</div>  
 
 <button class="menu" type="button" onclick="toggleMenu()" aria-label="Open menu">☰</button>
 
@@ -1657,6 +1655,13 @@ function closeMenu(){
   if(window.innerWidth <= 850 && links){  
     links.style.display = "none";  
   }  
+}
+
+async function logoutFromMenu(){
+  closeMenu();
+  const {error}=await supabaseClient.auth.signOut();
+  if(error){alert("Could not log out: "+(error.message||"Please try again."));return;}
+  window.location.href="login.html";
 }  
   
 /* SAFE TEXT OUTPUT */  
