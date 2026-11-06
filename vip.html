@@ -524,7 +524,7 @@
         showMessage("Uploading thumbnail...");
 
         const { error: thumbError } = await client.storage
-          .from("videos")
+          .from("video-thumbnails")
           .upload(uploadedThumbnailPath, thumbnailFile, {
             cacheControl: "3600",
             upsert: false,
@@ -568,7 +568,7 @@
       }
 
       if (!submissionCompleted && uploadedThumbnailPath) {
-        await client.storage.from("videos").remove([uploadedThumbnailPath]);
+        await client.storage.from("video-thumbnails").remove([uploadedThumbnailPath]);
       }
 
       showMessage(
