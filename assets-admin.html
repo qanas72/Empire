@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>EMPIRE | Assets Admin</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#080808;color:#f4f4f4;font-family:Arial,Helvetica,sans-serif;line-height:1.5}
+header{background:#0a0a0a;border-bottom:1px solid #ffffff18;padding:15px 4%;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.brand{color:#ffe39a;text-decoration:none;font-weight:900;font-size:22px}.brand span{margin-right:8px}
+.wrap{width:min(1180px,94%);margin:28px auto 70px}.muted{color:#999;font-size:13px}.gold{color:#e8c36b}
+button,input,select,textarea{font:inherit}button{border:0;border-radius:8px;padding:10px 14px;font-weight:800;cursor:pointer}
+.goldbtn{background:linear-gradient(135deg,#f1c75a,#a86e16);color:#111}.darkbtn{background:#181818;border:1px solid #ffffff25;color:#eee}.danger{background:#642323;color:#fff}.success{background:#173b25;color:#b9efc5}
+nav{display:flex;gap:8px;flex-wrap:wrap;margin:18px 0}nav button.active{outline:2px solid #e8c36b}
+.panel{border:1px solid rgba(245,217,139,.75);border-radius:13px;padding:18px;margin:15px 0;background:transparent}
+h1{font-size:32px;margin:5px 0}h2{font-size:19px;margin:0 0 14px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
+.field{display:flex;flex-direction:column;gap:6px}.field label{color:#bbb;font-size:13px;font-weight:700}
+input,select,textarea{width:100%;background:#080808;color:#fff;border:1px solid #ffffff25;border-radius:8px;padding:11px}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.status{padding:10px;border-radius:8px;margin:12px 0;display:none;white-space:pre-wrap}.status.show{display:block}.status.ok{background:#102418;color:#b8e9c1}.status.err{background:#281212;color:#ffb2b2}
+.table-wrap{overflow:auto;margin-top:12px}table{width:100%;border-collapse:collapse;min-width:650px;font-size:13px}th,td{padding:10px;border-bottom:1px solid #ffffff18;text-align:left;vertical-align:top}th{color:#e8c36b;background:#ffffff08}td{overflow-wrap:anywhere}
+.badge{display:inline-block;padding:3px 8px;border-radius:20px;background:#252015;color:#f1d58d;font-size:11px}
+.section{display:none}.section.active{display:block}.empty{padding:20px;text-align:center;color:#999;border:1px dashed #ffffff25;border-radius:10px}
+@media(max-width:600px){h1{font-size:26px}.wrap{width:94%}.panel{padding:14px}header{padding:13px 4%}}
+</style>
+</head>
+<body>
+<header>
+  <a class="brand" href="admin.html"><span>👑</span>EMPIRE <small class="muted">ASSETS ADMIN</small></a>
+  <div class="actions" style="margin:0">
+    <span id="adminName" class="muted">Checking access…</span>
+    <button class="darkbtn" onclick="location.href='admin.html'">Main Admin</button>
+    <button class="danger" onclick="logout()">Logout</button>
+  </div>
+</header>
+<main class="wrap">
+  <h1>Assets Administration</h1>
+  <p class="muted">Manage USDT deposit settings, review deposits and withdrawals, and inspect asset balances and ledger entries. Blockchain payments must be independently verified before confirmation.</p>
+  <div id="globalStatus" class="status"></div>
+  <nav>
+    <button class="darkbtn active" data-tab="settings">Network Settings</button>
+    <button class="darkbtn" data-tab="deposits">Deposits</button>
+    <button class="darkbtn" data-tab="withdrawals">Withdrawals</button>
+    <button class="darkbtn" data-tab="accounts">Asset Accounts</button>
+    <button class="darkbtn" data-tab="ledger">Ledger</button>
+    <button class="darkbtn" data-tab="adjust">Manual Adjustment</button>
+  </nav>
+
+  <section class="section active" id="settings">
+    <div class="panel"><h2>Deposit Network Settings</h2>
+      <p class="muted">Set the receiving address and enable or disable deposits separately for each network.</p>
+      <div id="networkSettings" class="grid"><div class="empty">Loading settings…</div></div>
+      <div class="actions"><button class="goldbtn" onclick="loadSettings()">Reload settings</button></div>
+    </div>
+  </section>
+
+  <section class="section" id="deposits">
+    <div class="panel"><h2>Deposit Requests</h2><p class="muted">Only confirm after checking the transaction on the correct blockchain/network. Enter the verified amount and actual confirmation count.</p>
+      <div class="actions"><button class="goldbtn" onclick="loadDeposits()">Refresh deposits</button></div>
+      <div id="depositsTable" class="empty">Loading…</div>
+    </div>
+  </section>
+
+  <section class="section" id="withdrawals">
+    <div class="panel"><h2>Withdrawal Requests</h2><p class="muted">Approving keeps the funds reserved. Rejecting releases the reservation. Mark as Paid only after the payout is actually completed and verified on-chain.</p>
+      <div class="actions"><button class="goldbtn" onclick="loadWithdrawals()">Refresh withdrawals</button></div>
+      <div id="withdrawalsTable" class="empty">Loading…</div>
+    </div>
+  </section>
+
+  <section class="section" id="accounts">
+    <div class="panel"><h2>USDT Asset Accounts</h2><div class="actions"><button class="goldbtn" onclick="loadAccounts()">Refresh accounts</button></div><div id="accountsTable" class="empty">Loading…</div></div>
+  </section>
+
+  <section class="section" id="ledger">
+    <div class="panel"><h2>Asset Ledger</h2><div class="actions"><button class="goldbtn" onclick="loadLedger()">Refresh ledger</button></div><div id="ledgerTable" class="empty">Loading…</div></div>
+  </section>
+
+  <section class="section" id="adjust">
+    <div class="panel"><h2>Manual Asset Adjustment</h2>
+      <p class="muted">Use only for documented corrections or verified off-platform movements. Every adjustment creates a ledger entry.</p>
+      <div class="grid">
+        <div class="field"><label>Account type</label><select id="adjType"><option value="user">User</option><option value="treasury">Treasury</option></select></div>
+        <div class="field"><label>User ID (required for user account)</label><input id="adjUser" placeholder="Supabase Auth UUID"></div>
+        <div class="field"><label>Network</label><select id="adjNetwork"><option>BEP20</option><option>ERC20</option><option>TON</option></select></div>
+        <div class="field"><label>Direction</label><select id="adjDirection"><option value="credit">Credit</option><option value="debit">Debit</option></select></div>
+        <div class="field"><label>Amount (USDT)</label><input id="adjAmount" type="number" min="0.00000001" step="0.00000001"></div>
+        <div class="field"><label>Reason / reference</label><input id="adjDescription" maxlength="500" placeholder="Required audit description"></div>
+      </div>
+      <div class="actions"><button class="goldbtn" onclick="adjustAsset()">Submit adjustment</button></div>
+    </div>
+  </section>
+</main>
+<script>
+const SUPABASE_URL="https://vubjkwbkuwndkjqfnyom.supabase.co";
+const SUPABASE_KEY="sb_publishable_Ig1R3dpAKyBfjIGSUhhlKw_uC-QF0QQ";
+const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+let currentUser=null;
+const $=id=>document.getElementById(id);
+const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
+function status(message,type="ok"){const el=$("globalStatus");el.textContent=message;el.className="status show "+(type==="err"?"err":"ok");}
+function tableHTML(rows){if(!rows?.length)return '<div class="empty">No records found.</div>';const keys=[...new Set(rows.flatMap(r=>Object.keys(r)))];return '<div class="table-wrap"><table><thead><tr>'+keys.map(k=>'<th>'+esc(k)+'</th>').join("")+'</tr></thead><tbody>'+rows.map(r=>'<tr>'+keys.map(k=>'<td>'+esc(typeof r[k]==="object"&&r[k]!==null?JSON.stringify(r[k]):r[k])+'</td>').join("")+'</tr>').join("")+'</tbody></table></div>';}
+async function init(){
+ const {data,error}=await db.auth.getSession();if(error||!data.session){location.href="login.html";return;}
+ currentUser=data.session.user;
+ const {data:profile,error:pe}=await db.from("profiles").select("username,display_name,is_active").eq("id",currentUser.id).maybeSingle();
+ if(pe||!profile||!profile.is_active){await db.auth.signOut();location.href="login.html";return;}
+ const {data:isAdmin,error:ae}=await db.rpc("is_admin");
+ if(ae||isAdmin!==true){$("globalStatus").textContent="Admin access denied."; $("globalStatus").className="status show err";return;}
+ $("adminName").textContent=profile.display_name||profile.username||"Administrator";
+ await Promise.all([loadSettings(),loadDeposits(),loadWithdrawals(),loadAccounts(),loadLedger()]);
+}
+document.querySelectorAll("[data-tab]").forEach(btn=>btn.addEventListener("click",()=>{document.querySelectorAll("[data-tab]").forEach(x=>x.classList.toggle("active",x===btn));document.querySelectorAll(".section").forEach(x=>x.classList.toggle("active",x.id===btn.dataset.tab));}));
+async function loadSettings(){
+ const box=$("networkSettings");box.innerHTML='<div class="empty">Loading…</div>';
+ const {data,error}=await db.from("empire_asset_deposit_settings").select("*").order("network");
+ if(error){box.textContent=error.message;return;}
+ box.innerHTML=(data||[]).map(s=>'<div class="panel"><h3 class="gold">'+esc(s.network)+'</h3><div class="field"><label>Deposit address</label><input id="addr_'+esc(s.network)+'" value="'+esc(s.deposit_address||"")+'" placeholder="Receiving address"></div><label style="display:flex;gap:8px;align-items:center;margin-top:12px"><input id="enabled_'+esc(s.network)+'" type="checkbox" '+(s.is_enabled?"checked":"")+' style="width:auto"> Enable deposits</label><div class="muted">Updated: '+esc(s.updated_at||"Not set")+'</div><div class="actions"><button class="goldbtn" onclick="saveNetwork(\''+esc(s.network)+'\')">Save '+esc(s.network)+'</button></div></div>').join("")||'<div class="empty">No network settings found.</div>';
+}
+async function saveNetwork(network){
+ const address=$("addr_"+network).value.trim();const enabled=$("enabled_"+network).checked;
+ if(enabled&&!address){status("An address is required before enabling "+network+".","err");return;}
+ const {error}=await db.rpc("admin_update_empire_deposit_address",{p_network:network,p_address:address||null,p_enabled:enabled});
+ if(error){status("Could not save "+network+": "+error.message,"err");return;}status(network+" settings saved.");await loadSettings();
+}
+async function loadDeposits(){
+ const box=$("depositsTable");box.innerHTML="Loading…";
+ const {data,error}=await db.from("empire_asset_deposits").select("*").order("created_at",{ascending:false}).limit(100);
+ if(error){box.textContent=error.message;return;}if(!data?.length){box.innerHTML='<div class="empty">No deposit requests.</div>';return;}
+ box.innerHTML=data.map(d=>'<article class="panel"><div class="grid"><div><b class="gold">Deposit '+esc(d.id)+'</b><p class="muted">User: '+esc(d.user_id)+'</p><p>Network: '+esc(d.network)+' · Status: <span class="badge">'+esc(d.status)+'</span></p></div><div><p>Submitted amount: '+esc(d.amount)+' USDT</p><p>Verified amount: '+esc(d.verified_amount??"—")+'</p><p class="muted">Hash: '+esc(d.transaction_hash||"—")+'</p><p class="muted">Address: '+esc(d.deposit_address||"—")+'</p></div></div>'+(d.status==="pending"?'<div class="actions"><button class="goldbtn" onclick="confirmDeposit(\''+esc(d.id)+'\')">Verify & confirm</button><button class="danger" onclick="rejectDeposit(\''+esc(d.id)+'\')">Reject</button></div>':"")+'</article>').join("");
+}
+async function confirmDeposit(id){
+ const hash=prompt("Enter the transaction hash verified on the correct network:");if(hash===null)return;
+ const amount=prompt("Enter the verified USDT amount received (not the user-declared amount):");if(amount===null)return;
+ const confirmations=prompt("Enter the actual confirmation count:", "0");if(confirmations===null)return;
+ const note=prompt("Admin verification note (optional):","Verified on-chain");
+ if(!hash.trim()||!Number.isFinite(Number(amount))||Number(amount)<=0||!Number.isInteger(Number(confirmations))||Number(confirmations)<0){status("Invalid hash, verified amount, or confirmation count.","err");return;}
+ if(!confirm("Confirm this deposit and credit the user and treasury asset ledgers? Only proceed after independent blockchain verification."))return;
+ const {error}=await db.rpc("admin_confirm_empire_deposit",{p_deposit_id:id,p_transaction_hash:hash.trim(),p_verified_amount:Number(amount),p_confirmations:Number(confirmations),p_note:note||null});
+ if(error){status("Deposit confirmation failed: "+error.message,"err");return;}status("Deposit confirmed and ledger credited.");await Promise.all([loadDeposits(),loadAccounts(),loadLedger()]);
+}
+async function rejectDeposit(id){
+ const reason=prompt("Reason for rejecting this deposit (required):");if(reason===null)return;if(reason.trim().length<3){status("Please provide a reason of at least 3 characters.","err");return;}
+ if(!confirm("Reject this pending deposit?"))return;
+ const {error}=await db.rpc("admin_reject_empire_deposit",{p_deposit_id:id,p_reason:reason.trim()});
+ if(error){status("Could not reject deposit: "+error.message,"err");return;}status("Deposit rejected.");await loadDeposits();
+}
+async function loadWithdrawals(){
+ const box=$("withdrawalsTable");box.innerHTML="Loading…";
+ const {data,error}=await db.from("empire_withdrawal_requests").select("*").order("created_at",{ascending:false}).limit(100);
+ if(error){box.textContent=error.message;return;}if(!data?.length){box.innerHTML='<div class="empty">No withdrawal requests.</div>';return;}
+ box.innerHTML=data.map(w=>'<article class="panel"><b class="gold">Withdrawal '+esc(w.id)+'</b><div class="grid"><div><p>User: '+esc(w.user_id)+'</p><p>Amount: '+esc(w.amount_usd??w.requested_amount??"—")+' USDT</p><p>Network: '+esc(w.network)+'</p><p>Status: <span class="badge">'+esc(w.status)+'</span></p></div><div><p>Destination: '+esc(w.destination_address||"—")+'</p><p>Fee: '+esc(w.fee_amount??"—")+'</p><p>Net payout: '+esc(w.net_amount??"—")+'</p><p class="muted">Created: '+esc(w.created_at)+'</p></div></div>'+(w.status==="pending"?'<div class="actions"><button class="goldbtn" onclick="reviewWithdrawal(\''+esc(w.id)+'\',\'approved\')">Approve</button><button class="danger" onclick="reviewWithdrawal(\''+esc(w.id)+'\',\'rejected\')">Reject</button></div>':"")+(w.status==="approved"?'<div class="actions"><button class="goldbtn" onclick="markWithdrawalPaid(\''+esc(w.id)+'\')">Record payout as Paid</button></div>':"")+'</article>').join("");
+}
+async function reviewWithdrawal(id,decision){
+ let note=prompt(decision==="approved"?"Approval note (optional):":"Reason for rejection (required):",decision==="approved"?"Reviewed":"");
+ if(note===null)return;if(decision==="rejected"&&note.trim().length<3){status("A rejection reason of at least 3 characters is required.","err");return;}
+ if(!confirm(decision==="approved"?"Approve this withdrawal and keep funds reserved?":"Reject this withdrawal and release the reserved funds?"))return;
+ const {error}=await db.rpc("admin_review_empire_withdrawal",{p_request_id:id,p_decision:decision,p_note:note||null});
+ if(error){status("Withdrawal review failed: "+error.message,"err");return;}status("Withdrawal "+decision+".");await Promise.all([loadWithdrawals(),loadAccounts(),loadLedger()]);
+}
+async function markWithdrawalPaid(id){
+ const hash=prompt("Enter the payout transaction hash after verifying the transfer was completed:");if(hash===null)return;if(hash.trim().length<10){status("A valid transaction hash is required.","err");return;}
+ if(!confirm("Record this approved withdrawal as Paid? Confirm that the actual payout has already succeeded on-chain."))return;
+ const {error}=await db.rpc("admin_mark_empire_withdrawal_paid",{p_request_id:id,p_tx_hash:hash.trim()});
+ if(error){status("Could not mark payout as paid: "+error.message,"err");return;}status("Payout recorded as Paid.");await Promise.all([loadWithdrawals(),loadAccounts(),loadLedger()]);
+}
+async function loadAccounts(){const box=$("accountsTable");box.textContent="Loading…";const {data,error}=await db.from("empire_asset_accounts").select("*").order("created_at",{ascending:false}).limit(300);if(error){box.textContent=error.message;return;}box.innerHTML=tableHTML(data);}
+async function loadLedger(){const box=$("ledgerTable");box.textContent="Loading…";const {data,error}=await db.from("empire_asset_ledger").select("*").order("created_at",{ascending:false}).limit(300);if(error){box.textContent=error.message;return;}box.innerHTML=tableHTML(data);}
+async function adjustAsset(){
+ const accountType=$("adjType").value,userId=$("adjUser").value.trim()||null,network=$("adjNetwork").value,direction=$("adjDirection").value,amount=Number($("adjAmount").value),description=$("adjDescription").value.trim();
+ if(accountType==="user"&&!userId){status("User UUID is required for a user account.","err");return;}
+ if(!Number.isFinite(amount)||amount<=0||!description){status("Enter a valid amount and an audit description.","err");return;}
+ if(!confirm("Apply this "+direction+" adjustment of "+amount+" USDT to "+accountType+" account on "+network+"?"))return;
+ const {data,error}=await db.rpc("admin_adjust_empire_asset",{p_account_type:accountType,p_user_id:userId,p_network:network,p_direction:direction,p_amount:amount,p_description:description});
+ if(error){status("Adjustment failed: "+error.message,"err");return;}status("Adjustment recorded. Resulting balance: "+data);$("adjAmount").value="";$("adjDescription").value="";await Promise.all([loadAccounts(),loadLedger()]);
+}
+async function logout(){if(!confirm("Log out of EMPIRE?"))return;const {error}=await db.auth.signOut();if(error){status(error.message,"err");return;}location.href="login.html";}
+init();
+</script>
+</body>
+</html>
