@@ -13,11 +13,51 @@
 <h1 class="gold">Support & Help</h1>
 <p class="muted">Need help with your account, membership, publications or payments? Check your account notices below or contact the EMPIRE support team.</p>
 <section class="card"><h2 class="gold">Contact Support</h2><p class="muted">For serious problems that need personal assistance, email our support address. Include your username and a clear description of the issue. Never send your password, recovery phrase or private keys.</p><a class="email" href="mailto:support.empire@gmail.com?subject=EMPIRE%20Support%20Request">Email support.empire@gmail.com</a></section>
+<section class="card" id="supportRequestCard">
+<h2 class="gold">Send a Message or Request to Management</h2>
+<p class="muted">Send your question, suggestion, or account-related request directly to the EMPIRE management team. You can follow up by email if needed. Never include your password, recovery phrase, or private keys.</p>
+<form id="supportRequestForm">
+<label class="muted" for="requestCategory">Request type</label>
+<select id="requestCategory" required style="display:block;width:100%;margin:7px 0 14px;padding:12px;border-radius:8px;background:#080808;color:#fff;border:1px solid #80642f">
+<option value="general">General question</option><option value="account">Account or login</option><option value="vip">VIP membership or payment</option><option value="wallet">EMPC wallet or balance</option><option value="publishing">Publishing or video</option><option value="messages">Messages</option><option value="raffle">Raffle</option><option value="suggestion">Suggestion</option><option value="other">Other</option>
+</select>
+<label class="muted" for="requestSubject">Subject</label>
+<input id="requestSubject" maxlength="140" required placeholder="Short subject" style="display:block;width:100%;margin:7px 0 14px;padding:12px;border-radius:8px;background:#080808;color:#fff;border:1px solid #80642f">
+<label class="muted" for="requestMessage">Message</label>
+<textarea id="requestMessage" maxlength="5000" required rows="6" placeholder="Describe your request clearly..." style="display:block;width:100%;margin:7px 0 14px;padding:12px;border-radius:8px;background:#080808;color:#fff;border:1px solid #80642f"></textarea>
+<button class="email" id="sendSupportRequest" type="submit" style="border:0;cursor:pointer">Send to Management</button>
+<div id="supportRequestStatus" class="muted" role="status" style="margin-top:12px"></div>
+</form></section>
 <section class="card"><h2 class="gold">Account Warnings</h2><p class="muted">Official notices sent by EMPIRE administration appear here.</p><div id="warnings" class="muted">Checking account notices...</div></section>
 </main>
 <script>
 const db=window.supabase.createClient("https://vubjkwbkuwndkjqfnyom.supabase.co","sb_publishable_Ig1R3dpAKyBfjIGSUhhlKw_uC-QF0QQ");
 const box=document.getElementById("warnings");
+const requestForm=document.getElementById("supportRequestForm");
+const requestStatus=document.getElementById("supportRequestStatus");
+requestForm.addEventListener("submit",async(event)=>{
+ event.preventDefault();
+ requestStatus.textContent="Sending your request...";
+ const submit=requestForm.querySelector("button[type=submit]");submit.disabled=true;
+ try{
+  const {data:sessionData,error:sessionError}=await db.auth.getSession();
+  const user=sessionData?.session?.user;
+  if(sessionError||!user)throw new Error("Please sign in before sending a request.");
+  const payload={
+   user_id:user.id,
+   user_email:user.email||null,
+   category:document.getElementById("requestCategory").value,
+   subject:document.getElementById("requestSubject").value.trim(),
+   message:document.getElementById("requestMessage").value.trim()
+  };
+  if(!payload.subject||!payload.message)throw new Error("Please complete the subject and message.");
+  const {error}=await db.from("support_requests").insert(payload);
+  if(error)throw error;
+  requestForm.reset();
+  requestStatus.textContent="Your request has been sent to EMPIRE management.";
+ }catch(error){requestStatus.textContent=error.message||"Could not send your request. Please try again.";}
+ finally{submit.disabled=false;}
+});
 const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
 (async()=>{
  const {data,error}=await db.auth.getSession();const user=data?.session?.user;
