@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EMPIRE | Ads</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{--gold:#e4bf69;--gold2:#fff0b8;--bg:#090909;--muted:#aaa;--line:rgba(245,217,139,.42);--green:#65d69a;--red:#ff8585}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:linear-gradient(180deg,#090909e8,#090909f2),url("profile-background-desktop.png") center/cover fixed;color:#f5f5f5;font:15px Arial,sans-serif}
+a{color:inherit;text-decoration:none}.top{position:sticky;top:0;z-index:5;display:flex;justify-content:space-between;align-items:center;gap:12px;padding:13px 5%;background:#080808df;border-bottom:1px solid var(--line);backdrop-filter:blur(12px)}
+.brand{font-size:21px;font-weight:900;letter-spacing:1px;color:var(--gold2)}.nav{display:flex;gap:8px;flex-wrap:wrap}.nav a{padding:8px 11px;border:1px solid var(--line);border-radius:9px;font-size:12px;color:#ddd}
+main{width:min(850px,92%);margin:30px auto 55px}.heading{margin-bottom:20px}.eyebrow{font-size:10px;letter-spacing:2px;color:var(--gold);font-weight:800}.heading h1{margin:7px 0;font-size:clamp(26px,5vw,38px)}.heading p{margin:0;color:var(--muted);font-size:13px;line-height:1.6}
+.panel{border:1px solid var(--line);border-radius:14px;padding:17px;margin:13px 0;background:rgba(10,10,10,.72)}.balance-row{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.label{font-size:11px;color:var(--muted);letter-spacing:.7px}.amount{font-size:clamp(27px,6vw,38px);font-weight:900;color:var(--gold2);margin:7px 0}.sub{font-size:12px;color:var(--muted);line-height:1.6}
+.ad-card{border:1px solid rgba(230,189,88,.55);border-radius:15px;padding:18px;background:rgba(12,12,12,.92);box-shadow:0 10px 28px rgba(0,0,0,.25)}
+.ad-label{display:inline-block;color:#e6bd58;font-size:11px;font-weight:900;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px}
+.ad-card h2{color:#f3d78f;font-size:21px;margin:0 0 8px;overflow-wrap:anywhere}.ad-copy{color:#ddd;line-height:1.7;white-space:pre-wrap;overflow-wrap:anywhere}
+.ad-media{display:block;width:100%;max-height:420px;object-fit:contain;background:#080808;border-radius:10px;margin:12px 0}
+.ad-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:14px}.ad-status{color:#c7c7c7;font-size:13px;line-height:1.6}.countdown{color:#ffe5a0;font-weight:900;font-variant-numeric:tabular-nums}
+.btn{display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--line);border-radius:9px;padding:10px 14px;background:#17130c;color:var(--gold2);font-weight:700;font-size:12px;cursor:pointer}.btn.primary{background:linear-gradient(135deg,#d9b65e,#f6e4a5);color:#171107;border:0}.btn:disabled{opacity:.55;cursor:wait}
+.status{padding:15px;border:1px dashed #554a32;border-radius:10px;color:var(--muted);font-size:13px;line-height:1.6;text-align:center}
+.notice{display:none;padding:11px;border-radius:9px;margin-bottom:12px;font-size:13px}.notice.show{display:block}.notice.error{color:#ffbaba;border:1px solid #8c4444}.notice.ok{color:#b7f4d0;border:1px solid #367a55}
+footer{text-align:center;color:#777;border-top:1px solid #292929;padding:20px;font-size:11px}
+@media(max-width:560px){.top{align-items:flex-start;flex-direction:column}.nav{width:100%}.nav a{flex:1;text-align:center;padding:8px 5px}.panel,.ad-card{padding:13px}}
+</style>
+</head>
+<body>
+<header class="top"><a class="brand" href="index.html">♛ EMPIRE</a><nav class="nav"><a href="wallet.html">🪙 Wallet</a><a href="profile.html">👤 Profile</a></nav></header>
+<main>
+ <div class="heading"><div class="eyebrow">EMPIRE REWARDS</div><h1>📺 Advertisements</h1><p>Open an advertisement and keep this page visible for at least 10 seconds to qualify for Payout Points. A two-minute cooldown applies after each valid view.</p></div>
+ <div id="notice" class="notice"></div>
+ <section class="panel">
+  <div class="balance-row"><div><div class="label">YOUR PAYOUT POINTS</div><div class="amount" id="pointsBalance">Loading…</div><div class="sub">Payout Points determine your daily withdrawal limit. They are not cash or EMPC.</div></div><a class="btn" href="wallet.html">Wallet</a></div>
+ </section>
+ <section class="ad-card" id="adSlot" aria-live="polite"><span class="ad-label">EMPIRE Sponsored</span><div class="status">Checking available advertisements…</div></section>
+ <div class="ad-actions"><button class="btn primary" id="refreshAd" type="button">Refresh advertisement</button><span class="ad-status" id="pageStatus">Your advertisement activity is recorded by EMPIRE.</span></div>
+</main>
+<footer>© <span id="year"></span> EMPIRE. All rights reserved.</footer>
+<script>
+const SUPABASE_URL="https://vubjkwbkuwndkjqfnyom.supabase.co";
+const SUPABASE_KEY="sb_publishable_Ig1R3dpAKyBfjIGSUhhlKw_uC-QF0QQ";
+const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+const $=id=>document.getElementById(id);
+$("year").textContent=new Date().getFullYear();
+const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
+let userId=null,adTimer=null,visibleSeconds=0,completing=false;
+function notice(message,type="error"){$("notice").textContent=message;$("notice").className="notice show "+type;}
+function stopTimer(){if(adTimer){clearInterval(adTimer);adTimer=null;}}
+async function loadPoints(){
+ const {data,error}=await db.from("empire_payout_points").select("balance").eq("user_id",userId).maybeSingle();
+ if(error)throw error;
+ $("pointsBalance").textContent=Number(data?.balance||0).toLocaleString();
+}
+function safeUrl(value){try{const u=new URL(String(value||""),location.href);return /^https?:$/.test(u.protocol)?u.href:"";}catch{return "";}}
+function showCooldown(until){
+ stopTimer();
+ const tick=()=>{
+  const left=Math.max(0,until-Date.now()),total=Math.ceil(left/1000);
+  const mm=String(Math.floor(total/60)).padStart(2,"0"),ss=String(total%60).padStart(2,"0");
+  $("adSlot").innerHTML='<span class="ad-label">EMPIRE Sponsored</span><h2>Next advertisement</h2><p class="ad-status">You can view another advertisement in <span class="countdown">'+mm+':'+ss+'</span>.</p>';
+  if(left<=0){stopTimer();loadAd();}
+ };
+ tick();adTimer=setInterval(tick,1000);
+}
+async function loadAd(){
+ stopTimer();
+ $("adSlot").innerHTML='<span class="ad-label">EMPIRE Sponsored</span><div class="status">Finding an available advertisement…</div>';
+ try{
+  const {data:last,error:lastError}=await db.from("empire_ad_impressions").select("completed_at").eq("user_id",userId).eq("is_valid",true).not("completed_at","is",null).order("completed_at",{ascending:false}).limit(1).maybeSingle();
+  if(lastError)throw lastError;
+  if(last?.completed_at){const readyAt=new Date(last.completed_at).getTime()+120000;if(readyAt>Date.now()){showCooldown(readyAt);return;}}
+  const {data,error}=await db.rpc("get_empire_ad_for_view");
+  if(error)throw error;
+  const ad=Array.isArray(data)?data[0]:data;
+  if(!ad){$("adSlot").innerHTML='<span class="ad-label">EMPIRE Sponsored</span><div class="status">No sponsored advertisements are available right now. Please try again later.</div>';return;}
+  const media=safeUrl(ad.media_url),destination=safeUrl(ad.destination_url);
+  $("adSlot").innerHTML='<span class="ad-label">Sponsored · Advertisement</span><h2>'+esc(ad.title||"Advertisement")+'</h2>'+
+   (media?'<img class="ad-media" src="'+esc(media)+'" alt="Sponsored advertisement">':'')+
+   '<p class="ad-copy">'+esc(ad.ad_text||"")+'</p><div class="ad-actions">'+
+   (destination?'<a class="btn" href="'+esc(destination)+'" target="_blank" rel="noopener noreferrer">Visit advertiser</a>':'')+
+   '<span class="ad-status" id="viewStatus">Keep this advertisement visible for <b class="countdown" id="seconds">10</b> seconds.</span></div>';
+  visibleSeconds=0;completing=false;
+  adTimer=setInterval(async()=>{
+   if(document.visibilityState!=="visible"||completing)return;
+   visibleSeconds++;
+   const counter=$("seconds");if(counter)counter.textContent=String(Math.max(0,10-visibleSeconds));
+   if(visibleSeconds>=10){
+    completing=true;stopTimer();const status=$("viewStatus");if(status)status.textContent="Verifying your advertisement view…";
+    try{
+     const {data:result,error:completeError}=await db.rpc("complete_empire_ad_view",{p_impression_key:ad.impression_key});
+     if(completeError)throw completeError;
+     await loadPoints();
+     if(status)status.textContent="View confirmed. Your Payout Points balance is "+Number(result||0).toLocaleString()+".";
+     notice("Advertisement view confirmed. Payout Points updated.","ok");
+     showCooldown(Date.now()+120000);
+    }catch(error){console.error(error);if(status)status.textContent=error.message||"The view could not be verified. Please refresh and try again.";notice(error.message||"View verification failed.");}
+   }
+  },1000);
+ }catch(error){console.error("Ads page error:",error);$("adSlot").innerHTML='<span class="ad-label">EMPIRE Sponsored</span><div class="status">Advertisements are temporarily unavailable. Please refresh and try again.</div>';notice(error.message||"Could not load advertisements.");}
+}
+$("refreshAd").addEventListener("click",loadAd);
+(async function init(){
+ const {data,error}=await db.auth.getUser();
+ if(error||!data?.user){location.href="login.html";return;}
+ userId=data.user.id;
+ try{await loadPoints();}catch(error){console.error(error);$("pointsBalance").textContent="Unavailable";}
+ await loadAd();
+})();
+</script>
+</body>
+</html>
