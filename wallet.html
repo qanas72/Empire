@@ -22,6 +22,13 @@ footer{text-align:center;color:#777;border-top:1px solid #292929;padding:20px;fo
 
 .buy-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.field{display:grid;gap:6px}.field label{font-size:11px;color:var(--muted)}.field input,.field select{width:100%;background:#090909;color:#fff;border:1px solid var(--line);border-radius:9px;padding:11px;font-size:14px;min-width:0}.buy-btn{cursor:pointer;background:linear-gradient(135deg,#d9b65e,#f6e4a5);color:#171107;border:0}.buy-btn:disabled{opacity:.55;cursor:wait}.order-box{display:none;margin-top:13px;padding:13px;border:1px solid var(--line);border-radius:10px;background:#080808a8}.order-box.show{display:block}.order-line{display:grid;gap:5px;margin:9px 0}.order-line small{color:var(--muted);font-size:11px}.order-value{font-size:13px;overflow-wrap:anywhere;color:var(--gold2)}.copy-row{display:flex;gap:7px;align-items:center}.copy-row .order-value{flex:1;min-width:0}.mini-btn{border:1px solid var(--line);border-radius:8px;background:#17130c;color:var(--gold2);padding:8px 10px;font-size:11px;cursor:pointer}.buy-help{font-size:12px;line-height:1.6;color:var(--muted);margin:10px 0 0}.status-line{font-size:12px;line-height:1.6;margin-top:10px;color:var(--gold2)}.contract-info-btn{border:1px solid var(--line);border-radius:8px;background:#17130c;color:var(--gold2);padding:9px 11px;font-size:11px;cursor:pointer}.info-modal{display:none;position:fixed;inset:0;z-index:20;background:#000c;align-items:center;justify-content:center;padding:16px}.info-modal.show{display:flex}.info-card{width:min(440px,100%);max-height:80vh;overflow:auto;background:#111;border:1px solid var(--line);border-radius:13px;padding:16px;box-shadow:0 16px 50px #000}.info-card h3{margin:0 0 10px;color:var(--gold2);font-size:16px}.info-card p,.info-card li{font-size:12px;line-height:1.7;color:#ddd}.info-card ul{padding-left:19px}.contract-value{display:block;padding:10px;margin:10px 0;background:#080808;border:1px solid rgba(245,217,139,.25);border-radius:8px;color:var(--gold2);font-size:11px;overflow-wrap:anywhere}.modal-close{margin-top:8px;width:100%;padding:10px;border:1px solid var(--line);border-radius:8px;background:#211a0c;color:var(--gold2);font-weight:700;cursor:pointer}@media(max-width:560px){.buy-grid{grid-template-columns:1fr}}
 
+
+.withdrawal-status{display:inline-block;border:1px solid var(--line);border-radius:20px;padding:5px 8px;font-size:10px;color:var(--gold2);text-transform:uppercase}
+.withdrawal-card{border:1px solid rgba(245,217,139,.22);border-radius:10px;padding:12px;display:grid;gap:7px}
+.withdrawal-card .rowline{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;font-size:12px}
+.withdrawal-card small{color:var(--muted);font-size:11px;line-height:1.5;overflow-wrap:anywhere}
+.withdrawal-card .reason{color:#ffbaba;border-left:2px solid #a44;padding-left:8px}
+
 .back-nav{background:transparent;border:0;color:#e8c36b;padding:4px 7px;cursor:pointer;font:inherit}
 </style>
 </head>
@@ -57,6 +64,27 @@ footer{text-align:center;color:#777;border-top:1px solid #292929;padding:20px;fo
  <p class="buy-help">Orders expire after 2 hours. EMPC is an internal platform balance, not a live blockchain token. Do not send funds until you have checked the network, token contract, address, and exact amount.</p>
 </section>
 
+
+<section class="panel" id="withdrawPanel">
+ <div class="section-head"><h2>💵 Withdraw USDT</h2><small>Minimum $10 · 5% fee</small></div>
+ <p class="sub">Request a USDT payout to your own wallet. Enter your destination address and select its exact network. The company sending wallet details are never displayed here.</p>
+ <div class="metrics" id="usdtBalances"><div class="metric"><div class="label">TRC20 AVAILABLE</div><strong>Loading…</strong></div><div class="metric"><div class="label">BEP20 AVAILABLE</div><strong>Loading…</strong></div><div class="metric"><div class="label">TON AVAILABLE</div><strong>Loading…</strong></div></div>
+ <div class="buy-grid" style="margin-top:14px">
+  <div class="field"><label for="withdrawNetwork">PAYOUT NETWORK</label><select id="withdrawNetwork"><option value="TRC20">USDT · TRON (TRC20)</option><option value="BEP20">USDT · BNB Smart Chain (BEP20)</option><option value="TON">USDT · TON</option></select></div>
+  <div class="field"><label for="withdrawAmount">GROSS AMOUNT (USDT)</label><input id="withdrawAmount" type="number" min="10" max="100000000" step="0.01" placeholder="Minimum 10.00" inputmode="decimal"></div>
+  <div class="field" style="grid-column:1/-1"><label for="withdrawAddress">YOUR DESTINATION WALLET ADDRESS</label><input id="withdrawAddress" type="text" maxlength="128" placeholder="Enter your USDT receiving address" autocomplete="off" spellcheck="false"></div>
+ </div>
+ <div class="metrics">
+  <div class="metric"><div class="label">5% WITHDRAWAL FEE</div><strong id="withdrawFee">$0.00</strong></div>
+  <div class="metric"><div class="label">YOU RECEIVE (95%)</div><strong id="withdrawNet">$0.00</strong></div>
+ </div>
+ <p class="buy-help">One request per UTC day. Your Payout Points determine your daily gross withdrawal limit and are not consumed. Once submitted, the requested amount is reserved. An approved request is paid manually; its status and transaction hash will appear below. Rejected requests show the administrator's reason.</p>
+ <div class="actions"><button class="btn buy-btn" id="submitWithdrawalBtn" type="button">Submit Withdrawal Request</button><button class="btn" id="refreshWithdrawalsBtn" type="button">Refresh Status</button></div>
+ <div id="withdrawalMessage" class="status-line">Loading your USDT balances and withdrawal history…</div>
+ <div class="section-head" style="margin-top:18px"><h2>📋 Your Withdrawal Requests</h2><small>Latest 30</small></div>
+ <div id="withdrawalHistory" class="tx-list"><div class="loading">Loading withdrawal requests…</div></div>
+</section>
+
 <section class="panel">
  <div class="section-head"><h2>📜 Transaction History</h2><small>Latest 30 records</small></div>
  <div id="transactions" class="tx-list"><div class="loading">Loading wallet history…</div></div>
@@ -75,12 +103,15 @@ const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 const $=id=>document.getElementById(id);
 $("year").textContent=new Date().getFullYear();
 const fmt=n=>Number(n).toLocaleString(undefined,{maximumFractionDigits:8});
+let currentUserId=null;
 const date=v=>{const d=new Date(v);return Number.isNaN(d.getTime())?"Date unavailable":d.toLocaleString();};
 const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
 function notice(message,type="error"){$("notice").textContent=message;$("notice").className="notice show "+type;}
 async function init(){
  const {data:auth,error:authError}=await db.auth.getUser();
  if(authError||!auth?.user){location.href="login.html";return;}
+ currentUserId=auth.user.id;
+ loadWithdrawalData();
  $("transactions").innerHTML='<div class="loading">Loading wallet history…</div>';
  try{
   const {data:wallet,error}=await db.from("empire_wallets").select("id,balance").eq("user_id",auth.user.id).eq("wallet_type","user").maybeSingle();
@@ -107,6 +138,86 @@ async function init(){
   }).join("");
  }catch(error){console.error("Wallet load failed:",error);$("balance").textContent="Unavailable";$("transactions").innerHTML='<div class="empty">Wallet information could not be loaded. Please refresh and try again.</div>';notice("Wallet information could not be loaded.");}
 }
+
+const withdrawalNetworks=["TRC20","BEP20","TON"];
+const money=n=>"$"+Number(n||0).toFixed(2);
+function updateWithdrawalEstimate(){
+ const raw=Number($("withdrawAmount").value);
+ const valid=Number.isFinite(raw)&&raw>=0;
+ const fee=valid?Math.round((raw*0.05+Number.EPSILON)*100)/100:0;
+ $("withdrawFee").textContent=money(fee);
+ $("withdrawNet").textContent=money(valid?raw-fee:0);
+}
+$("withdrawAmount").addEventListener("input",updateWithdrawalEstimate);
+function withdrawalStatusLabel(status){
+ return ({pending:"Pending review",approved:"Approved · awaiting payout",rejected:"Rejected",paid:"Paid"})[status]||String(status||"Unknown");
+}
+async function loadWithdrawalData(){
+ if(!currentUserId)return;
+ $("withdrawalMessage").textContent="Refreshing balances and requests…";
+ try{
+  const [accountsResult,requestsResult]=await Promise.all([
+   db.from("empire_asset_accounts").select("network,balance,reserved_balance").eq("account_type","user").eq("user_id",currentUserId).eq("asset_code","USDT"),
+   db.from("empire_withdrawal_requests").select("*").eq("user_id",currentUserId).order("created_at",{ascending:false}).limit(30)
+  ]);
+  if(accountsResult.error)throw accountsResult.error;
+  if(requestsResult.error)throw requestsResult.error;
+  const accounts=accountsResult.data||[];
+  $("usdtBalances").innerHTML=withdrawalNetworks.map(network=>{
+   const account=accounts.find(a=>a.network===network);
+   const available=account?Math.max(0,Number(account.balance)-Number(account.reserved_balance)):0;
+   const reserved=account?Number(account.reserved_balance):0;
+   return '<div class="metric"><div class="label">'+network+' AVAILABLE</div><strong>'+fmt(available)+' USDT</strong><div class="sub">Reserved: '+fmt(reserved)+' USDT</div></div>';
+  }).join("");
+  const rows=requestsResult.data||[];
+  $("withdrawalHistory").innerHTML=rows.length?rows.map(r=>{
+   const details=[
+    ["Requested",money(r.requested_amount_usd)],
+    ["Fee ("+Number(r.fee_percent||5)+"%)",money(r.fee_amount_usd)],
+    ["Net payout",money(r.net_amount_usd)],
+    ["Network",r.network||"—"],
+    ["Destination",r.destination_address||"—"],
+    ["Submitted",date(r.created_at)]
+   ];
+   if(r.paid_at)details.push(["Paid",date(r.paid_at)]);
+   const detailsHtml=details.map(d=>'<div class="rowline"><small>'+esc(d[0])+'</small><strong>'+esc(d[1])+'</strong></div>').join("");
+   const reason=r.status==="rejected"&&r.admin_note?'<small class="reason">Reason: '+esc(r.admin_note)+'</small>':(r.admin_note?'<small>Admin note: '+esc(r.admin_note)+'</small>':"");
+   const hash=r.payout_tx_hash?'<small>Payment transaction: '+esc(r.payout_tx_hash)+'</small>':"";
+   return '<article class="withdrawal-card"><div class="rowline"><strong>USDT Withdrawal</strong><span class="withdrawal-status">'+esc(withdrawalStatusLabel(r.status))+'</span></div>'+detailsHtml+reason+hash+'</article>';
+  }).join(""):'<div class="empty">No withdrawal requests yet. Your requests and their status will appear here.</div>';
+  $("withdrawalMessage").textContent="Balances and withdrawal history are up to date.";
+ }catch(error){
+  console.error("USDT withdrawal data load failed:",error);
+  $("withdrawalMessage").textContent="Could not load USDT withdrawal information. Please refresh.";
+  $("withdrawalHistory").innerHTML='<div class="empty">Withdrawal history is temporarily unavailable.</div>';
+ }
+}
+$("refreshWithdrawalsBtn").addEventListener("click",loadWithdrawalData);
+$("submitWithdrawalBtn").addEventListener("click",async()=>{
+ const amount=Number($("withdrawAmount").value);
+ const network=$("withdrawNetwork").value;
+ const address=$("withdrawAddress").value.trim();
+ if(!Number.isFinite(amount)||amount<10||Math.round(amount*100)!==amount*100){$("withdrawalMessage").textContent="Enter a valid amount of at least $10 with no more than 2 decimal places.";return;}
+ if(!withdrawalNetworks.includes(network)){ $("withdrawalMessage").textContent="Select a supported payout network.";return;}
+ if(address.length<10||address.length>128){$("withdrawalMessage").textContent="Enter a valid destination wallet address.";return;}
+ const btn=$("submitWithdrawalBtn");btn.disabled=true;btn.textContent="Submitting…";
+ try{
+  const {data,error}=await db.rpc("submit_empire_withdrawal",{p_amount_usd:amount,p_network:network,p_destination_address:address});
+  if(error)throw error;
+  $("withdrawalAmount").value="";
+  $("withdrawAddress").value="";
+  updateWithdrawalEstimate();
+  $("withdrawalMessage").textContent="Withdrawal request submitted successfully. Your requested amount is reserved pending review.";
+  notice("USDT withdrawal request submitted. You can track its status below.","ok");
+  await loadWithdrawalData();
+ }catch(error){
+  console.error("USDT withdrawal submission failed:",error);
+  const message=error?.message||"Could not submit the withdrawal request.";
+  $("withdrawalMessage").textContent=message;
+  notice(message);
+ }finally{btn.disabled=false;btn.textContent="Submit Withdrawal Request";}
+});
+
 // Logout was removed from the wallet navigation; no logout handler is needed.
 
 let activePurchaseOrder=null;
