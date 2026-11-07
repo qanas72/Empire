@@ -1,7 +1,7 @@
 <!DOCTYPE html>  <html lang="en">  
 <head>  
 <meta charset="UTF-8">  
-<meta name="viewport" content="width=device-width, initial-scale=1.0">  <title>Empire | Royal Video Experience</title>  <meta name="description" content="Discover free and premium videos on Empire.">  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>  <style>  
+<meta name="viewport" content="width=device-width, initial-scale=1.0">\n<meta name="theme-color" content="#080808">\n<link rel="manifest" href="./manifest.json">\n<link rel="icon" href="./icons/empire-icon.svg" type="image/svg+xml">\n<link rel="apple-touch-icon" href="./icons/empire-icon.svg">  <title>Empire | Royal Video Experience</title>  <meta name="description" content="Discover free and premium videos on Empire.">  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>  <style>  
 :root{  
   --gold:#e6bd58;  
   --gold-light:#fff0b0;  
@@ -1918,6 +1918,60 @@ function escapeAttribute(value){
   document.querySelectorAll('img.avatar,img.avatar-large,img.avatar-small,.community-author img,.post-author img,.chat-head img.avatar').forEach(img=>img.classList.add("empire-avatar-zoom"));
 })();
 </script> 
+
+<div id="empireInstallApp" class="empire-install-app" hidden>
+  <div><strong>Install EMPIRE</strong><span>Add EMPIRE to your Home Screen for an app-like experience.</span></div>
+  <button type="button" id="empireInstallButton">Install</button>
+  <button type="button" id="empireInstallClose" aria-label="Dismiss install prompt">×</button>
+</div>
+<style>
+.empire-install-app{position:fixed;z-index:100001;left:14px;right:14px;bottom:calc(14px + env(safe-area-inset-bottom));display:flex;align-items:center;gap:12px;padding:13px 14px;background:rgba(16,16,16,.97);border:1px solid rgba(230,189,88,.65);border-radius:14px;box-shadow:0 12px 36px #000b;color:#fff;font:14px Arial,sans-serif}
+.empire-install-app[hidden]{display:none}
+.empire-install-app div{display:flex;flex:1;min-width:0;flex-direction:column;gap:3px}
+.empire-install-app strong{color:#f3d78f}.empire-install-app span{font-size:11px;color:#aaa}
+.empire-install-app button{border:0;border-radius:9px;padding:10px 13px;background:#e6bd58;color:#111;font-weight:800}
+.empire-install-app #empireInstallClose{padding:5px 9px;background:#292929;color:#ddd;font-size:19px}
+</style>
+<script>
+(function(){
+  if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) {
+    window.addEventListener("load", function(){
+      navigator.serviceWorker.register("./service-worker.js").catch(function(error){
+        console.warn("EMPIRE service worker registration failed:", error);
+      });
+    });
+  }
+
+  const panel = document.getElementById("empireInstallApp");
+  const installButton = document.getElementById("empireInstallButton");
+  const closeButton = document.getElementById("empireInstallClose");
+  if (!panel || !installButton || !closeButton) return;
+
+  let installPrompt = null;
+  const isStandalone = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+  if (isStandalone) return;
+
+  window.addEventListener("beforeinstallprompt", function(event){
+    event.preventDefault();
+    installPrompt = event;
+    panel.hidden = false;
+  });
+
+  installButton.addEventListener("click", async function(){
+    if (!installPrompt) {
+      alert("To install EMPIRE, open your browser menu and choose 'Add to Home screen' or 'Install app'.");
+      return;
+    }
+    installPrompt.prompt();
+    await installPrompt.userChoice;
+    installPrompt = null;
+    panel.hidden = true;
+  });
+
+  closeButton.addEventListener("click", function(){ panel.hidden = true; });
+  window.addEventListener("appinstalled", function(){ panel.hidden = true; });
+})();
+</script>
 </body>  
 </html>  
 
