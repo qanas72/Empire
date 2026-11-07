@@ -42,6 +42,13 @@ footer{text-align:center;color:#777;border-top:1px solid #292929;padding:20px;fo
  <div class="metrics"><div class="metric"><div class="label">PLATFORM DISPLAY PRICE</div><strong id="unitPrice">Loading…</strong><div class="sub">Per 1 EMPC</div></div><div class="metric"><div class="label">ESTIMATED DISPLAY VALUE</div><strong id="estimatedValue">—</strong><div class="sub">Calculation only; not cash value or a withdrawal quote</div></div></div>
 </section>
 
+<section class="panel" id="payoutPointsPanel">
+ <div class="balance">
+  <div><div class="label">PAYOUT POINTS</div><div class="amount" id="payoutPointsBalance">Loading…</div><div class="sub">Points earned from valid advertisement views. They determine your daily withdrawal limit and are not cash or EMPC.</div></div>
+  <a class="btn buy-btn" href="ads.html">📺 Ads · View Advertisements</a>
+ </div>
+</section>
+
 <section class="panel" id="buyPanel">
  <div class="section-head"><h2>🪙 Buy EMPC</h2><small>Minimum $1 USDT</small></div>
  <p class="sub">Buy internal EMPC using USDT. Choose the exact network shown below; sending another asset or using another network may result in lost funds.</p>
@@ -107,11 +114,22 @@ let currentUserId=null;
 const date=v=>{const d=new Date(v);return Number.isNaN(d.getTime())?"Date unavailable":d.toLocaleString();};
 const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
 function notice(message,type="error"){$("notice").textContent=message;$("notice").className="notice show "+type;}
+async function loadPayoutPoints(){
+ try{
+  const {data,error}=await db.from("empire_payout_points").select("balance").eq("user_id",currentUserId).maybeSingle();
+  if(error)throw error;
+  $("payoutPointsBalance").textContent=fmt(data?.balance||0);
+ }catch(error){
+  console.error("Payout Points load failed:",error);
+  $("payoutPointsBalance").textContent="Unavailable";
+ }
+}
 async function init(){
  const {data:auth,error:authError}=await db.auth.getUser();
  if(authError||!auth?.user){location.href="login.html";return;}
  currentUserId=auth.user.id;
  loadWithdrawalData();
+ loadPayoutPoints();
  $("transactions").innerHTML='<div class="loading">Loading wallet history…</div>';
  try{
   const {data:wallet,error}=await db.from("empire_wallets").select("id,balance").eq("user_id",auth.user.id).eq("wallet_type","user").maybeSingle();
