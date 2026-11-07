@@ -847,18 +847,6 @@ text-shadow: 0 0 12px rgba(90, 170, 255, 0.4);
 }
 
 
-/* EMPIRE sponsored advertisement slot */
-.empire-ad-section{width:min(850px,92%);margin:22px auto 8px}
-.empire-ad-card{border:1px solid rgba(230,189,88,.55);border-radius:15px;padding:16px;background:rgba(12,12,12,.92);box-shadow:0 10px 28px rgba(0,0,0,.25)}
-.empire-ad-label{display:inline-block;color:#e6bd58;font-size:11px;font-weight:900;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px}
-.empire-ad-card h3{color:#f3d78f;font-size:19px;margin:0 0 8px;overflow-wrap:anywhere}
-.empire-ad-copy{color:#ddd;line-height:1.7;white-space:pre-wrap;overflow-wrap:anywhere}
-.empire-ad-media{display:block;width:100%;max-height:330px;object-fit:contain;background:#080808;border-radius:10px;margin:12px 0}
-.empire-ad-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:12px}
-.empire-ad-status{color:#c7c7c7;font-size:13px}
-.empire-ad-countdown{color:#ffe5a0;font-weight:900;font-variant-numeric:tabular-nums}
-.empire-ad-link{display:inline-flex;padding:9px 13px;border:1px solid #80642f;border-radius:9px;color:#f3d78f;font-weight:800;font-size:12px}
-
 </style>  </head>  <body>  <header>  
   <div class="container nav"> 
     <div class="brand-cluster">
@@ -907,12 +895,7 @@ text-shadow: 0 0 12px rgba(90, 170, 255, 0.4);
   <span>A Haven for All.</span>
 </div>
 
-<section class="empire-ad-section" aria-label="Sponsored advertisement">
-  <div id="empireAdSlot" class="empire-ad-card" aria-live="polite">
-    <span class="empire-ad-label">EMPIRE Sponsored</span>
-    <p class="empire-ad-status">Checking available advertisements...</p>
-  </div>
-</section>
+
 
   <section id="community" class="community-section">
     <div class="container">
@@ -1906,77 +1889,6 @@ function escapeAttribute(value){
 }  
   
 
-/* EMPIRE sponsored ads: server-enforced two-minute cooldown */
-let empireAdTimer=null;
-let empireAdVisibleSeconds=0;
-let empireAdCompleting=false;
-function stopEmpireAdTimer(){if(empireAdTimer){clearInterval(empireAdTimer);empireAdTimer=null;}}
-function showEmpireAdCooldown(until){
-  stopEmpireAdTimer();
-  const slot=document.getElementById("empireAdSlot");if(!slot)return;
-  const tick=()=>{
-    const left=Math.max(0,until-Date.now());
-    const total=Math.ceil(left/1000);
-    const mm=String(Math.floor(total/60)).padStart(2,"0");
-    const ss=String(total%60).padStart(2,"0");
-    slot.innerHTML='<span class="empire-ad-label">EMPIRE Sponsored</span><h3>Next advertisement</h3><p class="empire-ad-status">You can view another advertisement in <span class="empire-ad-countdown">'+mm+':'+ss+'</span>.</p>';
-    if(left<=0){stopEmpireAdTimer();loadEmpireAd();}
-  };
-  tick();empireAdTimer=setInterval(tick,1000);
-}
-async function loadEmpireAd(){
-  const slot=document.getElementById("empireAdSlot");if(!slot)return;
-  stopEmpireAdTimer();
-  if(!currentSession){slot.innerHTML='<span class="empire-ad-label">EMPIRE Sponsored</span><p class="empire-ad-status">Sign in to view sponsored advertisements.</p>';return;}
-  slot.innerHTML='<span class="empire-ad-label">EMPIRE Sponsored</span><p class="empire-ad-status">Finding an available advertisement...</p>';
-  try{
-    const {data:last,error:lastError}=await supabaseClient.from("empire_ad_impressions")
-      .select("completed_at").eq("user_id",currentSession.user.id).eq("is_valid",true)
-      .not("completed_at","is",null).order("completed_at",{ascending:false}).limit(1).maybeSingle();
-    if(lastError)throw lastError;
-    if(last?.completed_at){
-      const readyAt=new Date(last.completed_at).getTime()+120000;
-      if(readyAt>Date.now()){showEmpireAdCooldown(readyAt);return;}
-    }
-    const {data,error}=await supabaseClient.rpc("get_empire_ad_for_view");
-    if(error)throw error;
-    const ad=Array.isArray(data)?data[0]:data;
-    if(!ad){slot.innerHTML='<span class="empire-ad-label">EMPIRE Sponsored</span><p class="empire-ad-status">No sponsored advertisements are available right now. Please check again later.</p>';return;}
-    const safeUrl=value=>{try{const u=new URL(String(value||""),window.location.href);return /^https?:$/.test(u.protocol)?u.href:"";}catch{return "";}};
-    const media=safeUrl(ad.media_url);
-    const destination=safeUrl(ad.destination_url);
-    slot.innerHTML='<span class="empire-ad-label">Sponsored · Advertisement</span><h3>'+escapeHtml(ad.title||"Advertisement")+'</h3>'+
-      (media?'<img class="empire-ad-media" src="'+escapeAttribute(media)+'" alt="Sponsored advertisement" loading="lazy">':'')+
-      '<p class="empire-ad-copy">'+escapeHtml(ad.ad_text||"")+'</p>'+
-      '<div class="empire-ad-actions">'+(destination?'<a class="empire-ad-link" href="'+escapeAttribute(destination)+'" target="_blank" rel="noopener noreferrer">Visit advertiser</a>':'')+
-      '<span class="empire-ad-status" id="empireAdViewStatus">Keep this advertisement visible for <b class="empire-ad-countdown" id="empireAdSeconds">10</b> seconds.</span></div>';
-    empireAdVisibleSeconds=0;empireAdCompleting=false;
-    empireAdTimer=setInterval(async()=>{
-      if(document.visibilityState!=="visible"||empireAdCompleting)return;
-      empireAdVisibleSeconds++;
-      const counter=document.getElementById("empireAdSeconds");
-      if(counter)counter.textContent=String(Math.max(0,10-empireAdVisibleSeconds));
-      if(empireAdVisibleSeconds>=10){
-        empireAdCompleting=true;stopEmpireAdTimer();
-        const status=document.getElementById("empireAdViewStatus");
-        if(status)status.textContent="Verifying your advertisement view...";
-        try{
-          const {data:balance,error:completeError}=await supabaseClient.rpc("complete_empire_ad_view",{p_impression_key:ad.impression_key});
-          if(completeError)throw completeError;
-          if(status)status.textContent="View confirmed. Your Payout Points balance is now "+String(balance)+".";
-          showEmpireAdCooldown(Date.now()+120000);
-        }catch(completeError){
-          console.error("Advertisement completion error:",completeError);
-          if(status)status.textContent=completeError.message||"The view could not be verified. Please refresh and try again.";
-        }
-      }
-    },1000);
-  }catch(error){
-    console.error("EMPIRE advertisement error:",error);
-    slot.innerHTML='<span class="empire-ad-label">EMPIRE Sponsored</span><p class="empire-ad-status">Advertisements are temporarily unavailable. Please try again later.</p>';
-  }
-}
-
 /* START */  
   
 (async function(){  
@@ -1984,7 +1896,7 @@ async function loadEmpireAd(){
   
   if(!authenticated) return;  
   
-  await Promise.all([loadCommunityFeed(),loadEmpireAd()]);  
+  await loadCommunityFeed();  
 })();  
 
 /* Click any profile avatar to view it larger; tap outside or close to dismiss. */
