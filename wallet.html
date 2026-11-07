@@ -84,6 +84,7 @@ footer{text-align:center;color:#777;border-top:1px solid #292929;padding:20px;fo
  <div class="metrics">
   <div class="metric"><div class="label">5% WITHDRAWAL FEE</div><strong id="withdrawFee">$0.00</strong></div>
   <div class="metric"><div class="label">YOU RECEIVE (95%)</div><strong id="withdrawNet">$0.00</strong></div>
+  <div class="metric"><div class="label">ESTIMATED PAYOUT POINTS DEDUCTION</div><strong id="withdrawPointsEstimate">—</strong><div class="sub">Based on the current administrator setting; final amount is validated when submitted.</div></div>
  </div>
  <p class="buy-help">One request per UTC day. Your daily gross withdrawal limit is calculated from your Payout Points before deduction. When a request is submitted, Payout Points are deducted according to the current administrator setting. If the request is rejected, those points are returned. The requested USDT amount is reserved while pending. Approved requests are paid manually; status and transaction hash appear below.</p>
  <div class="actions"><button class="btn buy-btn" id="submitWithdrawalBtn" type="button">Submit Withdrawal Request</button><button class="btn" id="refreshWithdrawalsBtn" type="button">Refresh Status</button></div>
@@ -118,10 +119,18 @@ async function loadPayoutPoints(){
  try{
   const {data,error}=await db.from("empire_payout_points").select("balance").eq("user_id",currentUserId).maybeSingle();
   if(error)throw error;
-  $("payoutPointsBalance").textContent=fmt(data?.balance||0);
+  payoutPointsBalance=Number(data?.balance||0);
+  $("payoutPointsBalance").textContent=fmt(payoutPointsBalance);
+  const {data:setting,error:settingError}=await db.from("empire_economic_settings").select("setting_value").eq("setting_key","withdrawal_points_per_usd").maybeSingle();
+  if(settingError)throw settingError;
+  const configured=Number(setting?.setting_value);
+  withdrawalPointsPerUsd=Number.isFinite(configured)&&configured>=0?configured:2;
+  updateWithdrawalEstimate();
  }catch(error){
   console.error("Payout Points load failed:",error);
+  payoutPointsBalance=null;
   $("payoutPointsBalance").textContent="Unavailable";
+  $("withdrawPointsEstimate").textContent="Unavailable";
  }
 }
 async function init(){
@@ -159,12 +168,17 @@ async function init(){
 
 const withdrawalNetworks=["TRC20","BEP20","TON"];
 const money=n=>"$"+Number(n||0).toFixed(2);
+let payoutPointsBalance=null;
+let withdrawalPointsPerUsd=2;
 function updateWithdrawalEstimate(){
  const raw=Number($("withdrawAmount").value);
  const valid=Number.isFinite(raw)&&raw>=0;
  const fee=valid?Math.round((raw*0.05+Number.EPSILON)*100)/100:0;
  $("withdrawFee").textContent=money(fee);
  $("withdrawNet").textContent=money(valid?raw-fee:0);
+ const points=valid&&raw>0?Math.ceil(raw*withdrawalPointsPerUsd):0;
+ $("withdrawPointsEstimate").textContent=valid&&raw>0?fmt(points)+" Payout Points":"—";
+ $("withdrawPointsEstimate").title=payoutPointsBalance===null?"Balance unavailable":"Available balance: "+fmt(payoutPointsBalance);
 }
 $("withdrawAmount").addEventListener("input",updateWithdrawalEstimate);
 function withdrawalStatusLabel(status){
