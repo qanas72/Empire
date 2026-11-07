@@ -247,6 +247,7 @@ footer{border-top:1px solid var(--border);padding:26px 0;color:#666;text-align:c
 }
 
 </style>
+<style>.page-back{display:inline-flex;align-items:center;gap:7px;margin:18px 0 12px;padding:9px 15px;border:1px solid #e0b34c88;border-radius:9px;background:#111;color:#ffe7a0;font-weight:800;cursor:pointer}.vip-common-benefits{margin:14px 0 22px;padding:16px;border:1px solid #e0b34c66;border-radius:13px;background:#e0b34c0b}.vip-common-benefits h3{color:var(--gold2);font-size:17px;margin-bottom:8px}.vip-common-benefits p{color:#c9c3b7;font-size:13px;margin:5px 0}.vip-common-benefits ul{padding-left:20px;color:#d8d1c3;font-size:13px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px 18px}.vip-common-benefits li{margin:2px 0}.plan-reward{margin:10px 0 14px;padding:9px;border:1px solid #e0b34c55;border-radius:9px;background:#e0b34c0d}.plan-reward strong{display:block;color:var(--gold2);font-size:11px}.plan-reward span{color:white;font-size:16px;font-weight:900}@media(max-width:600px){.vip-common-benefits ul{grid-template-columns:1fr}}</style>
 </head>
 
 <body>
@@ -255,12 +256,12 @@ footer{border-top:1px solid var(--border);padding:26px 0;color:#666;text-align:c
   <a class="brand" href="index.html" aria-label="Empire Home"><span class="brand-mark" aria-hidden="true">👑</span><span class="brand-name">𝑬𝒎𝒑𝒊𝒓𝒆</span></a>
   <button class="menu-btn" id="menuBtn" aria-label="Open menu">☰</button>
   <nav class="links" id="navLinks">
-   <a href="javascript:history.length>1?history.back():location.href=\'index.html\'" class="nav-back">← Back</a>
-   <a href="index.html">Home</a>
-   <a href="index.html#videos">Videos</a>
-   <a href="premium.html" class="active">Premium & VIP</a>
-   <a href="profile.html">Profile</a>
-   <a href="about.html">About EMPIRE</a>
+   
+   <a href="index.html">🏠 Home</a>
+   <a href="index.html#videos">🎬 Videos</a>
+   <a href="premium.html" class="active">👑 Premium & VIP</a>
+   <a href="profile.html">👤 Profile</a>
+   <a href="about.html">ℹ️ About EMPIRE</a>
    <a href="notifications.html">🔔 Notifications</a>
    <div class="user-area">
     <span class="user-name" id="userName">Loading...</span>
@@ -271,6 +272,7 @@ footer{border-top:1px solid var(--border);padding:26px 0;color:#666;text-align:c
 </header>
 
 <main class="container">
+ <button type="button" class="page-back" onclick="empireGoBack()">🔙 Back</button>
  <section class="page-head">
   <div class="eyebrow">The Empire Membership Experience</div>
   <h1>Enter the <span class="gold">Empire</span> <span class="blue">VIP</span></h1>
@@ -296,6 +298,17 @@ footer{border-top:1px solid var(--border);padding:26px 0;color:#666;text-align:c
     <h2 class="section-title">Choose Your Plan</h2>
     <p class="section-desc">Choose one plan to see its payment instructions. You can return and select a different plan before submitting. The displayed EMPC reward is the VIP plan reward associated with that membership duration.</p>
 
+    <div class="vip-common-benefits">
+     <h3>✨ Benefits included with every active VIP plan</h3>
+     <ul>
+      <li>VIP profile badge while membership is active</li>
+      <li>VIP access to submit videos for administrator review</li>
+      <li>100 EMPC referral reward after an eligible referred member makes a confirmed EMPC purchase of at least $2</li>
+      <li>Messaging costs 3 EMPC per message for both regular and VIP members</li>
+      <li>Video publishing fee: 50 EMPC per submitted video</li>
+      <li>All members must follow EMPIRE community and content rules</li>
+     </ul>
+    </div>
     <div class="vip-grid" id="vipPlanGrid">
      <article class="vip-card" data-plan-card="vip-monthly">
       <div class="plan-label">STARTER</div>
@@ -303,14 +316,7 @@ footer{border-top:1px solid var(--border);padding:26px 0;color:#666;text-align:c
       <div class="price">9 <small>USDT</small></div>
       <div class="duration">30-day membership</div>
       <div class="plan-reward"><strong>VIP Plan Reward</strong><span>4,000 EMPC</span></div>
-      <ul class="features">
-       <li>✓ VIP profile badge after activation</li>
-       <li>✓ Submit videos for admin review when creator uploads are enabled</li>
-       <li>✓ Membership subject to Empire rules</li>
-       <li>✓ 100 EMPC VIP referral reward after an eligible referred member completes a confirmed EMPC purchase of at least $2</li>
-       <li>✓ VIP messaging rate: 3 EMPC per message</li>
-       <li>✓ Video publishing access; 50 EMPC publishing fee applies per video</li>
-      </ul>
+      
       <button class="btn btn-gold full choose-plan" data-plan="vip-monthly">Choose Plan</button>
      </article>
 
@@ -320,11 +326,7 @@ footer{border-top:1px solid var(--border);padding:26px 0;color:#666;text-align:c
       <div class="price">21 <small>USDT</small></div>
       <div class="duration">90-day membership</div>
       <div class="plan-reward"><strong>VIP Plan Reward</strong><span>14,000 EMPC</span></div>
-      <ul class="features">
-       <li>✓ VIP profile badge after activation</li>
-       <li>✓ Submit videos for admin review when creator uploads are enabled</li>
-       <li>✓ Membership subject to Empire rules</li>
-      </ul>
+      
       <button class="btn btn-gold full choose-plan" data-plan="vip-quarterly">Choose Plan</button>
      </article>
 
@@ -334,11 +336,7 @@ footer{border-top:1px solid var(--border);padding:26px 0;color:#666;text-align:c
       <div class="price">49 <small>USDT</small></div>
       <div class="duration">180-day membership</div>
       <div class="plan-reward"><strong>VIP Plan Reward</strong><span>27,000 EMPC</span></div>
-      <ul class="features">
-       <li>✓ VIP profile badge after activation</li>
-       <li>✓ Submit videos for admin review when creator uploads are enabled</li>
-       <li>✓ Membership subject to Empire rules</li>
-      </ul>
+      
       <button class="btn btn-gold full choose-plan" data-plan="vip-semiannual">Choose Plan</button>
      </article>
 
@@ -348,11 +346,7 @@ footer{border-top:1px solid var(--border);padding:26px 0;color:#666;text-align:c
       <div class="price">89 <small>USDT</small></div>
       <div class="duration">365-day membership</div>
       <div class="plan-reward"><strong>VIP Plan Reward</strong><span>550,000 EMPC</span></div>
-      <ul class="features">
-       <li>✓ VIP profile badge after activation</li>
-       <li>✓ Submit videos for admin review when creator uploads are enabled</li>
-       <li>✓ Membership subject to Empire rules</li>
-      </ul>
+      
       <button class="btn btn-gold full choose-plan" data-plan="vip-yearly">Choose Plan</button>
      </article>
     </div>
@@ -364,12 +358,7 @@ footer{border-top:1px solid var(--border);padding:26px 0;color:#666;text-align:c
     Do not send money for testing.
    </div>
 
-   <div class="benefits">
-    <div class="benefit"><b>💎 VIP Profile</b><span>A distinct VIP identity when your membership is active.</span></div>
-    <div class="benefit"><b>🎬 Creator Access</b><span>VIP video submissions will still require admin review.</span></div>
-    <div class="benefit"><b>👑 Empire Community</b><span>Membership and activity must follow site rules.</span></div>
-    <div class="benefit"><b>✨ Future Features</b><span>Additional VIP benefits may be introduced later.</span></div>
-   </div>
+
   </section>
 
   <section class="panel" id="paidVideos">
@@ -1044,5 +1033,6 @@ async function openBuy(videoId){
  }
 })();
 </script>
+<script>function empireGoBack(){const ref=document.referrer;try{if(ref&&new URL(ref).origin===location.origin){history.back();return;}}catch(e){}location.href='index.html';}</script>
 </body>
 </html>
