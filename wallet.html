@@ -85,7 +85,7 @@ footer{text-align:center;color:#777;border-top:1px solid #292929;padding:20px;fo
   <div class="metric"><div class="label">5% WITHDRAWAL FEE</div><strong id="withdrawFee">$0.00</strong></div>
   <div class="metric"><div class="label">YOU RECEIVE (95%)</div><strong id="withdrawNet">$0.00</strong></div>
  </div>
- <p class="buy-help">One request per UTC day. Your Payout Points determine your daily gross withdrawal limit and are not consumed. Once submitted, the requested amount is reserved. An approved request is paid manually; its status and transaction hash will appear below. Rejected requests show the administrator's reason.</p>
+ <p class="buy-help">One request per UTC day. Your daily gross withdrawal limit is calculated from your Payout Points before deduction. When a request is submitted, Payout Points are deducted according to the current administrator setting. If the request is rejected, those points are returned. The requested USDT amount is reserved while pending. Approved requests are paid manually; status and transaction hash appear below.</p>
  <div class="actions"><button class="btn buy-btn" id="submitWithdrawalBtn" type="button">Submit Withdrawal Request</button><button class="btn" id="refreshWithdrawalsBtn" type="button">Refresh Status</button></div>
  <div id="withdrawalMessage" class="status-line">Loading your USDT balances and withdrawal history…</div>
  <div class="section-head" style="margin-top:18px"><h2>📋 Your Withdrawal Requests</h2><small>Latest 30</small></div>
@@ -193,6 +193,8 @@ async function loadWithdrawalData(){
     ["Requested",money(r.requested_amount_usd)],
     ["Fee ("+Number(r.fee_percent||5)+"%)",money(r.fee_amount_usd)],
     ["Net payout",money(r.net_amount_usd)],
+     ["Payout Points deducted",fmt(r.payout_points_deducted||0)],
+     ["Payout Points refunded",r.payout_points_refunded?"Yes":"No"],
     ["Network",r.network||"—"],
     ["Destination",r.destination_address||"—"],
     ["Submitted",date(r.created_at)]
