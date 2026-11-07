@@ -204,7 +204,7 @@ $("submitWithdrawalBtn").addEventListener("click",async()=>{
  try{
   const {data,error}=await db.rpc("submit_empire_withdrawal",{p_amount_usd:amount,p_network:network,p_destination_address:address});
   if(error)throw error;
-  $("withdrawalAmount").value="";
+  $("withdrawAmount").value="";
   $("withdrawAddress").value="";
   updateWithdrawalEstimate();
   $("withdrawalMessage").textContent="Withdrawal request submitted successfully. Your requested amount is reserved pending review.";
