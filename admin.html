@@ -718,6 +718,9 @@ footer{
       <div class="field"><label for="setting_video_publish_fee">🎬 Video publishing fee (EMPC)</label><input id="setting_video_publish_fee" type="number" min="0" max="1000000000" step="0.00000001"></div>
       <div class="field"><label for="setting_exchange_min_holding">🔒 Minimum holding for exchange eligibility (EMPC)</label><input id="setting_exchange_min_holding" type="number" min="0" max="1000000000" step="0.00000001"></div>
       <div class="field"><label for="setting_exchange_holding_months">📅 Required holding period (months)</label><input id="setting_exchange_holding_months" type="number" min="1" max="1200" step="1"></div>
+      <div class="field"><label for="setting_ads_per_point">📺 Valid ads required per reward</label><input id="setting_ads_per_point" type="number" min="1" max="10000" step="1"></div>
+      <div class="field"><label for="setting_points_per_ad_group">🎁 Payout Points per ad group</label><input id="setting_points_per_ad_group" type="number" min="1" max="10000" step="1"></div>
+      <div class="field"><label for="setting_withdrawal_points_per_usd">💵 Payout Points deducted per $1 withdrawal</label><input id="setting_withdrawal_points_per_usd" type="number" min="0" max="10000" step="0.01"></div>
     </div>
     <div class="actions">
       <button class="btn btn-gold" id="saveEconomicSettingsBtn" onclick="saveEconomicSettings()">💾 Save Economic Settings</button>
@@ -1244,7 +1247,10 @@ const ECONOMIC_SETTING_KEYS = [
   "message_fee_vip",
   "video_publish_fee",
   "exchange_min_holding",
-  "exchange_holding_months"
+  "exchange_holding_months",
+  "ads_per_point",
+  "points_per_ad_group",
+  "withdrawal_points_per_usd"
 ];
 
 async function loadEconomicSettings(){
@@ -1535,6 +1541,12 @@ async function saveEconomicSettings(){
     }
     if(key === "exchange_holding_months" && (!Number.isInteger(value) || value < 1)){
       status.textContent = "Holding period must be a whole number of months.";
+      status.className = "status show error";
+      input.focus();
+      return;
+    }
+    if(["ads_per_point","points_per_ad_group"].includes(key) && (!Number.isInteger(value) || value < 1)){
+      status.textContent = "Advertisement reward settings must be whole numbers of at least 1.";
       status.className = "status show error";
       input.focus();
       return;
