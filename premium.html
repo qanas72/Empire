@@ -412,7 +412,7 @@ const VIP_PLANS={
 
 
 async function loadVipPlanSettings(){
- const {data,error}=await supabaseClient.from("empire_vip_plan_settings").select("plan_key,plan_name,duration_days,price_usd,is_enabled");
+ const {data,error}=await supabaseClient.from("empire_vip_plan_settings").select("plan_key,plan_name,duration_days,price_usd,is_enabled,reward_empc,reward_enabled");
  if(error)throw error;
  for(const plan of data||[]){
   const card=document.querySelector('[data-plan-card="'+plan.plan_key+'"]');
@@ -421,6 +421,11 @@ async function loadVipPlanSettings(){
   card.querySelector("h3").textContent=plan.plan_name;
   card.querySelector(".price").innerHTML=Number(plan.price_usd).toFixed(2)+' <small>USDT</small>';
   card.querySelector(".duration").textContent=plan.duration_days+"-day membership";
+  const rewardBox=card.querySelector(".plan-reward");
+  if(rewardBox){
+   rewardBox.style.display=plan.reward_enabled&&Number(plan.reward_empc)>0?"":"none";
+   rewardBox.querySelector("span").textContent=Number(plan.reward_empc||0).toLocaleString()+" EMPC";
+  }
   card.style.display=plan.is_enabled?"":"none";
   const button=card.querySelector(".choose-plan");if(button)button.disabled=!plan.is_enabled;
  }
