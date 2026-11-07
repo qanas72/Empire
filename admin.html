@@ -1319,8 +1319,8 @@ const VIP_PLAN_KEYS=["vip-monthly","vip-quarterly","vip-semiannual","vip-yearly"
 async function loadVipPlanAdmin(){
  const box=document.getElementById("vipPlanAdminList");
  try{
-  const {data,error}=await supabaseClient.from("empire_vip_plan_settings").select("plan_key,plan_name,duration_days,price_usd,is_enabled").order("duration_days");if(error)throw error;
-  box.innerHTML=(data||[]).map(p=>'<div class="video-item" style="display:flex;gap:14px;align-items:center;flex-wrap:wrap"><strong style="min-width:150px">'+escapeHtml(p.plan_name)+'</strong><span>'+p.duration_days+' days</span><label>USD $ <input type="number" min="0" step="0.01" id="vip_price_'+p.plan_key+'" value="'+Number(p.price_usd).toFixed(2)+'" style="width:110px"></label><label><input type="checkbox" id="vip_enabled_'+p.plan_key+'" '+(p.is_enabled?'checked':'')+'> Enabled</label></div>').join("")||'<div class="empty">No VIP plans found.</div>';
+  const {data,error}=await supabaseClient.from("empire_vip_plan_settings").select("plan_key,plan_name,duration_days,price_usd,is_enabled,reward_empc,reward_enabled").order("duration_days");if(error)throw error;
+  box.innerHTML=(data||[]).map(p=>'<div class="video-item" style="display:flex;gap:14px;align-items:center;flex-wrap:wrap"><strong style="min-width:150px">'+escapeHtml(p.plan_name)+'</strong><span>'+p.duration_days+' days</span><label>USD $ <input type="number" min="0" step="0.01" id="vip_price_'+p.plan_key+'" value="'+Number(p.price_usd).toFixed(2)+'" style="width:110px"></label><label>🎁 EMPC reward <input type="number" min="0" max="1000000000" step="0.00000001" id="vip_reward_'+p.plan_key+'" value="'+Number(p.reward_empc||0).toString()+'" style="width:140px"></label><label><input type="checkbox" id="vip_reward_enabled_'+p.plan_key+'" '+(p.reward_enabled?'checked':'')+'> Reward enabled</label><label><input type="checkbox" id="vip_enabled_'+p.plan_key+'" '+(p.is_enabled?'checked':'')+'> Plan enabled</label></div>').join("")||'<div class="empty">No VIP plans found.</div>';
   const {data:users,error:userError}=await supabaseClient.from("profiles").select("id,username,display_name").eq("is_active",true).order("username").limit(1000);if(userError)throw userError;
   document.getElementById("vipGiftUser").innerHTML='<option value="">Choose a member...</option>'+(users||[]).map(u=>'<option value="'+u.id+'">'+escapeHtml(u.display_name||u.username||u.id)+' (@'+escapeHtml(u.username||"member")+')</option>').join("");
   const st=document.getElementById("vipPlanAdminStatus");st.textContent="VIP plans and members loaded.";st.className="status show success";
@@ -1328,8 +1328,19 @@ async function loadVipPlanAdmin(){
 }
 async function saveVipPlanAdmin(){
  const st=document.getElementById("vipPlanAdminStatus");
- try{for(const key of VIP_PLAN_KEYS){const input=document.getElementById("vip_price_"+key);if(!input)continue;const price=Number(input.value),enabled=document.getElementById("vip_enabled_"+key).checked;if(!Number.isFinite(price)||price<0)throw new Error("Invalid price for "+key);const {error}=await supabaseClient.rpc("admin_update_empire_vip_plan",{p_plan_key:key,p_price_usd:price,p_enabled:enabled});if(error)throw error;}
- st.textContent="VIP plan prices saved.";st.className="status show success";
+ try{
+  for(const key of VIP_PLAN_KEYS){
+   const input=document.getElementById("vip_price_"+key);if(!input)continue;
+   const price=Number(input.value),enabled=document.getElementById("vip_enabled_"+key).checked;
+   const rewardInput=document.getElementById("vip_reward_"+key),reward=Number(rewardInput.value);
+   const rewardEnabled=document.getElementById("vip_reward_enabled_"+key).checked;
+   if(!Number.isFinite(price)||price<0)throw new Error("Invalid price for "+key);
+   if(rewardInput.value.trim()===""||!Number.isFinite(reward)||reward<0||reward>1000000000)throw new Error("Invalid EMPC reward for "+key);
+   const {error:priceError}=await supabaseClient.rpc("admin_update_empire_vip_plan",{p_plan_key:key,p_price_usd:price,p_enabled:enabled});if(priceError)throw priceError;
+   const {error:rewardError}=await supabaseClient.rpc("admin_update_empire_vip_plan_reward",{p_plan_key:key,p_reward_empc:reward,p_reward_enabled:rewardEnabled});if(rewardError)throw rewardError;
+  }
+  st.textContent="VIP prices and EMPC rewards saved.";st.className="status show success";
+  await loadVipPlanAdmin();
  }catch(e){st.textContent="Save failed: "+(e.message||"Unknown error");st.className="status show error";}
 }
 async function giftVipToSelectedUser(){
