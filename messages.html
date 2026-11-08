@@ -103,6 +103,46 @@ const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 const $=id=>document.getElementById(id);
 let me=null, members=[], selected=null, balance=0, vip=false, poller=null, chatSession=0, messageFeeRegular=5, messageFeeVip=3;
 const mediaUrlCache=new Map();
+const offlineObjectUrlCache=new Map();
+let mediaAutoDownload=false, mediaVideoAutoplay=false;
+function openOfflineMediaDB(){
+ return new Promise((resolve,reject)=>{
+   if(!("indexedDB" in window)){reject(new Error("Offline storage is not supported by this browser."));return;}
+   const request=indexedDB.open("empire-message-media",1);
+   request.onupgradeneeded=()=>{const database=request.result;if(!database.objectStoreNames.contains("media"))database.createObjectStore("media",{keyPath:"path"});};
+   request.onsuccess=()=>resolve(request.result);
+   request.onerror=()=>reject(request.error||new Error("Could not open offline media storage."));
+ });
+}
+async function getOfflineMedia(path){
+ const database=await openOfflineMediaDB();
+ return new Promise((resolve,reject)=>{
+   const request=database.transaction("media","readonly").objectStore("media").get(path);
+   request.onsuccess=()=>{database.close();resolve(request.result||null);};
+   request.onerror=()=>{database.close();reject(request.error);};
+ });
+}
+async function saveOfflineMedia(path,blob,fileName,mimeType){
+ const database=await openOfflineMediaDB();
+ return new Promise((resolve,reject)=>{
+   const transaction=database.transaction("media","readwrite");
+   transaction.objectStore("media").put({path,blob,fileName,mimeType,savedAt:Date.now()});
+   transaction.oncomplete=()=>{database.close();resolve();};
+   transaction.onerror=()=>{database.close();reject(transaction.error||new Error("Could not save media offline."));};
+ });
+}
+function localMediaUrl(path,blob){let url=offlineObjectUrlCache.get(path);if(!url){url=URL.createObjectURL(blob);offlineObjectUrlCache.set(path,url);}return url;}
+function saveBlobToDevice(blob,fileName){
+ const url=URL.createObjectURL(blob),a=document.createElement("a");
+ a.href=url;a.download=fileName||"empire-media";document.body.appendChild(a);a.click();a.remove();
+ setTimeout(()=>URL.revokeObjectURL(url),30000);
+}
+async function getMessageMediaUrl(path){
+ let url=mediaUrlCache.get(path);if(url)return url;
+ const {data,error}=await db.storage.from("message-media").createSignedUrl(path,3600);
+ if(error)throw error;
+ url=data.signedUrl;mediaUrlCache.set(path,url);return url;
+}
 function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
 const fallbackAvatar="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23222222'/%3E%3Ctext x='50' y='65' text-anchor='middle' font-size='48' fill='%23e8c36b'%3E%E2%98%BB%3C/text%3E%3C/svg%3E";
 function avatar(path){if(!path)return fallbackAvatar;return db.storage.from("avatars").getPublicUrl(path).data?.publicUrl||fallbackAvatar;}
@@ -134,20 +174,30 @@ const rows=(data||[]).reverse();
 const renderedRows=await Promise.all(rows.map(async m=>{
  let body=esc(m.content||"");
  if(m.media_type&&m.media_path){
-   let url=mediaUrlCache.get(m.media_path);
-   if(!url){
-     const options=m.media_type==="file"?{download:m.media_file_name||true}:undefined;
-     const {data:signed,error:signedError}=await db.storage.from("message-media").createSignedUrl(m.media_path,3600,options);
-     if(signedError){body='<span class="media-unavailable">Media unavailable</span>';}
-     else{url=signed.signedUrl;mediaUrlCache.set(m.media_path,url);}
-   }
-   if(url){
-     const safeUrl=esc(url);
-     if(m.media_type==="image")body='<a href="'+safeUrl+'" target="_blank" rel="noopener"><img class="message-media-image" src="'+safeUrl+'" alt="Photo message"></a>';
-     else if(m.media_type==="video")body='<video class="message-media-video" src="'+safeUrl+'" controls controlsList="nodownload" playsinline preload="metadata"></video>';
-     else if(m.media_type==="audio")body='<audio class="message-media-audio" src="'+safeUrl+'" controls controlsList="nodownload" preload="metadata"></audio>';
-     else body='<a class="message-file-link" href="'+safeUrl+'" target="_blank" rel="noopener" download="'+esc(m.media_file_name||"download")+'">📎 '+esc(m.media_file_name||"Download file")+'</a>';
-   }
+   try{
+     if(m.media_type==="image"||m.media_type==="video"){
+       const cached=await getOfflineMedia(m.media_path).catch(()=>null);
+       const url=cached?localMediaUrl(m.media_path,cached.blob):await getMessageMediaUrl(m.media_path);
+       const safeUrl=esc(url);
+       const downloadButton='<button type="button" class="media-btn media-download-btn" data-media-action="download" data-media-path="'+esc(m.media_path)+'" data-file-name="'+esc(m.media_file_name||("EMPIRE-"+m.media_type))+'" data-media-url="'+safeUrl+'">⬇ Download</button>';
+       if(m.media_type==="image"){
+         const visual=mediaAutoDownload?'<a href="'+safeUrl+'" target="_blank" rel="noopener"><img class="message-media-image" src="'+safeUrl+'" alt="Photo message"></a>':'<button type="button" class="media-btn media-load-btn" data-media-action="load" data-media-type="image" data-media-path="'+esc(m.media_path)+'" data-media-url="'+safeUrl+'">View photo</button>';
+         body=visual+downloadButton;
+       }else{
+         const autoplay=mediaVideoAutoplay&&mediaAutoDownload?' autoplay muted':'';
+         const visual=mediaAutoDownload?'<video class="message-media-video" src="'+safeUrl+'" controls controlsList="nodownload" playsinline preload="none"'+autoplay+'></video>':'<button type="button" class="media-btn media-load-btn" data-media-action="load" data-media-type="video" data-media-path="'+esc(m.media_path)+'" data-media-url="'+safeUrl+'">Load video</button>';
+         body=visual+downloadButton;
+       }
+       if(cached)body+='<span class="vip-media-note">✓ Saved for offline viewing</span>';
+     }else{
+       const options=m.media_type==="file"?{download:m.media_file_name||true}:undefined;
+       let url=mediaUrlCache.get(m.media_path);
+       if(!url){const {data:signed,error:signedError}=await db.storage.from("message-media").createSignedUrl(m.media_path,3600,options);if(signedError)throw signedError;url=signed.signedUrl;mediaUrlCache.set(m.media_path,url);}
+       const safeUrl=esc(url);
+       if(m.media_type==="audio")body='<audio class="message-media-audio" src="'+safeUrl+'" controls controlsList="nodownload" preload="metadata"></audio>';
+       else body='<a class="message-file-link" href="'+safeUrl+'" target="_blank" rel="noopener" download="'+esc(m.media_file_name||"download")+'">📎 '+esc(m.media_file_name||"Download file")+'</a>';
+     }
+   }catch(mediaError){console.error(mediaError);body='<span class="media-unavailable">Media unavailable</span>';}
  }
  return '<div class="bubble '+(m.sender_id===me.id?"mine":"")+'" data-message-id="'+esc(m.id)+'">'+body+'<div class="message-actions"><button type="button" class="delete-message" data-message-id="'+esc(m.id)+'" title="Delete this message for me">Delete for me</button><span class="time">'+stamp(m.created_at)+'</span></div></div>';
 }));
@@ -177,6 +227,37 @@ $("chat").innerHTML='<div class="chat-head"><button class="back" id="backBtn" ar
 $("backBtn").addEventListener("click",()=>{$("chat").classList.remove("mobile-open");$("side").classList.remove("mobile-hidden");selected=null;chatSession++;if(poller){clearInterval(poller);poller=null;}renderPeople();});
 $("sendBtn").addEventListener("click",sendMessage);
 $("thread").addEventListener("click",async e=>{
+ const mediaButton=e.target.closest("[data-media-action]");
+ if(mediaButton){
+   const action=mediaButton.dataset.mediaAction,path=mediaButton.dataset.mediaPath,fileName=mediaButton.dataset.fileName||"empire-media";
+   mediaButton.disabled=true;
+   try{
+     let cached=await getOfflineMedia(path).catch(()=>null),blob=cached?.blob;
+     if(action==="download"&&!blob){
+       const url=mediaButton.dataset.mediaUrl||await getMessageMediaUrl(path);
+       const response=await fetch(url);if(!response.ok)throw new Error("Media download failed.");
+       blob=await response.blob();
+       await saveOfflineMedia(path,blob,fileName,blob.type||"application/octet-stream");
+     }
+     if(action==="download"){
+       if(!blob)throw new Error("Media could not be downloaded.");
+       saveBlobToDevice(blob,fileName);
+       mediaButton.textContent="✓ Downloaded";
+     }else{
+       const url=blob?localMediaUrl(path,blob):(mediaButton.dataset.mediaUrl||await getMessageMediaUrl(path));
+       if(mediaButton.dataset.mediaType==="image"){
+         const link=document.createElement("a");link.href=url;link.target="_blank";link.rel="noopener";
+         const img=document.createElement("img");img.className="message-media-image";img.alt="Photo message";img.src=url;link.appendChild(img);
+         mediaButton.replaceWith(link);
+       }else{
+         const video=document.createElement("video");video.className="message-media-video";video.src=url;video.controls=true;video.playsInline=true;video.preload="none";video.controlsList="nodownload";
+         mediaButton.replaceWith(video);
+         if(mediaVideoAutoplay){video.muted=true;video.play().catch(()=>{});}
+       }
+     }
+   }catch(error){console.error(error);showNotice(error.message||"Media action failed.");mediaButton.disabled=false;}
+   return;
+ }
  const button=e.target.closest(".delete-message");if(!button)return;
  const id=button.dataset.messageId;if(!id||!(await confirmDeleteMessage()))return;
  button.disabled=true;
@@ -206,6 +287,8 @@ finally{if($("sendBtn")){$("sendBtn").disabled=false;$("sendBtn").textContent="S
 $("search").addEventListener("input",renderPeople);
 (async()=>{try{const {data,error}=await db.auth.getUser();if(error)throw error;me=data?.user;if(!me){location.href="login.html";return;}
 const [w,v,s]=await Promise.all([loadWallet(),loadVip(),loadEconomicSettings()]);
+mediaAutoDownload=me.user_metadata?.empire_media_auto_download===true;
+mediaVideoAutoplay=me.user_metadata?.empire_video_autoplay===true;
 await loadConnectedMembers();renderPeople();
 const target=new URLSearchParams(location.search).get("user_id");if(target&&target!==me.id){let targetMember=members.find(x=>x.id===target);if(!targetMember){const {data:external,error:externalError}=await db.from("public_user_profiles").select("id,username,display_name,avatar_url,membership_type").eq("id",target).maybeSingle();if(externalError)throw externalError;targetMember=external;}if(targetMember)await openChat(target,targetMember);}
 }catch(e){console.error(e);$("people").innerHTML='<div class="empty">Could not load messages. Please sign in and refresh the page.</div>';}})();
