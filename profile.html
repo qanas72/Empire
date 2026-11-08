@@ -911,6 +911,27 @@
  .profile-nav-container .brand{display:flex!important;font-size:20px}
 }
 
+
+.profile-brand-cluster{display:flex;align-items:center;gap:9px;flex:0 0 auto;min-width:0}
+.profile-raffles-link,.profile-back-link{
+ display:inline-flex;align-items:center;justify-content:center;gap:6px;
+ min-height:36px;padding:7px 11px;border:1px solid rgba(232,195,107,.55);
+ border-radius:9px;background:transparent;color:var(--gold-light);
+ font-size:13px;font-weight:800;white-space:nowrap;text-decoration:none;cursor:pointer;
+}
+.profile-back-link{border-color:rgba(255,255,255,.2);color:#ddd}
+.profile-raffles-link:hover,.profile-back-link:hover{background:rgba(214,173,85,.1);color:#fff}
+@media(max-width:850px){
+ .profile-brand-cluster{gap:6px}
+ .profile-raffles-link,.profile-back-link{min-height:34px;padding:6px 8px;font-size:12px}
+}
+@media(max-width:390px){
+ .profile-brand-cluster{gap:4px}
+ .profile-brand-cluster .brand{font-size:17px!important;gap:4px}
+ .profile-brand-cluster .brand-mark{font-size:22px}
+ .profile-raffles-link,.profile-back-link{padding:5px 6px;font-size:11px}
+}
+
 </style>
 </head>
 
@@ -918,14 +939,17 @@
 
   <header class="topbar">
     <div class="profile-nav-container">
-      <a class="brand" href="index.html#home" aria-label="Empire Home"><span class="brand-mark" aria-hidden="true">👑</span><span class="brand-name">𝑬𝒎𝒑𝒊𝒓𝒆</span></a>
+      <div class="profile-brand-cluster">
+        <a class="brand" href="index.html#home" aria-label="Empire Home"><span class="brand-mark" aria-hidden="true">👑</span><span class="brand-name">𝑬𝒎𝒑𝒊𝒓𝒆</span></a>
+        <a class="profile-raffles-link" href="raffle.html">🎟️ Raffles</a>
+        <button type="button" class="profile-back-link" onclick="history.length>1?history.back():location.href='index.html#home'">← Back</button>
+      </div>
       <nav class="nav-links" id="profileMainLinks" aria-label="Main navigation">
         <a href="index.html#home" onclick="closeProfileMenu()">🏡 Home</a>
         <a href="publishing.html" onclick="closeProfileMenu()">📝 Publishing</a>
         <a href="my-team.html" onclick="closeProfileMenu()">🤝 My Team</a>
         <a href="premium.html" onclick="closeProfileMenu()">👑 Premium</a>
         <a href="about.html" onclick="closeProfileMenu()">ℹ️ About EMPIRE</a>
-        <a href="raffle.html" onclick="closeProfileMenu()">🎟️ Raffles</a>
         <a href="support.html" onclick="closeProfileMenu()">🆘 Support &amp; Help</a>
         <a href="wallet.html" onclick="closeProfileMenu()">🪙 Wallet</a>
         <a href="#accountWarningsCard" id="warningNotificationLink" class="warning-notification-link" aria-label="Account warnings" onclick="closeProfileMenu()">🚫 Warnings <span id="warningNotificationCount" class="warning-notification-count" hidden>0</span></a>
