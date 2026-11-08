@@ -995,6 +995,9 @@
  .profile-section-drawer-head{padding:10px;font-size:10px}
 }
 
+
+/* Main hamburger menu uses the same compact right-side drawer as Profile Sections */
+@media(max-width:850px){.profile-main-drawer{top:72px}.profile-main-drawer .profile-section-drawer-links a,.profile-main-drawer .profile-section-drawer-links button{font-size:12px;min-height:39px}}
 </style>
 </head>
 
@@ -2490,23 +2493,51 @@ function closeProfileSectionMenu(){
 }
 document.addEventListener("keydown",event=>{if(event.key==="Escape")closeProfileSectionMenu();});
 
+function ensureProfileMainDrawer(){
+ let drawer=document.getElementById("profileMainDrawer");
+ if(drawer)return drawer;
+ const source=document.getElementById("profileMainLinks");
+ if(!source)return null;
+ const backdrop=document.createElement("div");
+ backdrop.id="profileMainBackdrop";
+ backdrop.className="profile-section-drawer-backdrop";
+ backdrop.addEventListener("click",closeProfileMenu);
+ drawer=document.createElement("aside");
+ drawer.id="profileMainDrawer";
+ drawer.className="profile-section-drawer profile-main-drawer";
+ drawer.setAttribute("aria-label","Main navigation");
+ drawer.setAttribute("aria-hidden","true");
+ drawer.innerHTML='<div class="profile-section-drawer-head"><span>👑 EMPIRE MENU</span><button type="button" aria-label="Close menu">×</button></div><div class="profile-section-drawer-links"></div>';
+ const links=drawer.querySelector(".profile-section-drawer-links");
+ [...source.children].forEach(item=>{
+   const copy=item.cloneNode(true);
+   copy.removeAttribute("id");
+   if(copy.tagName==="A")copy.addEventListener("click",closeProfileMenu);
+   links.appendChild(copy);
+ });
+ drawer.querySelector(".profile-section-drawer-head button").addEventListener("click",closeProfileMenu);
+ document.body.append(backdrop,drawer);
+ return drawer;
+}
 function toggleProfileMenu(){
- const menu=document.getElementById("profileMainLinks");
+ const drawer=ensureProfileMainDrawer();
  const button=document.querySelector(".profile-menu-toggle");
- if(!menu)return;
- const opened=menu.classList.toggle("open");
+ if(!drawer)return;
+ const opened=!drawer.classList.contains("is-open");
+ drawer.classList.toggle("is-open",opened);
+ document.getElementById("profileMainBackdrop")?.classList.toggle("is-open",opened);
+ drawer.setAttribute("aria-hidden",opened?"false":"true");
  if(button)button.setAttribute("aria-expanded",opened?"true":"false");
 }
 function closeProfileMenu(){
- const menu=document.getElementById("profileMainLinks");
+ const drawer=document.getElementById("profileMainDrawer");
  const button=document.querySelector(".profile-menu-toggle");
- if(menu)menu.classList.remove("open");
+ drawer?.classList.remove("is-open");
+ document.getElementById("profileMainBackdrop")?.classList.remove("is-open");
+ drawer?.setAttribute("aria-hidden","true");
  if(button)button.setAttribute("aria-expanded","false");
 }
-document.addEventListener("click",event=>{
- const container=document.querySelector(".profile-nav-container");
- if(container&&!container.contains(event.target))closeProfileMenu();
-});
+document.addEventListener("keydown",event=>{if(event.key==="Escape")closeProfileMenu();});
 
 </script>
 
