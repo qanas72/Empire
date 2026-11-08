@@ -146,6 +146,36 @@ async function getMessageMediaUrl(path){
  if(error)throw error;
  url=data.signedUrl;mediaUrlCache.set(path,url);return url;
 }
+function formatMediaSize(bytes){
+ const size=Number(bytes);
+ if(!Number.isFinite(size)||size<0)return "Size unavailable";
+ if(size<1024)return size+" B";
+ if(size<1024*1024)return (size/1024).toFixed(1)+" KB";
+ if(size<1024*1024*1024)return (size/(1024*1024)).toFixed(1)+" MB";
+ return (size/(1024*1024*1024)).toFixed(2)+" GB";
+}
+async function loadMessageMediaSizes(paths){
+ const sizes=new Map(),folders=new Map();
+ [...new Set(paths.filter(Boolean))].forEach(path=>{
+   const cut=path.lastIndexOf("/");
+   const folder=cut>=0?path.slice(0,cut):"",name=cut>=0?path.slice(cut+1):path;
+   if(!folders.has(folder))folders.set(folder,new Set());
+   folders.get(folder).add(name);
+ });
+ await Promise.all([...folders.entries()].map(async([folder,names])=>{
+   try{
+     const {data,error}=await db.storage.from("message-media").list(folder,{limit:1000});
+     if(error)throw error;
+     (data||[]).forEach(item=>{
+       if(!names.has(item.name))return;
+       const path=folder?folder+"/"+item.name:item.name;
+       const bytes=item.metadata?.size??item.metadata?.contentLength??item.size;
+       if(bytes!==undefined&&bytes!==null)sizes.set(path,Number(bytes));
+     });
+   }catch(error){console.warn("Could not read message media sizes:",error);}
+ }));
+ return sizes;
+}
 function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
 const fallbackAvatar="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23222222'/%3E%3Ctext x='50' y='65' text-anchor='middle' font-size='48' fill='%23e8c36b'%3E%E2%98%BB%3C/text%3E%3C/svg%3E";
 function avatar(path){if(!path)return fallbackAvatar;return db.storage.from("avatars").getPublicUrl(path).data?.publicUrl||fallbackAvatar;}
@@ -174,18 +204,20 @@ const other=selected;
 const {data,error}=await db.from("empire_messages").select("id,sender_id,receiver_id,content,media_type,media_path,media_file_name,media_mime_type,created_at").or('and(sender_id.eq.'+me.id+',receiver_id.eq.'+other.id+'),and(sender_id.eq.'+other.id+',receiver_id.eq.'+me.id+')').order("created_at",{ascending:false}).limit(300);
 if(error)throw error;
 const rows=(data||[]).reverse();
+const mediaSizes=await loadMessageMediaSizes(rows.filter(m=>m.media_type==="image"||m.media_type==="video").map(m=>m.media_path));
 const renderedRows=await Promise.all(rows.map(async m=>{
  let body=esc(m.content||"");
  if(m.media_type&&m.media_path){
    try{
      if(m.media_type==="image"||m.media_type==="video"){
        const cached=await getOfflineMedia(m.media_path).catch(()=>null);
+       const sizeLabel='<span class="vip-media-note media-size-label">' + esc(formatMediaSize(mediaSizes.get(m.media_path))) + '</span>';
        const url=cached?localMediaUrl(m.media_path,cached.blob):await getMessageMediaUrl(m.media_path);
        const safeUrl=esc(url);
        const downloadButton='<button type="button" class="media-btn media-download-btn" data-media-action="download" data-media-path="'+esc(m.media_path)+'" data-file-name="'+esc(m.media_file_name||("EMPIRE-"+m.media_type))+'" data-media-url="'+safeUrl+'">⬇ Download</button>';
        if(m.media_type==="image"){
          const visual=mediaAutoDownload?'<a href="'+safeUrl+'" target="_blank" rel="noopener"><img class="message-media-image" src="'+safeUrl+'" alt="Photo message"></a>':'<button type="button" class="media-btn media-load-btn" data-media-action="load" data-media-type="image" data-media-path="'+esc(m.media_path)+'" data-media-url="'+safeUrl+'">View photo</button>';
-         body=visual+downloadButton;
+         body=visual+downloadButton+sizeLabel;
        }else{
          const autoplay=mediaVideoAutoplay&&mediaAutoDownload?' autoplay muted':'';
          const visual=mediaAutoDownload?'<video class="message-media-video" src="'+safeUrl+'" controls controlsList="nodownload" playsinline preload="none"'+autoplay+'></video>':'<button type="button" class="media-btn media-load-btn" data-media-action="load" data-media-type="video" data-media-path="'+esc(m.media_path)+'" data-media-url="'+safeUrl+'">Load video</button>';
