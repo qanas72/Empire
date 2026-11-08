@@ -2245,7 +2245,14 @@
         window.location.replace("login.html?account_deleted=1");
       } catch (error) {
         console.error("Account deletion error:", error);
-        showNotice(error.message || "Could not delete your account. Please contact EMPIRE support.", "error");
+        let message = error.message || "Could not delete your account. Please contact EMPIRE support.";
+        try {
+          if (error.context && typeof error.context.json === "function") {
+            const details = await error.context.json();
+            if (details?.error) message = details.error;
+          }
+        } catch (_) {}
+        showNotice(message, "error");
         button.disabled = $("deleteAccountConfirm").value.trim() !== "DELETE";
         button.textContent = "Delete My Account";
       }
