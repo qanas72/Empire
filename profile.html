@@ -1144,6 +1144,17 @@
 
     </section>
 
+    <section class="card" id="deleteAccountCard" style="border-color:rgba(255,100,100,.65)!important;margin-top:34px">
+      <h2 class="section-title" style="color:#ff9b9b">⚠️ Danger Zone</h2>
+      <p class="help-text" style="color:#e5bcbc">Permanently delete your own EMPIRE account. This action cannot be undone. Administrators cannot use this option to delete another user's account.</p>
+      <div class="field" style="max-width:420px;margin:16px 0">
+        <label for="deleteAccountConfirm">Type DELETE to confirm</label>
+        <input id="deleteAccountConfirm" type="text" autocomplete="off" autocapitalize="characters" placeholder="DELETE">
+      </div>
+      <button type="button" class="btn btn-danger" id="deleteAccountButton" disabled>Delete My Account</button>
+      <p class="help-text" style="margin-top:10px;color:#d9b0b0">Wallet and transaction records are not intentionally deleted by the account function. Database relationship effects must still be checked separately.</p>
+    </section>
+
   </main>
 
   <footer>
@@ -2213,6 +2224,33 @@
       }
     }
 
+    async function deleteOwnAccount() {
+      if (!currentUser) return;
+      const confirmation = $("deleteAccountConfirm").value.trim();
+      if (confirmation !== "DELETE") {
+        showNotice("Please type DELETE exactly to confirm account deletion.", "error");
+        return;
+      }
+      const approved = window.confirm("This will permanently delete your EMPIRE login account. Continue?");
+      if (!approved) return;
+
+      const button = $("deleteAccountButton");
+      button.disabled = true;
+      button.textContent = "Deleting account...";
+      try {
+        const { data, error } = await supabaseClient.functions.invoke("delete-account", { body: {} });
+        if (error) throw error;
+        if (data && data.success === false) throw new Error(data.error || "Account deletion was not completed.");
+        await supabaseClient.auth.signOut();
+        window.location.replace("login.html?account_deleted=1");
+      } catch (error) {
+        console.error("Account deletion error:", error);
+        showNotice(error.message || "Could not delete your account. Please contact EMPIRE support.", "error");
+        button.disabled = $("deleteAccountConfirm").value.trim() !== "DELETE";
+        button.textContent = "Delete My Account";
+      }
+    }
+
     async function logout() {
       // Ask before signing out; cancelling leaves the current session untouched.
       const confirmed = window.confirm("Are you sure you want to log out?");
@@ -2262,6 +2300,10 @@
     });
 
     $("logoutButton").addEventListener("click", logout);
+    $("deleteAccountConfirm").addEventListener("input", () => {
+      $("deleteAccountButton").disabled = $("deleteAccountConfirm").value.trim() !== "DELETE";
+    });
+    $("deleteAccountButton").addEventListener("click", deleteOwnAccount);
 // Start the page.
     loadProfile();
   
