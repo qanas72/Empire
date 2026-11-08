@@ -28,7 +28,10 @@
   -webkit-backdrop-filter:none!important;
 }
 
-</style></head><body>
+</style>
+<link rel="stylesheet" href="empire-global-menu.css">
+<script src="empire-global-menu.js" defer></script>
+</head><body>
 <header class="top"><div class="report-brand"><a class="brand" href="index.html" aria-label="Empire Home"><span class="brand-mark" aria-hidden="true">👑</span><span class="brand-name">𝑬𝒎𝒑𝒊𝒓𝒆</span></a><span class="brand-subtitle">— REPORT REVIEW</span></div><nav style="display:flex;gap:14px;flex-wrap:wrap"><button type="button" onclick="history.length>1?history.back():location.href='admin.html'" style="background:transparent;border:0;color:#e8c36b;cursor:pointer;font:inherit">← Back</button><a href="admin.html">Video Admin</a><a href="vip-admin.html">VIP Admin</a><a href="publishing.html">Publishing</a></nav></header><main class="wrap"><h1>Publication reports</h1><p class="muted">Review user reports. Removing a publication hides it from the public feed; dismissing a report leaves the publication visible.</p><div id="message" class="muted">Verifying administrator access...</div><section id="reports" class="card"></section></main>
 <script>
 const db=window.supabase.createClient("https://vubjkwbkuwndkjqfnyom.supabase.co","sb_publishable_Ig1R3dpAKyBfjIGSUhhlKw_uC-QF0QQ");
