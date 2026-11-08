@@ -97,3 +97,61 @@ end; $$;
 drop trigger if exists empire_notify_raffle_winner on public.empire_raffle_winners;
 create trigger empire_notify_raffle_winner after insert on public.empire_raffle_winners
 for each row execute function public.notify_empire_raffle_winner();
+
+
+-- VIP membership notifications: covers paid activations, manual gifts and raffle VIP gifts.
+create or replace function public.notify_empire_vip_membership()
+returns trigger
+language plpgsql
+security definer
+set search_path = public, pg_temp
+as $$
+declare
+  v_plan_name text;
+  v_reward numeric(30,8) := 0;
+  v_reward_enabled boolean := false;
+  v_body text;
+  v_title text;
+begin
+  select
+    coalesce(s.plan_name, new.plan),
+    case when s.reward_enabled then s.reward_empc else 0 end,
+    coalesce(s.reward_enabled, false)
+  into v_plan_name, v_reward, v_reward_enabled
+  from public.empire_vip_plan_settings s
+  where s.plan_key = new.plan;
+
+  v_plan_name := coalesce(v_plan_name, new.plan, 'VIP');
+
+  if new.payment_tx is null then
+    v_title := 'You received a complimentary VIP membership!';
+    v_body := 'A ' || v_plan_name || ' membership has been gifted to your account.';
+  else
+    v_title := 'Your VIP membership is now active';
+    v_body := 'Your ' || v_plan_name || ' membership has been activated successfully.';
+  end if;
+
+  v_body := v_body || ' Valid until: ' ||
+    coalesce(to_char(new.expires_at at time zone 'UTC', 'YYYY-MM-DD HH24:MI'), 'not specified') || ' UTC.';
+
+  if coalesce(v_reward_enabled, false) and coalesce(v_reward, 0) > 0 then
+    v_body := v_body || ' Your plan reward: ' || trim(to_char(v_reward, 'FM999999999999990.########')) || ' EMPC.';
+  end if;
+
+  perform public.create_empire_notification(
+    new.user_id,
+    'vip_membership',
+    v_title,
+    v_body,
+    'premium.html',
+    'vip-membership:' || new.id::text
+  );
+
+  return new;
+end;
+$$;
+
+drop trigger if exists empire_notify_vip_membership on public.vip_memberships;
+create trigger empire_notify_vip_membership
+after insert on public.vip_memberships
+for each row execute function public.notify_empire_vip_membership();
