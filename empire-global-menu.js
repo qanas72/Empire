@@ -26,6 +26,11 @@
   }else if(nav.querySelectorAll('a').length<=1){
     (adminPage?adminLinks:userLinks).forEach(([label,href])=>{if(!Array.from(nav.querySelectorAll('a')).some(a=>a.getAttribute('href')===href)){const a=document.createElement('a');a.href=href;a.textContent=label;nav.appendChild(a);}});
   }
+  // Detach legacy page-specific mobile-menu styling and handlers before moving the nav into the shared drawer.
+  nav.classList.remove('links');
+  nav.removeAttribute('id');
+  nav.removeAttribute('style');
+  nav.querySelectorAll('a').forEach(a=>a.removeAttribute('onclick'));
   const existing=host.querySelector('.menu,.menu-btn,.profile-menu-toggle,.empire-global-toggle');
   const toggle=existing||document.createElement('button');
   toggle.type='button';toggle.classList.add('empire-global-toggle');toggle.setAttribute('aria-label','Open navigation menu');toggle.setAttribute('aria-expanded','false');toggle.innerHTML='<span class="empire-toggle-icon">☷</span><span>MENU</span>';
