@@ -959,7 +959,7 @@ text-shadow: 0 0 12px rgba(90, 170, 255, 0.4);
   class="video-player"  
    controls controlsList="nodownload"  
   playsinline  
-  preload="metadata">  
+  preload="none">  
 </video>
 
   </div>  
@@ -1447,9 +1447,13 @@ async function watchVideo(videoId){
       throw new Error("Secure video URL was not created.");  
     }  
   
+    player.preload = "none";  
     player.src = result.signed_url;  
     player.load();  
-    await player.play().catch(()=>{});  
+    const autoplayEnabled = session.user?.user_metadata?.empire_video_autoplay === true;  
+    if(autoplayEnabled){  
+      await player.play().catch(()=>{});  
+    }  
   
   }catch(error){  
     console.error("VIDEO ERROR:",error);  
