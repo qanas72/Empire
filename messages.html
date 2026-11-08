@@ -104,22 +104,25 @@ const $=id=>document.getElementById(id);
 let me=null, members=[], selected=null, balance=0, vip=false, poller=null, chatSession=0, messageFeeRegular=5, messageFeeVip=3;
 const mediaUrlCache=new Map();
 const offlineObjectUrlCache=new Map();
+let offlineMediaDBPromise=null;
 let mediaAutoDownload=false, mediaVideoAutoplay=false;
 function openOfflineMediaDB(){
- return new Promise((resolve,reject)=>{
+ if(offlineMediaDBPromise)return offlineMediaDBPromise;
+ offlineMediaDBPromise=new Promise((resolve,reject)=>{
    if(!("indexedDB" in window)){reject(new Error("Offline storage is not supported by this browser."));return;}
    const request=indexedDB.open("empire-message-media",1);
    request.onupgradeneeded=()=>{const database=request.result;if(!database.objectStoreNames.contains("media"))database.createObjectStore("media",{keyPath:"path"});};
    request.onsuccess=()=>resolve(request.result);
-   request.onerror=()=>reject(request.error||new Error("Could not open offline media storage."));
+   request.onerror=()=>{offlineMediaDBPromise=null;reject(request.error||new Error("Could not open offline media storage."));};
  });
+ return offlineMediaDBPromise;
 }
 async function getOfflineMedia(path){
  const database=await openOfflineMediaDB();
  return new Promise((resolve,reject)=>{
    const request=database.transaction("media","readonly").objectStore("media").get(path);
-   request.onsuccess=()=>{database.close();resolve(request.result||null);};
-   request.onerror=()=>{database.close();reject(request.error);};
+   request.onsuccess=()=>resolve(request.result||null);
+   request.onerror=()=>reject(request.error);
  });
 }
 async function saveOfflineMedia(path,blob,fileName,mimeType){
@@ -127,8 +130,8 @@ async function saveOfflineMedia(path,blob,fileName,mimeType){
  return new Promise((resolve,reject)=>{
    const transaction=database.transaction("media","readwrite");
    transaction.objectStore("media").put({path,blob,fileName,mimeType,savedAt:Date.now()});
-   transaction.oncomplete=()=>{database.close();resolve();};
-   transaction.onerror=()=>{database.close();reject(transaction.error||new Error("Could not save media offline."));};
+   transaction.oncomplete=()=>resolve();
+   transaction.onerror=()=>reject(transaction.error||new Error("Could not save media offline."));
  });
 }
 function localMediaUrl(path,blob){let url=offlineObjectUrlCache.get(path);if(!url){url=URL.createObjectURL(blob);offlineObjectUrlCache.set(path,url);}return url;}
