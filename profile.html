@@ -932,6 +932,45 @@
  .profile-raffles-link,.profile-back-link{padding:5px 6px;font-size:11px}
 }
 
+
+/* Secondary in-page menu: ordered shortcuts to every profile section */
+.profile-section-menu{
+ width:min(1120px,92%);margin:16px auto 22px;padding:15px 17px;
+ border:1px solid rgba(245,217,139,.62);border-radius:14px;
+ background:rgba(8,8,8,.72);box-shadow:0 8px 24px rgba(0,0,0,.22);
+}
+.profile-section-menu-title{
+ color:#f5d98b;font-size:14px;font-weight:800;margin:0 0 11px;
+ letter-spacing:.3px;
+}
+.profile-section-menu-links{
+ display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;
+}
+.profile-section-menu-links a{
+ display:flex;align-items:center;min-height:38px;padding:8px 10px;
+ border:1px solid rgba(245,217,139,.22);border-radius:8px;
+ color:#e8e2d5;font-size:12px;line-height:1.35;
+ background:rgba(255,255,255,.025);
+}
+.profile-section-menu-links a:hover{
+ color:#ffe39a;border-color:rgba(245,217,139,.75);
+ background:rgba(214,173,85,.09);
+}
+#profileOverview,#socialPanel,#bioCard,#profileEditSection,#vipMembershipSection,
+#empireWalletSection,#empirePublishingOption,#myPublicationsOption,
+#premiumMembershipOption,#vipCreatorCard,#exchangeOption,#investmentOption,
+#empireReferralCard,#accountWarningsCard,#purchaseHistorySection,#accountSettingsSection{
+ scroll-margin-top:90px;
+}
+@media(max-width:850px){
+ .profile-section-menu{margin-top:12px;padding:13px}
+ .profile-section-menu-links{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+ .profile-section-menu-links a{font-size:12px;min-height:40px;padding:8px}
+}
+@media(max-width:390px){
+ .profile-section-menu-links{grid-template-columns:1fr}
+}
+
 </style>
 </head>
 
@@ -962,6 +1001,28 @@
   </header>
   <main class="page">
 
+    <nav class="profile-section-menu" aria-label="Profile page menu">
+      <div class="profile-section-menu-title">☰ Profile Menu</div>
+      <div class="profile-section-menu-links">
+        <a href="#profileOverview">👤 Profile Overview</a>
+        <a href="#socialPanel">👥 Followers &amp; Friends</a>
+        <a href="#bioCard">📝 Bio</a>
+        <a href="#profileEditSection">✏️ Edit Display Name</a>
+        <a href="#vipMembershipSection">👑 VIP Membership</a>
+        <a href="#empireWalletSection">🪙 EmpireCoin Wallet</a>
+        <a href="#empirePublishingOption">✍️ Empire Publishing</a>
+        <a href="#myPublicationsOption">📚 My Publications</a>
+        <a href="#premiumMembershipOption">♛ Premium Membership</a>
+        <a href="#vipCreatorCard" id="profileVipStudioMenuLink" style="display:none">🎬 VIP Video Publishing</a>
+        <a href="#exchangeOption">🔄 Exchange</a>
+        <a href="#investmentOption">📈 Investment</a>
+        <a href="#empireReferralCard">🤝 Invite Friends &amp; Earn EMPC</a>
+        <a href="#accountWarningsCard">⚠️ Account Warnings</a>
+        <a href="#purchaseHistorySection">🛒 Purchase History</a>
+        <a href="#accountSettingsSection">⚙️ Account Settings</a>
+      </div>
+    </nav>
+
     <div id="notice" class="notice"></div>
 
     <div class="page-heading">
@@ -970,7 +1031,7 @@
     </div>
 
     <!-- Premium glass profile header -->
-    <section class="card profile-hero">
+    <section class="card profile-hero" id="profileOverview">
       <div class="profile-main">
         <div class="avatar-stage">
           <div class="avatar-large-wrap" aria-label="EMPIRE imperial crest">
@@ -1039,7 +1100,7 @@
     </section>
 
     <!-- Compact display-name editor -->
-    <section class="card profile-edit-card">
+    <section class="card profile-edit-card" id="profileEditSection">
       <h2 class="section-title">✏️ Edit Display Name</h2>
       <form id="profileForm" class="profile-name-form">
         <div class="field">
@@ -1052,7 +1113,7 @@
     <input id="avatarFile" type="file" accept="image/jpeg,image/png,image/webp" hidden>
 
     <!-- VIP Membership -->
-    <section class="card vip-card">
+    <section class="card vip-card" id="vipMembershipSection">
 
       <h2 class="section-title">
         ♛ VIP Membership
@@ -1109,21 +1170,21 @@
 
     <!-- Rank and EmpireCoin -->
     <section class="feature-grid">
-      <a class="feature-card" href="publishing.html">
+      <a class="feature-card" id="empirePublishingOption" href="publishing.html">
         <div class="feature-icon">✍️</div>
         <h3>Empire Publishing</h3>
         <p>Publish text and images, explore community publications and report content that breaks the rules.</p>
         <span class="coming-soon">OPEN PUBLISHING</span>
       </a>
 
-      <a class="feature-card" href="my-publications.html">
+      <a class="feature-card" id="myPublicationsOption" href="my-publications.html">
         <div class="feature-icon">📚</div>
         <h3>My Publications</h3>
         <p>View all your posts, photos and submitted videos. Manage your own publications.</p>
         <span class="coming-soon">VIEW MY CONTENT</span>
       </a>
 
-      <a class="feature-card" href="premium.html">
+      <a class="feature-card" id="premiumMembershipOption" href="premium.html">
         <div class="feature-icon">♛</div><h3>Premium Membership</h3>
         <p>Explore membership plans and premium benefits.</p><span class="coming-soon">EXPLORE PREMIUM</span>
       </a>
@@ -1145,7 +1206,7 @@
         <a class="coming-soon" id="coinLabel" href="wallet.html">OPEN WALLET</a>
       </div>
 
-      <div class="feature-card">
+      <div class="feature-card" id="exchangeOption">
         <div class="feature-icon">🔄</div>
         <h3>Exchange</h3>
         <p>
@@ -1154,7 +1215,7 @@
         <span class="coming-soon">COMING SOON</span>
       </div>
 
-      <div class="feature-card">
+      <div class="feature-card" id="investmentOption">
         <div class="feature-icon">📈</div>
         <h3>Investment</h3>
         <p>
@@ -1183,7 +1244,7 @@
     </section>
 
     <!-- Purchase history -->
-    <section class="card">
+    <section class="card" id="purchaseHistorySection">
 
       <h2 class="section-title">
         Purchase History
@@ -1197,7 +1258,7 @@
     </section>
 
     <!-- Account actions -->
-    <section class="card">
+    <section class="card" id="accountSettingsSection">
 
       <h2 class="section-title">Account Settings</h2>
 
