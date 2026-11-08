@@ -3,7 +3,10 @@
 <title>EMPIRE | Support Requests</title><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *{box-sizing:border-box}body{margin:0;background:#080808;color:#f5f5f5;font-family:Arial,sans-serif}.wrap{width:min(1050px,94%);margin:28px auto}.top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;border-bottom:1px solid #49391e;padding:16px 3%}.brand,.gold{color:#e8c36b}.brand{text-decoration:none;font-weight:900}.btn{display:inline-block;padding:10px 14px;border-radius:8px;border:0;text-decoration:none;cursor:pointer;font-weight:700}.goldbtn{background:#e8c36b;color:#15110a}.dark{background:#242424;color:#eee}.card{border:1px solid rgba(245,217,139,.82);border-radius:12px;padding:17px;margin:14px 0;background:transparent}.muted{color:#aaa;font-size:13px;line-height:1.7}.meta{font-size:12px;color:#bba36d;margin:8px 0}.message{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.7;background:#111;padding:13px;border-radius:8px;margin:12px 0}.status{padding:7px 10px;border-radius:7px;background:#2a2110;color:#f1c75a;display:inline-block;font-size:12px}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}select,textarea{width:100%;padding:11px;border-radius:8px;background:#080808;color:#fff;border:1px solid #80642f;margin-top:7px}textarea{min-height:90px}.empty{padding:24px;text-align:center;color:#999;border:1px dashed #66532d;border-radius:10px}
-</style></head><body>
+</style>
+<link rel="stylesheet" href="empire-global-menu.css">
+<script src="empire-global-menu.js" defer></script>
+</head><body>
 <header class="top"><a class="brand" href="admin.html">♛ EMPIRE — Emperor</a><div><button class="btn dark" type="button" onclick="history.length>1?history.back():location.href='admin.html'">← Back</button></div></header>
 <main class="wrap"><h1 class="gold">Support Messages & Requests</h1><p class="muted">Review user requests, send a reply, and update each request status.</p>
 <div class="actions"><button class="btn goldbtn" id="refreshBtn">Refresh</button><select id="statusFilter" style="width:auto;margin:0"><option value="all">All requests</option><option value="new">New</option><option value="in_progress">In progress</option><option value="resolved">Resolved</option></select></div>
