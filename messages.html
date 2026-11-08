@@ -53,7 +53,7 @@ main{width:min(1180px,94%);margin:28px auto 55px}.heading{margin-bottom:20px}.he
   -webkit-backdrop-filter:none!important;
 }
 
- .media-tools{display:flex;gap:9px;margin-top:10px;flex-wrap:wrap}.media-btn{background:#211b10;color:#f2d68b;border:1px solid #80642f;border-radius:9px;padding:9px 12px;cursor:pointer;font-size:12px}.media-btn:disabled{opacity:.5}.vip-media-note{font-size:11px;color:#999;margin-top:9px}.message-media-image{display:block;max-width:min(100%,360px);max-height:320px;border-radius:10px;object-fit:contain}.message-media-video{display:block;width:min(100%,420px);max-height:320px;border-radius:10px;background:#000}.message-media-audio{display:block;max-width:min(100%,320px)} .media-unavailable{color:#ffb7b7;font-size:12px}</style>
+ .media-tools{display:flex;gap:9px;margin-top:10px;flex-wrap:wrap}.media-btn{background:#211b10;color:#f2d68b;border:1px solid #80642f;border-radius:9px;padding:9px 12px;cursor:pointer;font-size:12px}.media-btn:disabled{opacity:.5}.vip-media-note{font-size:11px;color:#999;margin-top:9px}.message-media-image{display:block;max-width:min(100%,360px);max-height:320px;border-radius:10px;object-fit:contain}.message-media-video{display:block;width:min(100%,420px);max-height:320px;border-radius:10px;background:#000}.message-media-audio{display:block;max-width:min(100%,320px)} .message-file-link{display:inline-flex;align-items:center;gap:8px;padding:10px 12px;border:1px solid #80642f;border-radius:9px;color:#f2d68b;overflow-wrap:anywhere}.message-actions{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:6px}.message-actions .time{margin:0}.delete-message{border:0;background:transparent;color:#c9a65b;font-size:10px;padding:2px 0;cursor:pointer}.delete-message:hover{color:#ffb5a8}.media-unavailable{color:#ffb7b7;font-size:12px}</style>
 </head>
 <body>
 <header class="top"><a class="brand" href="index.html" aria-label="Empire Home"><span class="brand-mark" aria-hidden="true">👑</span><span class="brand-name">𝑬𝒎𝒑𝒊𝒓𝒆</span></a><nav class="nav"><button type="button" onclick="history.length>1?history.back():location.href='index.html'" class="back-nav">← Back</button><a href="index.html">🏠 Home</a><a href="members.html">👥 Members</a><a href="profile.html">👤 My Profile</a><a href="notifications.html">🔔 Notifications</a></nav></header>
@@ -66,6 +66,7 @@ const SUPABASE_KEY="sb_publishable_Ig1R3dpAKyBfjIGSUhhlKw_uC-QF0QQ";
 const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 const $=id=>document.getElementById(id);
 let me=null, members=[], selected=null, balance=0, vip=false, poller=null, messageFeeRegular=5, messageFeeVip=3;
+const mediaUrlCache=new Map();
 function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
 const fallbackAvatar="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23222222'/%3E%3Ctext x='50' y='65' text-anchor='middle' font-size='48' fill='%23e8c36b'%3E%E2%98%BB%3C/text%3E%3C/svg%3E";
 function avatar(path){if(!path)return fallbackAvatar;return db.storage.from("avatars").getPublicUrl(path).data?.publicUrl||fallbackAvatar;}
@@ -79,32 +80,78 @@ $("people").innerHTML=list.map(m=>'<button class="person '+(selected?.id===m.id?
 $("people").querySelectorAll("[data-id]").forEach(b=>b.addEventListener("click",()=>openChat(b.dataset.id)));}
 async function loadConnectedMembers(){const [followers,following]=await Promise.all([db.from("user_follows").select("follower_id").eq("following_id",me.id),db.from("user_follows").select("following_id").eq("follower_id",me.id)]);if(followers.error)throw followers.error;if(following.error)throw following.error;const ids=[...new Set([...(followers.data||[]).map(x=>x.follower_id),...(following.data||[]).map(x=>x.following_id)])].filter(id=>id!==me.id);if(!ids.length){members=[];return;}const {data,error}=await db.from("public_user_profiles").select("id,username,display_name,avatar_url,membership_type").in("id",ids).order("display_name");if(error)throw error;members=data||[];}
 let voiceRecorder=null,voiceChunks=[];
-async function sendMedia(file,type){if(!vip){showNotice("Active VIP membership is required for media messages.");return;}if(!selected)return;if(file.size>50*1024*1024){showNotice("Maximum media file size is 50 MB.");return;}if(balance<fee()){showNotice("Insufficient EMPC balance. You need at least "+fee()+" EMPC.");return;}const button=$("mediaBtn")||$("voiceBtn");if(button){button.disabled=true;button.textContent="Uploading...";}try{const ext=(file.name&&file.name.includes(".")?file.name.split(".").pop():({image:"jpg",video:"mp4",audio:"webm"}[type])).toLowerCase().replace(/[^a-z0-9]/g,"");const path=me.id+"/"+Date.now()+"-"+Math.random().toString(36).slice(2)+"."+ext;const {error:uploadError}=await db.storage.from("message-media").upload(path,file,{contentType:file.type||"application/octet-stream",upsert:false});if(uploadError)throw uploadError;const {data,error}=await db.rpc("send_empire_media_message",{p_receiver_id:selected.id,p_media_type:type,p_media_path:path});if(error){await db.storage.from("message-media").remove([path]);throw error;}const result=Array.isArray(data)?data[0]:data;if(result?.remaining_balance!==undefined)balance=Number(result.remaining_balance);else await loadWallet();await renderChat(false);}catch(error){console.error(error);showNotice(error.message||"Media message could not be sent.");}finally{if($("mediaBtn")){$("mediaBtn").disabled=false;$("mediaBtn").textContent="＋ Photo / Video";}if($("voiceBtn")){$("voiceBtn").disabled=false;if(!voiceRecorder)$("voiceBtn").textContent="🎙 Record voice";}if($("balanceText"))$("balanceText").innerHTML=balance.toLocaleString(undefined,{maximumFractionDigits:8})+' EMPC<small>Wallet balance</small>';}}
+async function sendMedia(file,type){if(!vip){showNotice("Active VIP membership is required for media messages.");return;}if(!selected)return;if(file.size>50*1024*1024){showNotice("Maximum media file size is 50 MB.");return;}if(balance<fee()){showNotice("Insufficient EMPC balance. You need at least "+fee()+" EMPC.");return;}const button=$("mediaBtn")||$("voiceBtn");if(button){button.disabled=true;button.textContent="Uploading...";}try{const ext=(file.name&&file.name.includes(".")?file.name.split(".").pop():({image:"jpg",video:"mp4",audio:"webm"}[type])).toLowerCase().replace(/[^a-z0-9]/g,"");const path=me.id+"/"+Date.now()+"-"+Math.random().toString(36).slice(2)+"."+ext;const {error:uploadError}=await db.storage.from("message-media").upload(path,file,{contentType:file.type||"application/octet-stream",upsert:false});if(uploadError)throw uploadError;const {data,error}=await db.rpc("send_empire_media_message",{p_receiver_id:selected.id,p_media_type:type,p_media_path:path,p_file_name:file.name||("EMPIRE-"+type),p_mime_type:file.type||"application/octet-stream"});if(error){await db.storage.from("message-media").remove([path]);throw error;}const result=Array.isArray(data)?data[0]:data;if(result?.remaining_balance!==undefined)balance=Number(result.remaining_balance);else await loadWallet();await renderChat(false);}catch(error){console.error(error);showNotice(error.message||"Media message could not be sent.");}finally{if($("mediaBtn")){$("mediaBtn").disabled=false;$("mediaBtn").textContent="＋ Photo / Video";}if($("voiceBtn")){$("voiceBtn").disabled=false;if(!voiceRecorder)$("voiceBtn").textContent="🎙 Record voice";}if($("balanceText"))$("balanceText").innerHTML=balance.toLocaleString(undefined,{maximumFractionDigits:8})+' EMPC<small>Wallet balance</small>';}}
 async function toggleVoiceRecording(){if(!vip)return;const button=$("voiceBtn");if(voiceRecorder&&voiceRecorder.state==="recording"){voiceRecorder.stop();button.disabled=true;button.textContent="Preparing voice...";return;}try{const stream=await navigator.mediaDevices.getUserMedia({audio:true});const options=MediaRecorder.isTypeSupported("audio/webm")?{mimeType:"audio/webm"}:{};voiceRecorder=new MediaRecorder(stream,options);voiceChunks=[];voiceRecorder.ondataavailable=e=>{if(e.data.size)voiceChunks.push(e.data);};voiceRecorder.onstop=async()=>{stream.getTracks().forEach(t=>t.stop());const blob=new Blob(voiceChunks,{type:voiceRecorder.mimeType||"audio/webm"});voiceRecorder=null;if(blob.size){const ext=blob.type.includes("mp4")?"m4a":"webm";await sendMedia(new File([blob],"voice-"+Date.now()+"."+ext,{type:blob.type}),"audio");}if(button){button.disabled=false;button.textContent="🎙 Record voice";}};voiceRecorder.start();button.textContent="■ Stop voice";}catch(error){console.error(error);showNotice("Microphone access is unavailable. Please allow microphone access.");}}
 async function loadWallet(){const {data,error}=await db.from("empire_wallets").select("balance").eq("user_id",me.id).eq("wallet_type","user").maybeSingle();if(error)throw error;balance=Number(data?.balance||0);}
 async function loadVip(){const {data,error}=await db.from("vip_memberships").select("status,expires_at").eq("user_id",me.id).eq("status","active").gt("expires_at",new Date().toISOString()).limit(1);if(error)throw error;vip=!!data?.length;}
-async function openChat(id,externalMember=null){selected=members.find(m=>m.id===id)||externalMember;if(!selected)return;renderPeople();$("side").classList.add("mobile-hidden");$("chat").classList.add("mobile-open");await renderChat(true);if(poller)clearInterval(poller);poller=setInterval(()=>{if(selected)renderChat(true).catch(console.error);},12000);}
+async function openChat(id,externalMember=null){selected=members.find(m=>m.id===id)||externalMember;if(!selected)return;renderPeople();$("side").classList.add("mobile-hidden");$("chat").classList.add("mobile-open");await renderChat(true);if(poller)clearInterval(poller);poller=setInterval(()=>{if(selected&&!document.hidden)renderChat(true).catch(console.error);},15000);}
 async function renderChat(quiet=false){
 if(!selected)return;
 const activeInput=$("messageInput");
 if(quiet && activeInput && document.activeElement===activeInput)return;
 const other=selected;
-const {data,error}=await db.from("empire_messages").select("id,sender_id,receiver_id,content,media_type,media_path,created_at").or('and(sender_id.eq.'+me.id+',receiver_id.eq.'+other.id+'),and(sender_id.eq.'+other.id+',receiver_id.eq.'+me.id+')').order("created_at",{ascending:true}).limit(300);
+const {data,error}=await db.from("empire_messages").select("id,sender_id,receiver_id,content,media_type,media_path,media_file_name,media_mime_type,created_at").or('and(sender_id.eq.'+me.id+',receiver_id.eq.'+other.id+'),and(sender_id.eq.'+other.id+',receiver_id.eq.'+me.id+')').order("created_at",{ascending:true}).limit(300);
 if(error)throw error;
 const rows=data||[];
-const renderedRows=await Promise.all(rows.map(async m=>{let body=esc(m.content||"");if(m.media_type&&m.media_path){const {data:signed,error:signedError}=await db.storage.from("message-media").createSignedUrl(m.media_path,3600);if(signedError){body='<span class="media-unavailable">Media unavailable</span>';}else{const url=esc(signed.signedUrl);if(m.media_type==="image")body='<a href="'+url+'" target="_blank" rel="noopener"><img class="message-media-image" src="'+url+'" alt="Photo message"></a>';else if(m.media_type==="video")body='<video class="message-media-video" src="'+url+'" controls playsinline preload="metadata"></video>';else body='<audio class="message-media-audio" src="'+url+'" controls preload="metadata"></audio>';}}return '<div class="bubble '+(m.sender_id===me.id?"mine":"")+'">'+body+'<span class="time">'+stamp(m.created_at)+'</span></div>'; }));const threadHtml=renderedRows.join("")||'<div class="empty">No messages yet. Start the conversation.</div>';
+const renderedRows=await Promise.all(rows.map(async m=>{
+ let body=esc(m.content||"");
+ if(m.media_type&&m.media_path){
+   let url=mediaUrlCache.get(m.media_path);
+   if(!url){
+     const options=m.media_type==="file"?{download:m.media_file_name||true}:undefined;
+     const {data:signed,error:signedError}=await db.storage.from("message-media").createSignedUrl(m.media_path,3600,options);
+     if(signedError){body='<span class="media-unavailable">Media unavailable</span>';}
+     else{url=signed.signedUrl;mediaUrlCache.set(m.media_path,url);}
+   }
+   if(url){
+     const safeUrl=esc(url);
+     if(m.media_type==="image")body='<a href="'+safeUrl+'" target="_blank" rel="noopener"><img class="message-media-image" src="'+safeUrl+'" alt="Photo message"></a>';
+     else if(m.media_type==="video")body='<video class="message-media-video" src="'+safeUrl+'" controls controlsList="nodownload" playsinline preload="metadata"></video>';
+     else if(m.media_type==="audio")body='<audio class="message-media-audio" src="'+safeUrl+'" controls controlsList="nodownload" preload="metadata"></audio>';
+     else body='<a class="message-file-link" href="'+safeUrl+'" target="_blank" rel="noopener" download="'+esc(m.media_file_name||"download")+'">📎 '+esc(m.media_file_name||"Download file")+'</a>';
+   }
+ }
+ return '<div class="bubble '+(m.sender_id===me.id?"mine":"")+'" data-message-id="'+esc(m.id)+'">'+body+'<div class="message-actions"><button type="button" class="delete-message" data-message-id="'+esc(m.id)+'" title="Delete this message for me">Delete for me</button><span class="time">'+stamp(m.created_at)+'</span></div></div>';
+}));
 const existingThread=$("thread");
 if(existingThread){
-  const wasNearBottom=existingThread.scrollHeight-existingThread.scrollTop-existingThread.clientHeight<90;
-  existingThread.innerHTML=threadHtml;
-  if(wasNearBottom)existingThread.scrollTop=existingThread.scrollHeight;
-  if($("balanceText"))$("balanceText").innerHTML=balance.toLocaleString(undefined,{maximumFractionDigits:8})+' EMPC<small>Wallet balance</small>';
-  return;
+ const wasNearBottom=existingThread.scrollHeight-existingThread.scrollTop-existingThread.clientHeight<90;
+ const oldNodes=new Map([...existingThread.querySelectorAll("[data-message-id].bubble")].map(node=>[node.dataset.messageId,node]));
+ const keep=new Set();
+ for(const html of renderedRows){
+   const holder=document.createElement("div");holder.innerHTML=html;
+   const fresh=holder.firstElementChild;const id=fresh.dataset.messageId;
+   const node=oldNodes.get(id)||fresh;
+   keep.add(id);
+   existingThread.appendChild(node);
+ }
+ for(const [id,node] of oldNodes){if(!keep.has(id))node.remove();}
+ if(!rows.length&&!existingThread.querySelector(".empty"))existingThread.innerHTML='<div class="empty">No messages yet. Start the conversation.</div>';
+ if(wasNearBottom)existingThread.scrollTop=existingThread.scrollHeight;
+ if($("balanceText"))$("balanceText").innerHTML=balance.toLocaleString(undefined,{maximumFractionDigits:8})+' EMPC<small>Wallet balance</small>';
+ return;
 }
-$("chat").innerHTML='<div class="chat-head"><button class="back" id="backBtn" aria-label="Back">‹</button><img class="avatar" src="'+esc(avatar(other.avatar_url))+'" alt=""><div><div class="chat-name">'+esc(other.display_name||other.username)+'</div><div class="chat-status">@'+esc(other.username)+'</div></div><div class="balance" id="balanceText">'+balance.toLocaleString()+' EMPC<small>Wallet balance</small></div></div><div class="thread" id="thread">'+threadHtml+'</div><div class="composer"><div id="msgNotice" class="notice"></div><div class="fee-row"><span>Cost per message</span><strong>'+fee()+' EMPC '+(vip?"(VIP rate)":"")+'</strong></div><div class="compose-row"><textarea id="messageInput" maxlength="5000" placeholder="Write a private message..."></textarea><button class="send" id="sendBtn">Send</button></div>'+(vip?'<div class="media-tools"><input id="mediaInput" type="file" accept="image/*,video/*" hidden><button type="button" class="media-btn" id="mediaBtn">＋ Photo / Video</button><button type="button" class="media-btn" id="voiceBtn">🎙 Record voice</button></div>':'<div class="vip-media-note">Photo, video and voice messages are available to VIP members.</div>')+'</div>';
+$("chat").innerHTML='<div class="chat-head"><button class="back" id="backBtn" aria-label="Back">‹</button><img class="avatar" src="'+esc(avatar(other.avatar_url))+'" alt=""><div><div class="chat-name">'+esc(other.display_name||other.username)+'</div><div class="chat-status">@'+esc(other.username)+'</div></div><div class="balance" id="balanceText">'+balance.toLocaleString()+' EMPC<small>Wallet balance</small></div></div><div class="thread" id="thread">'+(renderedRows.join("")||'<div class="empty">No messages yet. Start the conversation.</div>')+'</div><div class="composer"><div id="msgNotice" class="notice"></div><div class="fee-row"><span>Cost per message</span><strong>'+fee()+' EMPC '+(vip?"(VIP rate)":"")+'</strong></div><div class="compose-row"><textarea id="messageInput" maxlength="5000" placeholder="Write a private message..."></textarea><button class="send" id="sendBtn">Send</button></div>'+(vip?'<div class="media-tools"><input id="mediaInput" type="file" accept="image/*,video/*,audio/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.zip" hidden><button type="button" class="media-btn" id="mediaBtn">＋ Photo / Video</button><button type="button" class="media-btn" id="fileBtn">📎 File</button><button type="button" class="media-btn" id="voiceBtn">🎙 Record voice</button></div>':'<div class="vip-media-note">Photo, video, voice and file messages are available to VIP members.</div>')+'</div>';
 $("backBtn").addEventListener("click",()=>{$("chat").classList.remove("mobile-open");$("side").classList.remove("mobile-hidden");selected=null;if(poller)clearInterval(poller);renderPeople();});
 $("sendBtn").addEventListener("click",sendMessage);
-if(vip){$("mediaBtn")?.addEventListener("click",()=>$("mediaInput").click());$("mediaInput")?.addEventListener("change",e=>{const file=e.target.files?.[0];if(file){const type=file.type.startsWith("image/")?"image":file.type.startsWith("video/")?"video":null;if(!type){showNotice("Please choose an image or video.");return;}sendMedia(file,type);}e.target.value="";});$("voiceBtn")?.addEventListener("click",toggleVoiceRecording);}
+$("thread").addEventListener("click",async e=>{
+ const button=e.target.closest(".delete-message");if(!button)return;
+ const id=button.dataset.messageId;if(!id||!confirm("Delete this message only from your view? The other participant will still see it."))return;
+ button.disabled=true;
+ try{const {error}=await db.rpc("hide_empire_message_for_me",{p_message_id:id});if(error)throw error;await renderChat(false);}
+ catch(error){console.error(error);showNotice(error.message||"Message could not be deleted.");button.disabled=false;}
+});
+if(vip){
+ $("mediaBtn")?.addEventListener("click",()=>$("mediaInput").click());
+ $("fileBtn")?.addEventListener("click",()=>$("mediaInput").click());
+ $("mediaInput")?.addEventListener("change",e=>{
+   const file=e.target.files?.[0];if(file){
+     const type=file.type.startsWith("image/")?"image":file.type.startsWith("video/")?"video":file.type.startsWith("audio/")?"audio":"file";
+     sendMedia(file,type);
+   }e.target.value="";
+ });
+ $("voiceBtn")?.addEventListener("click",toggleVoiceRecording);
+}
 const thread=$("thread");thread.scrollTop=thread.scrollHeight;
 }
 async function sendMessage(){const input=$("messageInput"),button=$("sendBtn");const content=input?.value.trim();if(!content)return;if(content.length>5000){showNotice("Message is too long (maximum 5000 characters).");return;}if(balance<fee()){showNotice("Insufficient EMPC balance. You need at least "+fee()+" EMPC.");return;}
