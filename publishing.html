@@ -90,7 +90,7 @@ button:hover,.button:hover{filter:brightness(1.08);transform:translateY(-1px)}
  .post-head{align-items:flex-start}
 }
 @media(prefers-reduced-motion:reduce){button,.button{transition:none}}
-
+.publication-media{margin-top:12px;display:grid;gap:9px}.publication-media-item{border:1px solid rgba(232,195,107,.2);border-radius:10px;padding:10px;background:#09090966}.publication-media-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.publication-media-actions button{padding:8px 11px;font-size:12px}.publication-media-size{font-size:12px;color:#c9b987}.publication-media-item img{display:block;width:100%;max-height:520px;object-fit:contain;background:#080808;border-radius:8px;margin-top:9px}.publication-media-note{font-size:12px;color:#b9d9bd;margin-top:7px}.media-secondary{background:#25221b;color:#f2d58a;border:1px solid #6b552d}
 </style>
 <link rel="stylesheet" href="empire-global-menu.css">
 <script src="empire-global-menu.js" defer></script>
@@ -112,7 +112,7 @@ button:hover,.button:hover{filter:brightness(1.08);transform:translateY(-1px)}
 </form>
 </section>
 <section class="card vip"><h3 class="gold">Video publishing — VIP</h3><p class="hint">Video uploads are available only to active VIP members and remain subject to administrator approval.</p><a class="button" href="vip.html">Open VIP Creator Studio</a></section>
-<h2 class="gold">Community publications</h2><div id="feed" class="muted">Loading publications...</div>
+<section class="card" id="publishingMediaControls"><h2 class="gold">📶 Media & Data Settings</h2><p class="hint">Choose whether publication photos load automatically. When disabled, you can view or download each photo manually.</p><label style="display:flex;align-items:center;gap:10px;margin:10px 0"><input id="publicationAutoLoad" type="checkbox" style="width:auto"> Load publication photos automatically</label><p class="hint" id="publicationMediaStatus">Automatic photo loading is off. Tap View photo when you want to load an image.</p></section><h2 class="gold">Community publications</h2><div id="feed" class="muted">Loading publications...</div>
 </main>
 <script>
 const SUPABASE_URL="https://vubjkwbkuwndkjqfnyom.supabase.co";
@@ -120,8 +120,54 @@ const SUPABASE_KEY="sb_publishable_Ig1R3dpAKyBfjIGSUhhlKw_uC-QF0QQ";
 const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 let user=null;
 const $=id=>document.getElementById(id);
+let publicationAutoLoad=localStorage.getItem("empire_publication_auto_load")==="true";
+const publicationDbName="empire-publication-media";
+let publicationDbPromise=null;
+function openPublicationMediaDb(){
+ if(!("indexedDB" in window))return Promise.reject(new Error("Offline storage is unavailable."));
+ if(!publicationDbPromise)publicationDbPromise=new Promise((resolve,reject)=>{
+  const req=indexedDB.open(publicationDbName,1);
+  req.onupgradeneeded=()=>{if(!req.result.objectStoreNames.contains("media"))req.result.createObjectStore("media",{keyPath:"path"});};
+  req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error||new Error("Could not open offline storage."));
+ });
+ return publicationDbPromise;
+}
+async function getPublicationCached(path){
+ const dbx=await openPublicationMediaDb();
+ return new Promise((resolve,reject)=>{const req=dbx.transaction("media","readonly").objectStore("media").get(path);req.onsuccess=()=>resolve(req.result||null);req.onerror=()=>reject(req.error);});
+}
+async function savePublicationCached(path,blob,name){
+ const dbx=await openPublicationMediaDb();
+ return new Promise((resolve,reject)=>{const tx=dbx.transaction("media","readwrite");tx.objectStore("media").put({path,blob,name,saved_at:Date.now()});tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);});
+}
+function publicationSize(bytes){
+ const n=Number(bytes);if(!Number.isFinite(n)||n<0)return "Size unavailable";
+ if(n<1024)return n+" B";if(n<1048576)return (n/1024).toFixed(1)+" KB";
+ if(n<1073741824)return (n/1048576).toFixed(1)+" MB";return (n/1073741824).toFixed(2)+" GB";
+}
+async function getPublicationSizes(paths){
+ const result=new Map(),groups=new Map();
+ [...new Set(paths)].forEach(path=>{const i=path.lastIndexOf("/"),folder=i<0?"":path.slice(0,i),name=i<0?path:path.slice(i+1);if(!groups.has(folder))groups.set(folder,new Set());groups.get(folder).add(name);});
+ await Promise.all([...groups].map(async([folder,names])=>{try{const {data,error}=await db.storage.from("post-images").list(folder,{limit:1000});if(error)throw error;(data||[]).forEach(item=>{if(names.has(item.name)){const bytes=item.metadata?.size??item.metadata?.contentLength??item.size;if(bytes!=null)result.set(folder?folder+"/"+item.name:item.name,Number(bytes));}});}catch(err){console.warn("Could not read publication image sizes:",err);}}));
+ return result;
+}
+async function publicationImageUrl(path){
+ const {data,error}=await db.storage.from("post-images").createSignedUrl(path,3600);
+ if(error)throw error;return data.signedUrl;
+}
+function downloadPublicationBlob(blob,name){
+ const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=name||"empire-publication-image";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);
+}
+function updatePublicationMediaSetting(){
+ const toggle=$("publicationAutoLoad");if(!toggle)return;
+ toggle.checked=publicationAutoLoad;
+ $("publicationMediaStatus").textContent=publicationAutoLoad?"Automatic photo loading is on. Images may use mobile data as publications appear.":"Automatic photo loading is off. Tap View photo when you want to load an image.";
+}
+
 function escapeHTML(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));}
 function notify(message,error=false){$("notice").textContent=message;$("notice").className="notice show "+(error?"error":"success");}
+$("publicationAutoLoad").addEventListener("change",async e=>{publicationAutoLoad=!!e.target.checked;localStorage.setItem("empire_publication_auto_load",String(publicationAutoLoad));updatePublicationMediaSetting();await loadFeed();});
+updatePublicationMediaSetting();
 async function loadFeed(){
  const {data,error}=await db.from("community_posts").select("id,author_id,author_name,content,image_path,image_paths,created_at").eq("is_removed",false).order("created_at",{ascending:false}).limit(50);
  if(error){$("feed").textContent="Could not load publications. Please run publishing-setup.sql in Supabase first.";return;}
@@ -137,10 +183,21 @@ async function loadFeed(){
   const authorMap=new Map((authors||[]).map(a=>[a.id,a]));
   const adminIds=new Set(["8166f8a9-fdc3-43a4-85c7-53ec1dbbde0e","7c5f5c13-b106-4c7c-9bd5-9339576bfe7a"]);
   const fallbackAvatar="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 80'%3E%3Crect width='80' height='80' fill='%23222222'/%3E%3Ctext x='40' y='52' text-anchor='middle' font-size='38' fill='%23e8c36b'%3E%E2%98%BB%3C/text%3E%3C/svg%3E";
+  const allImagePaths=data.flatMap(p=>[...(Array.isArray(p.image_paths)?p.image_paths:[]),...(p.image_path&&!(p.image_paths||[]).includes(p.image_path)?[p.image_path]:[])]);
+  const mediaSizes=await getPublicationSizes(allImagePaths);
   const cards=await Promise.all(data.map(async p=>{
    let image="";
    const paths=[...(Array.isArray(p.image_paths)?p.image_paths:[]),...(p.image_path&&!(p.image_paths||[]).includes(p.image_path)?[p.image_path]:[])];
-   for(const path of paths){const {data:u}=db.storage.from("post-images").getPublicUrl(path);if(u?.publicUrl)image+='<img src="'+escapeHTML(u.publicUrl)+'" alt="Publication image" loading="lazy">';}
+   for(const path of paths){
+    const cached=await getPublicationCached(path).catch(()=>null);
+    const size=publicationSize(mediaSizes.get(path));
+    let visual="";
+    if(cached?.blob){const cachedUrl=URL.createObjectURL(cached.blob);visual='<img src="'+escapeHTML(cachedUrl)+'" alt="Publication image" loading="lazy"> <div class="publication-media-note">✓ Saved offline</div>';}
+    else if(publicationAutoLoad){const url=await publicationImageUrl(path).catch(()=>null);visual=url?'<img src="'+escapeHTML(url)+'" alt="Publication image" loading="lazy">' : '<p class="hint">Image could not be loaded.</p>';}
+    const safePath=escapeHTML(path);
+    image+='<div class="publication-media-item" data-publication-media="'+safePath+'"><div class="publication-media-actions">'+(visual?"":'<button type="button" data-publication-action="view" data-path="'+safePath+'">View photo</button>')+'<button type="button" class="media-secondary" data-publication-action="download" data-path="'+safePath+'">⬇ Download</button><span class="publication-media-size">'+escapeHTML(size)+'</span></div><div class="publication-media-visual">'+visual+'</div></div>';
+   }
+
    const author=authorMap.get(p.author_id);
    const ownProfile=!!user&&user.id===p.author_id;
    let authorHtml="";
@@ -157,6 +214,26 @@ async function loadFeed(){
    return '<article class="post"><div class="post-head"><div class="post-author">'+authorHtml+'</div><span>'+new Date(p.created_at).toLocaleString()+'</span></div><div class="post-body">'+escapeHTML(p.content||"")+'</div>'+image+actions+'</article>';
   }));
   $("feed").innerHTML=cards.join("");
+ $("feed").querySelectorAll("[data-publication-action]").forEach(btn=>btn.addEventListener("click",async()=>{
+  const action=btn.dataset.publicationAction,path=btn.dataset.path,wrap=btn.closest(".publication-media-item"),visual=wrap?.querySelector(".publication-media-visual");
+  if(!path||!visual)return;btn.disabled=true;
+  try{
+   let cached=await getPublicationCached(path).catch(()=>null),blob=cached?.blob;
+   if(!blob||action==="view"&&!cached){
+    const url=await publicationImageUrl(path),response=await fetch(url);if(!response.ok)throw new Error("Image download failed.");blob=await response.blob();
+   }
+   if(action==="download"){
+    if(!cached){const fileName=path.split("/").pop()||"empire-image";await savePublicationCached(path,blob,fileName);}
+    downloadPublicationBlob(blob,cached?.name||path.split("/").pop());btn.textContent="✓ Downloaded";
+    if(!visual.querySelector("img"))visual.innerHTML='<div class="publication-media-note">✓ Saved offline</div>';
+   }else{
+    const localUrl=URL.createObjectURL(blob);visual.innerHTML='<img src="'+escapeHTML(localUrl)+'" alt="Publication image" loading="lazy">';
+    if(cached)visual.insertAdjacentHTML("beforeend",'<div class="publication-media-note">✓ Saved offline</div>');
+    btn.textContent="Photo loaded";
+   }
+  }catch(err){notify(err.message||"Could not load this image.",true);btn.disabled=false;return;}
+  if(action==="view")btn.remove();else btn.disabled=false;
+ }));
  $("feed").querySelectorAll("[data-report]").forEach(b=>b.addEventListener("click",()=>reportPost(b.dataset.report)));
  $("feed").querySelectorAll("[data-react]").forEach(b=>b.addEventListener("click",async()=>{
   b.disabled=true;
