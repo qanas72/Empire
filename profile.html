@@ -933,42 +933,66 @@
 }
 
 
-/* Secondary in-page menu: ordered shortcuts to every profile section */
-.profile-section-menu{
- width:min(1120px,92%);margin:16px auto 22px;padding:15px 17px;
- border:1px solid rgba(245,217,139,.62);border-radius:14px;
- background:rgba(8,8,8,.72);box-shadow:0 8px 24px rgba(0,0,0,.22);
+/* Separate compact side drawer for profile sections */
+.profile-header-actions{display:flex;align-items:center;gap:9px;flex:0 0 auto}
+.profile-sections-toggle{
+ display:inline-flex;align-items:center;gap:8px;min-height:42px;padding:8px 13px;
+ border:1px solid rgba(245,217,139,.8);border-radius:11px;
+ background:linear-gradient(145deg,#3b2a0d,#171108);color:#ffe39a;
+ font-size:13px;font-weight:900;letter-spacing:.3px;cursor:pointer;
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.14),0 4px 13px #0008;
 }
-.profile-section-menu-title{
- color:#f5d98b;font-size:14px;font-weight:800;margin:0 0 11px;
- letter-spacing:.3px;
+.profile-sections-icon{font-size:21px;line-height:1}
+.profile-sections-toggle:hover{border-color:#ffe39a;filter:brightness(1.15)}
+.profile-section-drawer-backdrop{
+ position:fixed;inset:0;z-index:998;display:block;background:rgba(0,0,0,.48);
+ opacity:0;visibility:hidden;transition:opacity .22s ease,visibility .22s ease;
 }
-.profile-section-menu-links{
- display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;
+.profile-section-drawer{
+ position:fixed;z-index:999;top:82px;right:12px;
+ width:min(340px,52vw);max-height:calc(100dvh - 105px);overflow:hidden;
+ display:flex;flex-direction:column;
+ border:1px solid rgba(245,217,139,.8);border-radius:16px;
+ background:linear-gradient(160deg,rgba(35,27,13,.98),rgba(9,9,9,.98) 65%);
+ box-shadow:0 18px 55px rgba(0,0,0,.72),inset 0 1px 0 rgba(255,230,170,.13);
+ transform:translateX(calc(100% + 24px));opacity:0;visibility:hidden;
+ transition:transform .24s ease,opacity .2s ease,visibility .2s ease;
 }
-.profile-section-menu-links a{
- display:flex;align-items:center;min-height:38px;padding:8px 10px;
- border:1px solid rgba(245,217,139,.22);border-radius:8px;
- color:#e8e2d5;font-size:12px;line-height:1.35;
- background:rgba(255,255,255,.025);
+.profile-section-drawer.is-open{transform:translateX(0);opacity:1;visibility:visible}
+.profile-section-drawer-backdrop.is-open{opacity:1;visibility:visible}
+.profile-section-drawer-head{
+ display:flex;align-items:center;justify-content:space-between;gap:8px;
+ padding:13px 14px;color:#ffe39a;font-size:12px;font-weight:900;letter-spacing:1px;
+ border-bottom:1px solid rgba(245,217,139,.35);background:rgba(214,173,85,.08);
 }
-.profile-section-menu-links a:hover{
- color:#ffe39a;border-color:rgba(245,217,139,.75);
- background:rgba(214,173,85,.09);
+.profile-section-drawer-head button{
+ width:30px;height:30px;border:1px solid rgba(245,217,139,.45);border-radius:8px;
+ color:#ffe39a;background:rgba(0,0,0,.35);font-size:22px;line-height:1;cursor:pointer;
 }
-#profileOverview,#socialPanel,#bioCard,#profileEditSection,#vipMembershipSection,
-#empireWalletSection,#empirePublishingOption,#myPublicationsOption,
-#premiumMembershipOption,#vipCreatorCard,#exchangeOption,#investmentOption,
-#empireReferralCard,#accountWarningsCard,#purchaseHistorySection,#accountSettingsSection{
- scroll-margin-top:90px;
+.profile-section-drawer-links{overflow-y:auto;padding:8px;display:flex;flex-direction:column;gap:4px}
+.profile-section-drawer-links a{
+ display:flex;align-items:center;min-height:39px;padding:8px 10px;
+ border:1px solid transparent;border-radius:8px;color:#eee5d2;
+ font-size:12px;line-height:1.35;text-decoration:none;
 }
+.profile-section-drawer-links a:hover,.profile-section-drawer-links a:focus{
+ color:#ffe39a;border-color:rgba(245,217,139,.42);background:rgba(214,173,85,.1);outline:none;
+}
+.profile-section-drawer-links a[style*="display: none"]{display:none!important}
+#profileOverview,#profileSocialTabs,#socialPanel,#bioCard,#profileEditSection,#vipMembershipSection,
+#empireWalletSection,#empirePublishingOption,#myPublicationsOption,#premiumMembershipOption,
+#vipCreatorCard,#exchangeOption,#investmentOption,#empireReferralCard,#accountWarningsCard,
+#purchaseHistorySection,#accountSettingsSection{scroll-margin-top:90px}
 @media(max-width:850px){
- .profile-section-menu{margin-top:12px;padding:13px}
- .profile-section-menu-links{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
- .profile-section-menu-links a{font-size:12px;min-height:40px;padding:8px}
+ .profile-header-actions{gap:6px}
+ .profile-sections-toggle{min-height:38px;padding:7px 9px;font-size:12px}
+ .profile-section-drawer{top:72px;right:7px;width:52vw;max-width:300px;min-width:220px;max-height:72dvh}
+ .profile-section-drawer-links a{font-size:11px;min-height:37px;padding:7px 8px}
 }
 @media(max-width:390px){
- .profile-section-menu-links{grid-template-columns:1fr}
+ .profile-section-drawer{width:54vw;min-width:0;right:5px}
+ .profile-section-drawer-links a{font-size:10px;padding:7px 6px}
+ .profile-section-drawer-head{padding:10px;font-size:10px}
 }
 
 </style>
@@ -996,32 +1020,41 @@
         <a href="notifications.html" onclick="closeProfileMenu()">🔔 Notifications</a>
         <button type="button" class="nav-logout" onclick="closeProfileMenu();document.getElementById('logoutButton').click()">🚪 Logout</button>
       </nav>
-      <button class="profile-menu-toggle" type="button" onclick="toggleProfileMenu()" aria-label="Open menu" aria-expanded="false">☰</button>
+      <div class="profile-header-actions">
+        <button class="profile-sections-toggle" type="button" onclick="toggleProfileSectionMenu()" aria-controls="profileSectionDrawer" aria-expanded="false">
+          <span class="profile-sections-icon">☷</span><span>Profile</span>
+        </button>
+        <button class="profile-menu-toggle" type="button" onclick="toggleProfileMenu()" aria-label="Open main menu" aria-expanded="false">☰</button>
+      </div>
     </div>
   </header>
   <main class="page">
 
-    <nav class="profile-section-menu" aria-label="Profile page menu">
-      <div class="profile-section-menu-title">☰ Profile Menu</div>
-      <div class="profile-section-menu-links">
-        <a href="#profileOverview">👤 Profile Overview</a>
-        <a href="#profileSocialTabs">👥 Followers &amp; Friends</a>
-        <a href="#bioCard">📝 Bio</a>
-        <a href="#profileEditSection">✏️ Edit Display Name</a>
-        <a href="#vipMembershipSection">👑 VIP Membership</a>
-        <a href="#empireWalletSection">🪙 EmpireCoin Wallet</a>
-        <a href="#empirePublishingOption">✍️ Empire Publishing</a>
-        <a href="#myPublicationsOption">📚 My Publications</a>
-        <a href="#premiumMembershipOption">♛ Premium Membership</a>
-        <a href="#vipCreatorCard" id="profileVipStudioMenuLink" style="display:none">🎬 VIP Video Publishing</a>
-        <a href="#exchangeOption">🔄 Exchange</a>
-        <a href="#investmentOption">📈 Investment</a>
-        <a href="#empireReferralCard">🤝 Invite Friends &amp; Earn EMPC</a>
-        <a href="#accountWarningsCard">⚠️ Account Warnings</a>
-        <a href="#purchaseHistorySection">🛒 Purchase History</a>
-        <a href="#accountSettingsSection">⚙️ Account Settings</a>
+    <div class="profile-section-drawer-backdrop" id="profileSectionBackdrop" onclick="closeProfileSectionMenu()" aria-hidden="true"></div>
+    <aside class="profile-section-drawer" id="profileSectionDrawer" aria-label="Profile sections" aria-hidden="true">
+      <div class="profile-section-drawer-head">
+        <span>👑 PROFILE SECTIONS</span>
+        <button type="button" onclick="closeProfileSectionMenu()" aria-label="Close sections menu">×</button>
       </div>
-    </nav>
+      <nav class="profile-section-drawer-links">
+        <a href="#profileOverview" onclick="closeProfileSectionMenu()">👤 Profile Overview</a>
+        <a href="#profileSocialTabs" onclick="closeProfileSectionMenu()">👥 Followers &amp; Friends</a>
+        <a href="#bioCard" onclick="closeProfileSectionMenu()">📝 Bio</a>
+        <a href="#profileEditSection" onclick="closeProfileSectionMenu()">✏️ Edit Display Name</a>
+        <a href="#vipMembershipSection" onclick="closeProfileSectionMenu()">👑 VIP Membership</a>
+        <a href="#empireWalletSection" onclick="closeProfileSectionMenu()">🪙 EmpireCoin Wallet</a>
+        <a href="#empirePublishingOption" onclick="closeProfileSectionMenu()">✍️ Empire Publishing</a>
+        <a href="#myPublicationsOption" onclick="closeProfileSectionMenu()">📚 My Publications</a>
+        <a href="#premiumMembershipOption" onclick="closeProfileSectionMenu()">♛ Premium Membership</a>
+        <a href="#vipCreatorCard" id="profileVipStudioMenuLink" style="display:none" onclick="closeProfileSectionMenu()">🎬 VIP Video Publishing</a>
+        <a href="#exchangeOption" onclick="closeProfileSectionMenu()">🔄 Exchange</a>
+        <a href="#investmentOption" onclick="closeProfileSectionMenu()">📈 Investment</a>
+        <a href="#empireReferralCard" onclick="closeProfileSectionMenu()">🤝 Invite Friends &amp; Earn EMPC</a>
+        <a href="#accountWarningsCard" onclick="closeProfileSectionMenu()">⚠️ Account Warnings</a>
+        <a href="#purchaseHistorySection" onclick="closeProfileSectionMenu()">🛒 Purchase History</a>
+        <a href="#accountSettingsSection" onclick="closeProfileSectionMenu()">⚙️ Account Settings</a>
+      </nav>
+    </aside>
 
     <div id="notice" class="notice"></div>
 
@@ -2434,6 +2467,28 @@
   },true);
   document.querySelectorAll('.avatar-large,img.avatar,img.avatar-small,.community-author img,.post-author img,.chat-head img.avatar').forEach(img=>img.classList.add("empire-avatar-zoom"));
 })();
+
+function toggleProfileSectionMenu(){
+ const drawer=document.getElementById("profileSectionDrawer");
+ const backdrop=document.getElementById("profileSectionBackdrop");
+ const button=document.querySelector(".profile-sections-toggle");
+ if(!drawer||!backdrop)return;
+ const opened=!drawer.classList.contains("is-open");
+ drawer.classList.toggle("is-open",opened);
+ backdrop.classList.toggle("is-open",opened);
+ drawer.setAttribute("aria-hidden",opened?"false":"true");
+ if(button)button.setAttribute("aria-expanded",opened?"true":"false");
+}
+function closeProfileSectionMenu(){
+ const drawer=document.getElementById("profileSectionDrawer");
+ const backdrop=document.getElementById("profileSectionBackdrop");
+ const button=document.querySelector(".profile-sections-toggle");
+ drawer?.classList.remove("is-open");
+ backdrop?.classList.remove("is-open");
+ drawer?.setAttribute("aria-hidden","true");
+ if(button)button.setAttribute("aria-expanded","false");
+}
+document.addEventListener("keydown",event=>{if(event.key==="Escape")closeProfileSectionMenu();});
 
 function toggleProfileMenu(){
  const menu=document.getElementById("profileMainLinks");
