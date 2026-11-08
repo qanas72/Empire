@@ -1005,7 +1005,7 @@
       <div class="profile-section-menu-title">☰ Profile Menu</div>
       <div class="profile-section-menu-links">
         <a href="#profileOverview">👤 Profile Overview</a>
-        <a href="#socialPanel">👥 Followers &amp; Friends</a>
+        <a href="#profileSocialTabs">👥 Followers &amp; Friends</a>
         <a href="#bioCard">📝 Bio</a>
         <a href="#profileEditSection">✏️ Edit Display Name</a>
         <a href="#vipMembershipSection">👑 VIP Membership</a>
@@ -1077,7 +1077,7 @@
       </aside>
     </section>
 
-    <nav class="profile-social-tabs" aria-label="Profile sections">
+    <nav class="profile-social-tabs" id="profileSocialTabs" aria-label="Profile sections">
       <button type="button" class="social-tab" data-social-tab="followers">👥 Followers <strong id="followersTabCount">—</strong></button>
       <button type="button" class="social-tab" data-social-tab="friends">🤝 Friends <strong id="friendsTabCount">—</strong></button>
       <button type="button" class="social-tab" data-social-tab="bio">👤 Bio</button>
@@ -2097,6 +2097,7 @@
 
         if (isActive) {
           $("vipCreatorCard").style.display = "block";
+          if ($("profileVipStudioMenuLink")) $("profileVipStudioMenuLink").style.display = "flex";
           $("vipBadge").textContent = "♛ VIP Active";
           $("vipBadge").className = "badge";
           $("accountType").textContent = "VIP Member";
