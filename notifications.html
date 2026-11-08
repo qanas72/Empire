@@ -1,9 +1,70 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>EMPIRE | Notifications</title><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><style>
-*{box-sizing:border-box}body{margin:0;background:#080808;color:#eee;font-family:Arial,sans-serif}.top{padding:15px 4%;border-bottom:1px solid #66502b;display:flex;justify-content:space-between;align-items:center;gap:12px}.brand{color:#e8c36b;text-decoration:none;font-weight:bold}.btn{padding:10px 14px;border:1px solid #80642f;border-radius:8px;background:#181818;color:#e8c36b;cursor:pointer;text-decoration:none}.wrap{width:min(850px,94%);margin:26px auto}h1{color:#e8c36b}.muted{color:#aaa;font-size:13px;line-height:1.7}.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}.notice{border:1px solid #5c4826;border-radius:10px;padding:15px;margin:10px 0;background:#101010}.notice.unread{border-left:4px solid #e8c36b;background:#17130c}.notice h3{font-size:16px;margin:0 0 8px;color:#f0d18a}.notice p{line-height:1.6;margin:0 0 9px;white-space:pre-wrap;overflow-wrap:anywhere}.meta{font-size:12px;color:#999}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.empty{text-align:center;padding:30px;border:1px dashed #66502b;border-radius:10px;color:#aaa}.count{color:#e8c36b}
-</style></head><body><header class="top"><a class="brand" href="index.html">♛ EMPIRE</a><button class="btn" onclick="history.length>1?history.back():location.href='profile.html'">← Back</button></header><main class="wrap"><h1>♧ Notifications</h1><p class="muted">Messages, account warnings, video review results, VIP request decisions, support replies, raffle results and important account updates.</p><div class="toolbar"><button class="btn" id="refresh">Refresh</button><button class="btn" id="readAll">Mark all as read</button><span class="muted" id="summary"></span></div><div id="notice" class="muted">Checking your account...</div><section id="items"><div class="empty">Loading notifications...</div></section></main>
+*{box-sizing:border-box}body{margin:0;background:#080808;color:#eee;font-family:Arial,sans-serif}.top{padding:15px 4%;border-bottom:1px solid #66502b;display:flex;justify-content:space-between;align-items:center;gap:12px}.brand{color:#e8c36b;text-decoration:none;font-weight:bold}.btn{padding:10px 14px;border:1px solid #80642f;border-radius:8px;background:#181818;color:#e8c36b;cursor:pointer;text-decoration:none}.wrap{width:min(850px,94%);margin:26px auto}h1{color:#e8c36b}.muted{color:#aaa;font-size:13px;line-height:1.7}.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}.notice{border:1px solid #5c4826;border-radius:10px;padding:15px;margin:10px 0;background:#101010}.notice.unread{border-left:4px solid #e8c36b;background:#17130c}.notice h3{font-size:16px;margin:0 0 8px;color:#f0d18a}.notice p{line-height:1.6;margin:0 0 9px;white-space:pre-wrap;overflow-wrap:anywhere}.meta{font-size:12px;color:#999}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.empty{text-align:center;padding:30px;border:1px dashed #66502b;border-radius:10px;color:#aaa}.count{color:#e8c36b}.push-panel{border:1px solid #66502b;border-radius:12px;padding:16px;margin:18px 0;background:#111}.push-panel h2{font-size:17px;color:#e8c36b;margin:0 0 8px}.push-panel .btn{margin-top:8px}.push-status{font-size:13px;color:#bbb;line-height:1.7;margin-top:8px}
+</style></head><body><header class="top"><a class="brand" href="index.html">♛ EMPIRE</a><button class="btn" onclick="history.length>1?history.back():location.href='profile.html'">← Back</button></header><main class="wrap"><h1>♧ Notifications</h1><p class="muted">Messages, account warnings, video review results, VIP request decisions, support replies, raffle results and important account updates.</p><section class="push-panel"><h2>🔔 Push Notifications</h2><p class="muted">Enable notifications on this device to receive important EMPIRE updates, including when the app is not open.</p><button class="btn" id="enablePush">Enable on this device</button> <button class="btn" id="disablePush">Disable on this device</button><div class="push-status" id="pushStatus">Checking device support…</div></section><div class="toolbar"><button class="btn" id="refresh">Refresh</button><button class="btn" id="readAll">Mark all as read</button><span class="muted" id="summary"></span></div><div id="notice" class="muted">Checking your account...</div><section id="items"><div class="empty">Loading notifications...</div></section></main>
 <script>
 const db=window.supabase.createClient("https://vubjkwbkuwndkjqfnyom.supabase.co","sb_publishable_Ig1R3dpAKyBfjIGSUhhlKw_uC-QF0QQ");
 const box=document.getElementById("items"),notice=document.getElementById("notice"),summary=document.getElementById("summary");let user=null;
+
+const EMPIRE_VAPID_PUBLIC_KEY = "BNzihAyd8fe4H4hRIYt_fvjH-L0k-Du4lT9Buio1HW4ehRq2gW7dXZZKshFlfD__Ngpk-cAGmyZH-h5jyYIic2s";
+function urlBase64ToUint8Array(base64String) {
+ const padding = "=".repeat((4 - base64String.length % 4) % 4);
+ const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+ const raw = atob(base64); return Uint8Array.from([...raw].map(c => c.charCodeAt(0)));
+}
+const pushStatus = document.getElementById("pushStatus");
+async function getPushRegistration() {
+ if (!("serviceWorker" in navigator) || !("PushManager" in window) || !("Notification" in window))
+   throw new Error("This browser does not support Web Push. Please use an updated Chrome browser.");
+ const reg = await navigator.serviceWorker.register("./service-worker.js");
+ return await navigator.serviceWorker.ready;
+}
+async function updatePushStatus() {
+ try {
+   if (!("Notification" in window)) { pushStatus.textContent = "Push notifications are not supported in this browser."; return; }
+   const reg = await getPushRegistration();
+   const sub = await reg.pushManager.getSubscription();
+   pushStatus.textContent = sub
+     ? "This device has a Push subscription. Browser permission: " + Notification.permission + "."
+     : "This device is not subscribed. Browser permission: " + Notification.permission + ".";
+ } catch(e) { pushStatus.textContent = e.message; }
+}
+document.getElementById("enablePush").onclick = async () => {
+ try {
+   if (!user) throw new Error("Please sign in first.");
+   const permission = await Notification.requestPermission();
+   if (permission !== "granted") throw new Error("Notification permission was not granted.");
+   const reg = await getPushRegistration();
+   let sub = await reg.pushManager.getSubscription();
+   if (!sub) sub = await reg.pushManager.subscribe({
+     userVisibleOnly: true,
+     applicationServerKey: urlBase64ToUint8Array(EMPIRE_VAPID_PUBLIC_KEY)
+   });
+   const j = sub.toJSON();
+   if (!j.keys || !j.keys.p256dh || !j.keys.auth) throw new Error("The browser returned an incomplete push subscription.");
+   const {error} = await db.from("empire_push_subscriptions").upsert({
+     user_id:user.id, endpoint:j.endpoint, p256dh:j.keys.p256dh, auth:j.keys.auth,
+     expiration_time:j.expirationTime || null, user_agent:navigator.userAgent,
+     enabled:true, updated_at:new Date().toISOString(), last_seen_at:new Date().toISOString()
+   }, {onConflict:"endpoint"});
+   if (error) throw error;
+   pushStatus.textContent = "Push is enabled and this device is registered. Server-side sending will be connected in the next step.";
+ } catch(e) { pushStatus.textContent = "Could not enable Push: " + (e.message || String(e)); }
+};
+document.getElementById("disablePush").onclick = async () => {
+ try {
+   if (!user) throw new Error("Please sign in first.");
+   const reg = await getPushRegistration();
+   const sub = await reg.pushManager.getSubscription();
+   if (sub) {
+     const endpoint = sub.endpoint;
+     await sub.unsubscribe();
+     const {error} = await db.from("empire_push_subscriptions").delete().eq("user_id",user.id).eq("endpoint",endpoint);
+     if (error) throw error;
+   }
+   pushStatus.textContent = "Push notifications are disabled on this device.";
+ } catch(e) { pushStatus.textContent = "Could not disable Push: " + (e.message || String(e)); }
+};
+
 const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
 async function load(){
  if(!user)return;box.innerHTML='<div class="empty">Loading...</div>';
@@ -19,5 +80,5 @@ async function load(){
 async function markRead(id){const {error}=await db.from("empire_notifications").update({read_at:new Date().toISOString()}).eq("id",id).eq("user_id",user.id);if(error){notice.textContent=error.message;return;}await load();}
 document.getElementById("refresh").onclick=load;
 document.getElementById("readAll").onclick=async()=>{const {error}=await db.from("empire_notifications").update({read_at:new Date().toISOString()}).eq("user_id",user.id).is("read_at",null);if(error){notice.textContent=error.message;return;}notice.textContent="All notifications marked as read.";await load();};
-(async()=>{const {data,error}=await db.auth.getSession();user=data?.session?.user;if(error||!user){notice.textContent="Please sign in to view notifications.";box.innerHTML='<a class="btn" href="login.html">Sign in</a>';return;}notice.textContent="Your EMPIRE notifications.";await load();})();
+(async()=>{const {data,error}=await db.auth.getSession();user=data?.session?.user;if(error||!user){notice.textContent="Please sign in to view notifications.";box.innerHTML='<a class="btn" href="login.html">Sign in</a>';return;}notice.textContent="Your EMPIRE notifications.";await updatePushStatus();await load();})();
 </script></body></html>
